@@ -1,0 +1,143 @@
+.positioning {
+  position: relative;
+}
+
+.positioning-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.positioning-scribble {
+  position: absolute;
+  top: 12%;
+  right: 6%;
+  width: 220px;
+  height: 40px;
+  opacity: 0.5;
+}
+
+[data-theme='dark'] .positioning-scribble path {
+  stroke: var(--neutral-600);
+}
+
+.positioning-head {
+  margin-bottom: var(--space-10);
+}
+
+.positioning-br {
+  display: block;
+}
+
+.positioning-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.positioning-card {
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--neutral-100);
+  background: var(--color-bg-surface);
+  transition: border-color var(--duration-base) var(--ease-spring),
+    transform var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-base) var(--ease-spring);
+}
+
+.positioning-card:hover {
+  border-color: var(--neutral-400);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.positioning-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-primary);
+}
+
+.positioning-card-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.positioning-claim {
+  margin: var(--space-10) auto 0;
+  max-width: 640px;
+  text-align: center;
+  font-size: clamp(18px, 2.2vw, 22px);
+  line-height: 1.45;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  text-wrap: balance;
+}
+
+/* Emphasis stays within the neutral scale — green is reserved for CTAs and AI
+   presence, never text on the canvas background. */
+.positioning-claim-accent {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--color-text-secondary);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+}
+
+@media (max-width: 860px) {
+  .positioning-cards {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .positioning-head {
+    text-align: left;
+  }
+
+  .positioning-claim {
+    text-align: center;
+    padding: 0 var(--space-4);
+  }
+}
+/* The scribble draws itself in on scroll — the site's sketch-in moment. */
+.positioning-scribble path {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  transition: stroke-dashoffset 1.3s var(--ease-spring);
+}
+
+.positioning-scribble.drawn path {
+  stroke-dashoffset: 0;
+}
+
+/* The green sparkle lands after the line completes, as a small accent. */
+.positioning-scribble .positioning-spark {
+  opacity: 0;
+  stroke-dashoffset: 400;
+  transition: stroke-dashoffset 0.5s var(--ease-spring) 1.15s,
+    opacity 0.5s ease 1.15s;
+}
+
+.positioning-scribble.drawn .positioning-spark {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .positioning-scribble path {
+    transition: none;
+    stroke-dashoffset: 0;
+  }
+  .positioning-scribble .positioning-spark {
+    transition: none;
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}

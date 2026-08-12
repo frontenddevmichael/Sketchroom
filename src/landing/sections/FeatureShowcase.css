@@ -1,0 +1,363 @@
+.fs {}
+
+.fs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.fs-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--neutral-100);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+  transition: border-color var(--duration-base) var(--ease-spring),
+    transform var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-base) var(--ease-spring);
+}
+
+.fs-card:hover {
+  border-color: var(--neutral-400);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+[data-theme='dark'] .fs-card {
+  background: var(--color-bg-surface);
+  border-color: var(--dark-hairline);
+}
+
+.fs-scene-wrap {
+  position: relative;
+  height: 210px;
+  border-bottom: 1px solid var(--neutral-100);
+  background:
+    radial-gradient(var(--neutral-100) 1px, transparent 1px) 0 0 / 22px 22px,
+    var(--color-bg-surface);
+  overflow: hidden;
+}
+
+[data-theme='dark'] .fs-scene-wrap {
+  background:
+    radial-gradient(var(--dark-canvas-grid-dot) 1px, transparent 1px) 0 0 / 22px 22px,
+    var(--color-bg-surface);
+}
+
+.fs-scene {
+  position: absolute;
+  inset: 0;
+}
+
+/* Desync the three cards' loops so they never animate in lockstep. */
+.fs-card:nth-of-type(2) .fs-scene .fs-block-a,
+.fs-card:nth-of-type(2) .fs-scene .fs-block-b,
+.fs-card:nth-of-type(2) .fs-scene .fs-bubble-top {
+  animation-delay: -0.87s;
+}
+
+.fs-card:nth-of-type(2) .fs-scene .fs-ghost-drop {
+  animation-delay: -1.3s;
+}
+
+.fs-card:nth-of-type(3) .fs-scene .fs-block-a,
+.fs-card:nth-of-type(3) .fs-scene .fs-block-b,
+.fs-card:nth-of-type(3) .fs-scene .fs-bubble-top {
+  animation-delay: -1.73s;
+}
+
+.fs-card:nth-of-type(3) .fs-scene .fs-ghost-drop {
+  animation-delay: -2.1s;
+}
+
+/* Shared scene atoms ---------------------------------------------------- */
+
+.fs-block {
+  position: absolute;
+  min-width: 74px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  border: 1.5px solid var(--neutral-150);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: var(--shadow-card-rest);
+}
+
+.fs-ghost {
+  border-style: dashed;
+  border-color: var(--green-500);
+  color: var(--green-700);
+  background: var(--green-50);
+}
+
+[data-theme='dark'] .fs-ghost {
+  background: rgba(37, 211, 102, 0.12);
+  color: var(--green-400);
+}
+
+.fs-cursor {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--neutral-500);
+  box-shadow: var(--shadow-card-rest);
+}
+
+.fs-cursor::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 1px;
+  width: 7px;
+  height: 11px;
+  clip-path: polygon(0 0, 100% 100%, 0 78%);
+  background: inherit;
+}
+
+.fs-cursor-green {
+  background: var(--green-500);
+}
+
+.fs-bubble {
+  position: absolute;
+  padding: 7px 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-150);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  box-shadow: var(--shadow-card-rest);
+}
+
+[data-theme='dark'] .fs-bubble {
+  border-color: var(--dark-hairline);
+}
+
+/* Scene 1: copilot iteration ------------------------------------------- */
+
+.fs-block-a {
+  left: 18%;
+  top: 38%;
+  animation: fs-pop 2.6s var(--ease-spring) infinite;
+}
+
+.fs-block-b {
+  left: 52%;
+  top: 38%;
+  opacity: 0;
+  animation: fs-ghost-in 2.6s var(--ease-spring) infinite;
+}
+
+.fs-bubble-top {
+  left: 18%;
+  top: 10%;
+  opacity: 0;
+  animation: fs-fade-drift 2.6s var(--ease-spring) infinite;
+}
+
+@keyframes fs-pop {
+  0%, 55% { opacity: 1; }
+  62% { opacity: 0.35; }
+  100% { opacity: 1; }
+}
+
+@keyframes fs-ghost-in {
+  0%, 55% { opacity: 0; transform: translateY(6px); }
+  70% { opacity: 1; transform: translateY(0) scale(1.05); }
+  85% { opacity: 1; transform: translateY(0) scale(1); }
+  95% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes fs-fade-drift {
+  0%, 58% { opacity: 0; transform: translateY(4px); }
+  72% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* Scene 2: block library insert ---------------------------------------- */
+
+.fs-toolbar {
+  position: absolute;
+  left: 8%;
+  top: 16%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card-rest);
+}
+
+[data-theme='dark'] .fs-toolbar {
+  border-color: var(--dark-hairline);
+}
+
+.fs-tool {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.fs-tool-active {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.fs-ghost-drop {
+  right: 20%;
+  top: 38%;
+  opacity: 0;
+  animation: fs-drop 2.6s var(--ease-spring) infinite;
+}
+
+@keyframes fs-drop {
+  0%, 45% { opacity: 0; transform: translateY(-10px) scale(0.96); }
+  60% { opacity: 1; transform: translateY(0) scale(1.03); }
+  72% { transform: translateY(0) scale(1); }
+  90% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* Scene 3: presence + history ------------------------------------------ */
+
+.fs-cursor:nth-child(1) {
+  animation: fs-drift-a 5s ease-in-out infinite alternate;
+}
+
+.fs-cursor:nth-child(2) {
+  animation: fs-drift-b 5s ease-in-out infinite alternate;
+}
+
+.fs-cursor:nth-child(3) {
+  animation: fs-drift-c 5s ease-in-out infinite alternate;
+}
+
+@keyframes fs-drift-a {
+  from { transform: translate(0, 0); }
+  to { transform: translate(18px, 22px); }
+}
+
+@keyframes fs-drift-b {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-16px, 18px); }
+}
+
+@keyframes fs-drift-c {
+  from { transform: translate(0, 0); }
+  to { transform: translate(20px, -14px); }
+}
+
+.fs-history {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.fs-history-chip {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--neutral-100);
+  background: var(--color-bg-surface);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+[data-theme='dark'] .fs-history-chip {
+  border-color: var(--dark-hairline);
+}
+
+.fs-history-chip.is-now {
+  border-color: var(--green-500);
+  color: var(--green-700);
+  background: var(--green-50);
+}
+
+[data-theme='dark'] .fs-history-chip.is-now {
+  color: var(--green-400);
+  background: rgba(37, 211, 102, 0.12);
+}
+
+/* Card body -------------------------------------------------------------- */
+
+.fs-card-body {
+  padding: var(--space-6);
+}
+
+.fs-eyebrow {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--green-600);
+}
+
+.fs-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2);
+  text-wrap: balance;
+}
+
+.fs-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-scene .fs-block,
+  .fs-scene .fs-bubble,
+  .fs-scene .fs-ghost-drop,
+  .fs-scene .fs-cursor {
+    animation: none !important;
+  }
+
+  /* Set elements that rely on keyframes to a visible steady state. */
+  .fs-scene .fs-block-b,
+  .fs-scene .fs-bubble-top,
+  .fs-scene .fs-ghost-drop {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .fs-cursor:nth-child(1),
+  .fs-cursor:nth-child(2),
+  .fs-cursor:nth-child(3) {
+    transform: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .fs-grid {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+}

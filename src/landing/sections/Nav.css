@@ -1,0 +1,282 @@
+.landing-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  transition: background var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-base) var(--ease-spring),
+    border-color var(--duration-base) var(--ease-spring);
+  border-bottom: 1px solid transparent;
+}
+
+.landing-nav-scrolled {
+  background: var(--surface-translucency-light);
+  backdrop-filter: blur(var(--surface-blur));
+  -webkit-backdrop-filter: blur(var(--surface-blur));
+  border-bottom-color: var(--neutral-100);
+  box-shadow: var(--shadow-card-rest);
+}
+
+[data-theme='dark'] .landing-nav-scrolled {
+  background: var(--surface-translucency-dark);
+  border-bottom-color: var(--dark-hairline);
+}
+
+.landing-nav-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  transition: padding var(--duration-base) var(--ease-spring);
+}
+
+/* Apple-style compaction: once the page is scrolled the bar tightens — the
+   glass backdrop appears and the chrome gets denser, so the nav recedes and
+   the content owns the screen. */
+.landing-nav-scrolled .landing-nav-inner {
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.landing-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.landing-nav-links {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  margin-left: var(--space-4);
+}
+
+/* The scroll-spy indicator: one green bar that glides between links with the
+   product's spring easing, instead of each link re-drawing its own underline
+   from the left. The nav reads as a live map of the page. */
+.landing-nav-indicator {
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--green-500);
+  pointer-events: none;
+  transition: left calc(var(--duration-base) * 1.2) var(--ease-spring),
+    width calc(var(--duration-base) * 1.2) var(--ease-spring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-nav-indicator {
+    transition: none;
+  }
+}
+
+.landing-nav-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: color var(--duration-fast) var(--ease-spring);
+}
+
+.landing-nav-link:hover {
+  color: var(--color-text-primary);
+}
+
+/* Scroll-spy: the current section's link sits at full emphasis; the green
+   bar beneath it is the gliding indicator above. */
+.landing-nav-link.active {
+  color: var(--color-text-primary);
+}
+
+/* Keyboard focus: a visible ring so tabbing through the nav never guesses. */
+.landing-nav-link:focus-visible,
+.landing-nav-menu-btn:focus-visible,
+.landing-nav-theme:focus-visible {
+  outline: 2px solid var(--green-500);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.landing-nav-link.landing-nav-signin {
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+}
+
+.landing-nav-link.landing-nav-signin:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.landing-nav-cta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.landing-nav-cta-btn {
+  font-size: 14px;
+  padding: 9px 20px;
+  border-radius: var(--radius-full);
+}
+
+/* Hamburger + mobile dropdown menu. Hidden on desktop; the header's route
+   CTAs stay visible even on the smallest screens. */
+.landing-nav-menu-btn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  margin-left: var(--space-1);
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.landing-nav-menu-btn:hover {
+  background: var(--color-selected-bg);
+}
+
+.landing-nav-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: var(--space-4);
+  right: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+}
+
+.landing-nav-menu-link {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.landing-nav-menu-link:hover {
+  background: var(--color-selected-bg);
+}
+
+/* The current section is marked in the mobile menu too — the menu mirrors
+   the desktop scroll-spy instead of ignoring it. */
+.landing-nav-menu-link.active {
+  color: var(--green-600);
+  background: var(--color-selected-bg);
+}
+
+[data-theme='dark'] .landing-nav-menu-link.active {
+  color: var(--green-400);
+}
+
+.landing-nav-menu-divider {
+  height: 1px;
+  background: var(--neutral-150);
+  margin: var(--space-2) 0;
+}
+
+[data-theme="dark"] .landing-nav-menu-divider {
+  background: var(--dark-hairline);
+}
+
+.landing-nav-menu-cta {
+  margin-top: var(--space-2);
+  width: 100%;
+}
+
+.landing-nav-menu-signin {
+  display: block;
+  text-align: center;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: color var(--duration-fast) var(--ease-spring),
+    background var(--duration-fast) var(--ease-spring);
+}
+
+.landing-nav-menu-signin:hover {
+  color: var(--color-text-primary);
+  background: var(--color-selected-bg);
+}
+
+@media (max-width: 680px) {
+  .landing-nav-links {
+    display: none;
+  }
+
+  .landing-nav-menu-btn {
+    display: inline-flex;
+  }
+
+  .landing-nav-inner {
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .landing-nav-scrolled .landing-nav-inner {
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
+
+  .landing-logo-name {
+    font-size: 15px;
+  }
+
+  .landing-nav-cta-btn {
+    padding: 8px 16px;
+  }
+
+  .landing-nav-signin {
+    display: none;
+  }
+}
+/* Theme toggle — the marketing site demonstrates the product's theming live. */
+.landing-nav-theme {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.landing-nav-theme:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.landing-nav-menu-theme {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: color var(--duration-fast) var(--ease-spring),
+    background var(--duration-fast) var(--ease-spring);
+}
+
+.landing-nav-menu-theme:hover {
+  color: var(--color-text-primary);
+  background: var(--color-selected-bg);
+}

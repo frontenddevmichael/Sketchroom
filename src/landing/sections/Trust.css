@@ -1,0 +1,137 @@
+.trust-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.trust-avatars {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.trust-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  border: 2px solid var(--color-bg-canvas);
+  /* Each avatar springs in, one after the other — the room filling up. */
+  animation: trust-avatar-in var(--duration-base) var(--ease-spring) backwards;
+}
+
+.trust-avatar:nth-child(1) { animation-delay: 0s; }
+.trust-avatar:nth-child(2) { animation-delay: 0.07s; }
+.trust-avatar:nth-child(3) { animation-delay: 0.14s; }
+.trust-avatar:nth-child(4) { animation-delay: 0.21s; }
+.trust-avatar:nth-child(5) { animation-delay: 0.28s; }
+
+@keyframes trust-avatar-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* The copilot is the only "live" presence — a slow pulse ring, the AI's own
+   signature, so the stack reads as an active room rather than a static logo. */
+.trust-avatar-copilot {
+  position: relative;
+}
+
+.trust-avatar-copilot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4);
+  animation: trust-copilot-ping 2.6s var(--ease-spring) 0.8s infinite;
+  pointer-events: none;
+}
+
+@keyframes trust-copilot-ping {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4);
+  }
+  70%, 100% {
+    box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trust-avatar {
+    animation: none;
+  }
+
+  .trust-avatar-copilot::after {
+    animation: none;
+  }
+}
+
+.trust-avatar + .trust-avatar {
+  margin-left: -12px;
+}
+
+.t-a1 {
+  background: var(--green-500);
+  color: #fff;
+}
+
+.t-a2 {
+  background: var(--neutral-500);
+}
+
+.t-a3 {
+  background: var(--dark-hairline);
+}
+
+.t-a4 {
+  background: var(--neutral-500);
+}
+
+.trust-avatar-empty {
+  background: transparent;
+  border: 1.5px dashed var(--neutral-400);
+  color: var(--neutral-400);
+}
+
+.trust-title {
+  font-size: clamp(26px, 3.4vw, 40px);
+}
+
+.trust-sub {
+  max-width: 480px;
+}
+
+.trust-slots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.trust-slot {
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  border: 1.5px dashed var(--neutral-400);
+  color: var(--neutral-400);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+[data-theme='dark'] .trust-slot {
+  border-color: var(--dark-hairline);
+  color: var(--neutral-500);
+}

@@ -1,0 +1,263 @@
+.wt-wrap {
+  position: relative;
+}
+
+.wt-pinned {
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+  border-top: 1px solid var(--neutral-100);
+  border-bottom: 1px solid var(--neutral-100);
+}
+
+[data-theme='dark'] .wt-pinned {
+  background: var(--dark-elevation-1);
+  border-color: var(--dark-hairline);
+}
+
+.wt-grid {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  display: grid;
+  grid-template-columns: 72px 1fr 1.15fr;
+  align-items: center;
+  gap: var(--space-8);
+  position: relative;
+}
+
+.wt-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.wt-rail-item {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--neutral-400);
+  position: relative;
+  padding-left: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: color var(--duration-base) var(--ease-spring);
+}
+
+.wt-rail-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+  transition: background-color var(--duration-base) var(--ease-spring);
+}
+
+.wt-rail-active {
+  color: var(--color-text-primary);
+}
+
+.wt-copy {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.wt-num {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--green-600);
+  margin-bottom: var(--space-3);
+}
+
+.wt-title {
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4);
+  text-wrap: balance;
+}
+
+.wt-body {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.wt-progress {
+  margin-top: var(--space-8);
+  height: 2px;
+  width: 100%;
+  max-width: 260px;
+  background: var(--neutral-100);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+[data-theme='dark'] .wt-progress {
+  background: var(--neutral-600);
+}
+
+.wt-progress-bar {
+  height: 100%;
+  background: var(--green-500);
+  border-radius: var(--radius-full);
+  transition: width 0.25s ease;
+}
+
+.wt-canvas {
+  width: 100%;
+  /* Keep the aspect-ratio canvas inside the pinned viewport on shorter
+     screens: cap width by the height that actually fits. */
+  max-width: min(100%, calc((100svh - 200px) / 0.625));
+}
+
+/* Scroll-to-explore affordance, shown at the first step. */
+.wt-scroll-hint {
+  position: absolute;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--surface-translucency-light);
+  backdrop-filter: blur(var(--surface-blur));
+  -webkit-backdrop-filter: blur(var(--surface-blur));
+  border: 1px solid var(--neutral-100);
+  box-shadow: var(--shadow-card-hover);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+[data-theme='dark'] .wt-scroll-hint {
+  background: var(--surface-translucency-dark);
+  border-color: var(--dark-hairline);
+}
+
+.wt-scroll-wheel {
+  width: 22px;
+  height: 34px;
+  border: 1.5px solid var(--color-text-secondary);
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  padding-top: 5px;
+}
+
+.wt-scroll-wheel-dot {
+  width: 4px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--green-500);
+  animation: wt-wheel 1.6s ease-in-out infinite;
+}
+
+@keyframes wt-wheel {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+/* Reserves the pinned walkthrough's ~600vh footprint on desktop so the lazy
+   mount causes no layout shift. On small screens the walkthrough renders a
+   compact static list, so keep the slot small. */
+.wt-lazy-slot {
+  height: 600vh;
+}
+
+@media (max-width: 900px) {
+  .wt-lazy-slot {
+    height: 0;
+  }
+}
+.wt-static {
+  padding-top: var(--space-20);
+  padding-bottom: var(--space-20);
+}
+
+.wt-static-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-10);
+}
+
+.wt-static-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.wt-static-num {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--green-600);
+}
+
+.wt-static-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.wt-static-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-3);
+  text-wrap: pretty;
+}
+
+@media (max-width: 900px) {
+  .wt-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    padding: 0 var(--space-6);
+  }
+
+  .wt-rail {
+    flex-direction: row;
+    justify-content: center;
+    order: 2;
+    margin-top: var(--space-6);
+  }
+
+  .wt-rail-item {
+    padding-left: var(--space-2);
+  }
+
+  .wt-rail-item::before {
+    display: none;
+  }
+
+  .wt-copy {
+    min-height: 0;
+  }
+
+  .wt-progress {
+    display: none;
+  }
+
+  .wt-canvas {
+    margin-top: var(--space-6);
+  }
+}
