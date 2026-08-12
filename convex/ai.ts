@@ -1,10 +1,11 @@
-import { query, action, mutation } from "./_generated/server";
+import { query, action, mutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { api } from "./_generated/api";
 import { internal } from "./_generated/api";
 import { auth } from "./lib";
 import { rateLimiter } from "./rateLimiter";
 import { buildDiagram, buildPrompt, type AiResult } from "./aiDiagram";
+import { countAiSuggestions, FREE_PLAN, planLimitError } from "./usage";
 
 // The copilot runs through OpenRouter so the model is swappable per
 // deployment (OPENROUTER_MODEL) without a code change. The key and model are
@@ -96,6 +97,17 @@ async function callOpenAi(prompt: string): Promise<AiResult> {
   }
 }
 
+/**
+ * Monthly free-plan AI usage for one user. Internal because actions can't read
+ * the database directly — the public action calls this via runQuery.
+ */
+export const countAiUsage = internalQuery({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    return countAiSuggestions(ctx, args.userId);
+  },
+});
+
 export const requestAiSuggestion = action({
   args: {
     roomId: v.id("rooms"),
@@ -111,6 +123,16 @@ export const requestAiSuggestion = action({
     const room = await ctx.runQuery(api.rooms.getRoom, { roomId: args.roomId });
     if (!room) throw new Error("Room not found");
     if (room.userRole === "viewer") throw new Error("You're viewing this room — ask an editor to make changes.");
+
+    // Monthly free-plan AI quota, checked BEFORE any paid provider call or
+    // pending-message write, so a capped user gets a clear limit error and no
+    // phantom "pending" row. Quota resets at the start of each calendar month.
+    const usedThisMonth = await ctx.runQuery(internal.ai.countAiUsage, {
+      userId: identity.subject,
+    });
+    if (usedThisMonth >= FREE_PLAN.AI_SUGGESTIONS_PER_MONTH) {
+      throw planLimitError("ai", FREE_PLAN.AI_SUGGESTIONS_PER_MONTH);
+    }
 
     const { ok, retryAfter } = await rateLimiter.limit(ctx, "aiRequest", {
       key: identity.subject,

@@ -5,60 +5,92 @@
 }
 
 .sidebar {
-  width: 72px;
+  width: 232px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) 0;
+  padding: var(--space-5) var(--space-5) var(--space-6);
   background: var(--color-bg-surface);
-  border-right: 1px solid var(--neutral-100);
+  border-right: 2px solid var(--neutral-100);
 }
 
-.sidebar-top,
-.sidebar-bottom {
+.sidebar-top {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  align-items: center;
+  gap: var(--space-4);
+  padding:var(--space-2);
+  
 }
 
+/* Workspace card: avatar + name + plan chip. */
 .sidebar-workspace {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  min-width: 0;
 }
 
 .sidebar-workspace-avatar {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--green-400), var(--green-600));
   color: #fff;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.sidebar-workspace-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sidebar-workspace-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-workspace-plan {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-selected-bg);
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  align-items: center;
+  gap: 2px;
 }
 
 .sidebar-nav-item {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--color-text-secondary);
+  text-align: left;
   transition: background var(--duration-fast) var(--ease-spring),
     color var(--duration-fast) var(--ease-spring);
 }
@@ -71,10 +103,67 @@
 .sidebar-nav-item.active {
   background: var(--color-selected-bg);
   color: var(--color-text-primary);
+  font-weight: 600;
 }
 
-.sidebar-avatar {
-  margin-top: var(--space-2);
+/* Quick-create CTA — the sidebar's green action, same language as the header's. */
+.sidebar-new-room {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-full);
+  background: var(--color-cta-default);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(37, 211, 102, 0.30);
+  transition: background var(--duration-fast) var(--ease-spring),
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-spring);
+}
+
+.sidebar-new-room:hover {
+  background: var(--color-cta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.25);
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sidebar-theme {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.sidebar-theme:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.sidebar-user-row {
+  display: flex;
+  justify-content: left;
+  padding: var(--space-3);
+
+  border-top: 1px solid var(--neutral-100);
 }
 
 .dashboard-main {
@@ -107,6 +196,18 @@
   font-size: 14px;
   color: var(--color-text-secondary);
   margin: 0;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Account avatar rides the header on phones, where the sidebar (and its
+   avatar) is replaced by the bottom tab bar. */
+.dashboard-header-avatar {
+  display: none;
 }
 
 /* Free-plan room-limit nudge — neutral, informational, dismissible. */
@@ -201,6 +302,62 @@
 .stat-label {
   font-size: 13px;
   color: var(--color-text-secondary);
+}
+
+/* Usage meters inside the stat tiles — the dashboard's free-plan pulse. */
+.stat-meter {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--neutral-100);
+  overflow: hidden;
+  margin-top: var(--space-2);
+}
+
+.stat-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--neutral-500);
+  transition: width var(--duration-base) var(--ease-spring);
+}
+
+.stat-meter-ai > span {
+  background: var(--green-500);
+}
+
+.stat-note {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-1);
+}
+
+.stat-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--space-1);
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--green-700);
+  text-align: left;
+}
+
+[data-theme="dark"] .stat-link {
+  color: var(--green-400);
+}
+
+.stat-link:hover {
+  text-decoration: underline;
+}
+
+.stat-tile-plan .stat-value {
+  font-size: 22px;
+  color: var(--green-600);
+}
+
+[data-theme="dark"] .stat-tile-plan .stat-value {
+  color: var(--green-400);
 }
 
 /* Shared section framing */
@@ -611,6 +768,22 @@
   border-right-color: var(--dark-hairline);
 }
 
+[data-theme="dark"] .sidebar-user-row {
+  border-top-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .stat-meter {
+  background: var(--dark-elevation-4);
+}
+
+[data-theme="dark"] .stat-meter > span {
+  background: var(--neutral-400);
+}
+
+[data-theme="dark"] .stat-meter-ai > span {
+  background: var(--green-400);
+}
+
 [data-theme="dark"] .room-card {
   background: var(--dark-elevation-1);
   border-color: var(--dark-hairline);
@@ -884,26 +1057,26 @@
 
 /* ── First-load shell skeletons ────────────────────────────────────────── */
 .skel-sidebar {
-  gap: var(--space-10);
+  gap: var(--space-4);
   justify-content: flex-start;
 }
 
 .skel-sidebar-avatar {
-  width: 40px;
-  height: 40px;
+  width: 100%;
+  height: 52px;
   border-radius: var(--radius-md);
 }
 
 .skel-sidebar-nav {
-  width: 44px;
+  width: 100%;
   height: 148px;
   border-radius: var(--radius-md);
 }
 
 .skel-sidebar-bottom {
   margin-top: auto;
-  width: 44px;
-  height: 44px;
+  width: 100%;
+  height: 96px;
   border-radius: var(--radius-md);
 }
 

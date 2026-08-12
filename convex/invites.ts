@@ -1,7 +1,9 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { auth } from "./lib";
+import { internal } from "./_generated/api";
 import { rateLimiter } from "./rateLimiter";
+import { FREE_PLAN, planLimitError } from "./usage";
 
 export const inviteMember = mutation({
   args: { roomId: v.id("rooms"), email: v.string(), role: v.union(v.literal("editor"), v.literal("viewer")) },
@@ -29,6 +31,20 @@ export const inviteMember = mutation({
       .filter((q) => q.eq(q.field("email"), email))
       .first();
     if (existingMember) throw new Error("Already a member");
+    // Collaborator cap: owner + 3 collaborators. An invite counts toward the
+    // seat it will occupy, so a pending invite for a new person also blocks.
+    const members = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .collect();
+    const pending = await ctx.db
+      .query("invites")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .filter((q) => q.eq(q.field("status"), "pending"))
+      .take(100);
+    if (members.length + pending.length > FREE_PLAN.COLLABORATORS_PER_ROOM) {
+      throw planLimitError("collaborators", FREE_PLAN.COLLABORATORS_PER_ROOM);
+    }
     const existingInvite = await ctx.db
       .query("invites")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
@@ -51,6 +67,19 @@ export const inviteMember = mutation({
       status: "pending",
       createdAt: Date.now(),
       expiresAt,
+    });
+    // Fire-and-forget email delivery: the invite row is committed first, so a
+    // slow or failed mail API never blocks the invite mutation — the invite
+    // stays visible in the Share modal regardless, and the delivery sweep
+    // retries failed sends.
+    const room = await ctx.db.get(args.roomId);
+    await ctx.scheduler.runAfter(0, internal.email.sendInviteEmail, {
+      inviteId,
+      email,
+      roomName: room?.name ?? "a room",
+      token,
+      role: args.role,
+      inviterName: identity.name,
     });
     return { inviteId, token };
   },
@@ -230,6 +259,23 @@ export const createInviteLink = mutation({
     if (!member || (member.role !== "owner" && member.role !== "editor")) {
       throw new Error("Insufficient permissions");
     }
+    // An editable invite link occupies a collaborator seat that could be
+    // accepted by someone with editor rights; viewers are non-editing seats,
+    // so only editor links are capped. Mixed (owner+content) and future plan
+    // states make this check run at the mutation, not the accept — the cap
+    // is about how many collaborators a room can add, not who owns the token.
+    const members = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .collect();
+    const pending = await ctx.db
+      .query("invites")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .filter((q) => q.eq(q.field("status"), "pending"))
+      .take(100);
+    if (members.length + pending.length > FREE_PLAN.COLLABORATORS_PER_ROOM) {
+      throw planLimitError("collaborators", FREE_PLAN.COLLABORATORS_PER_ROOM);
+    }
     const token = crypto.randomUUID();
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
     await ctx.db.insert("invites", {
@@ -243,5 +289,28 @@ export const createInviteLink = mutation({
       expiresAt,
     });
     return { token };
+  },
+});
+
+/**
+ * Server-side-only context for the email action: read the invite + room for a
+ * queued invite email. Internal so a client can never pass an arbitrary token
+ * and read another room's invite.
+ */
+export const getInviteContext = internalQuery({
+  args: { inviteId: v.id("invites") },
+  handler: async (ctx, args) => {
+    const invite = await ctx.db.get(args.inviteId);
+    if (!invite) return null;
+    const room = await ctx.db.get(invite.roomId);
+    if (!room) return null;
+    return {
+      inviteId: invite._id,
+      email: invite.email,
+      role: invite.role,
+      token: invite.token,
+      roomId: invite.roomId,
+      roomName: room.name,
+    };
   },
 });

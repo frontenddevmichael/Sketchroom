@@ -2,6 +2,7 @@ import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { auth } from "./lib";
 import { internal } from "./_generated/api";
+import { countRoomMemberships, FREE_PLAN, planLimitError } from "./usage";
 
 export const getWorkspaces = query({
   args: {},
@@ -141,6 +142,13 @@ export const createRoom = mutation({
     if (!workspace) throw new Error("Workspace not found");
     if (workspace.ownerId !== identity.subject) {
       throw new Error("Only the workspace owner can create rooms");
+    }
+    // Free-plan room cap: count MEMBERSHIPS across every workspace, because a
+    // user is the "owning" member in exactly one room each (their own). Rooms
+    // shared with them count toward the same cap — one plan, not per-workspace.
+    const roomCount = await countRoomMemberships(ctx, identity.subject);
+    if (roomCount >= FREE_PLAN.ROOM_LIMIT) {
+      throw planLimitError("rooms", FREE_PLAN.ROOM_LIMIT);
     }
     const now = Date.now();
     const hasSeed = typeof args.seed === "string" && args.seed.length > 0;

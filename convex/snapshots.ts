@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { auth, requireRole } from "./lib";
+import { auth, requireRole, SNAPSHOT_RETENTION } from "./lib";
 
 export const saveSnapshot = mutation({
   args: { roomId: v.id("rooms"), canvasData: v.string(), description: v.optional(v.string()) },
@@ -23,9 +23,46 @@ export const saveSnapshot = mutation({
       createdAt: Date.now(),
       description: args.description,
     });
+    // Retention: snapshots accumulate on every 45s autosave and ⌘S. Keep the
+    // newest SNAPSHOT_RETENTION per room and drop the overflow (oldest first)
+    // so history stays boundless-feeling but never unbounded in storage.
+    await pruneSnapshots(ctx, args.roomId);
     return { snapshotId, version: newVersion };
   },
 });
+
+// Delete the oldest snapshots for a room once more than SNAPSHOT_RETENTION
+// exist, keeping the newest ones. Runs after every save (and every restore,
+// which inserts a "before restore" backup row). Bounded batches: each pass
+// deletes at most 100 rows, looping until the room is back at the cap, so a
+// backlog of thousands still converges in a few cheap turns.
+async function pruneSnapshots(
+  ctx: import("./_generated/server").MutationCtx,
+  roomId: import("./_generated/dataModel").Id<"rooms">
+): Promise<void> {
+  for (;;) {
+    const keep = await ctx.db
+      .query("snapshots")
+      .withIndex("by_room", (q) => q.eq("roomId", roomId))
+      .order("desc")
+      .take(SNAPSHOT_RETENTION);
+    const keepIds = new Set(keep.map((row) => row._id));
+    const candidates = await ctx.db
+      .query("snapshots")
+      .withIndex("by_room", (q) => q.eq("roomId", roomId))
+      .order("asc")
+      .take(100);
+    let deleted = 0;
+    for (const row of candidates) {
+      if (keepIds.has(row._id)) continue;
+      await ctx.db.delete(row._id);
+      deleted += 1;
+    }
+    // The keep set overlaps the candidate list only when the room is already
+    // at or under the cap — at that point we're done.
+    if (deleted === 0) return;
+  }
+}
 
 export const listSnapshots = query({
   args: { roomId: v.id("rooms") },
@@ -73,6 +110,9 @@ export const restoreSnapshot = mutation({
       updatedAt: Date.now(),
       lastEditedBy: { id: identity.subject, name: member.name || identity.email || "Unknown" },
     });
+    // Restores add a "Before restoring" backup row — prune the same way saves
+    // do so history stays capped.
+    await pruneSnapshots(ctx, args.roomId);
     return { version: restoreVersion, canvasData: snapshot.canvasData };
   },
 });

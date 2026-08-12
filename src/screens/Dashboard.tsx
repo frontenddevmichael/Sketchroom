@@ -60,6 +60,11 @@ export function Dashboard() {
   // reasonable window, surface a calm error with a retry instead of an
   // infinite skeleton.
   const [loadFailed, setLoadFailed] = useState(false);
+  // If auto-creating the first workspace fails, the workspaces query resolves
+  // to [] and the app would silently strand the user with non-functioning
+  // create buttons. Surface an explicit failing state with a retry.
+  const [workspaceCreateFailed, setWorkspaceCreateFailed] = useState(false);
+  const [workspaceRetryNonce, setWorkspaceRetryNonce] = useState(0);
 
   const workspaces = useQuery(api.rooms.getWorkspaces);
   const usage = useQuery(api.rooms.getUsage);
@@ -89,6 +94,7 @@ export function Dashboard() {
   useEffect(() => {
     if (workspaces && workspaces.length === 0 && user && !creatingWorkspace.current) {
       creatingWorkspace.current = true;
+      setWorkspaceCreateFailed(false);
       const name = (user?.name || 'My') + "'s Workspace";
       createWorkspace({ name })
         .then((w) => {
@@ -96,9 +102,10 @@ export function Dashboard() {
         })
         .catch(() => {
           creatingWorkspace.current = false;
+          setWorkspaceCreateFailed(true);
         });
     }
-  }, [workspaces, user, createWorkspace]);
+  }, [workspaces, user, createWorkspace, workspaceRetryNonce]);
 
   const filteredRooms = useMemo(() => {
     const list = rooms ?? [];
@@ -123,14 +130,50 @@ export function Dashboard() {
 
   if (!workspaces) return <DashboardLoadingShell failed={loadFailed} />;
 
+  // The workspace query resolved but auto-creation failed: every create path
+  // on this screen needs a workspace, so show an explicit retry instead of a
+  // silently non-functional dashboard.
+  if (workspaces.length === 0 && workspaceCreateFailed) {
+    return (
+      <div className="dashboard">
+        <main className="dashboard-main">
+          <div className="empty-dashboard" role="alert">
+            <div className="empty-illustration" aria-hidden="true">
+              <ErrorIllo />
+            </div>
+            <DrawnTitle as="h2" className="empty-title" delay={700}>
+              Couldn't create your workspace
+            </DrawnTitle>
+            <p className="empty-subtitle">
+              We couldn't set up a workspace for you. Check your connection and try again.
+            </p>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setWorkspaceCreateFailed(false);
+                creatingWorkspace.current = false;
+                setWorkspaceRetryNonce((n) => n + 1);
+              }}
+            >
+              Try again
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   const workspaceName = workspaces[0]?.name ?? 'Workspace';
   const firstName = user?.name?.split(' ')[0] || 'there';
 
   // Free-plan cap awareness: once the room limit is reached, surface a quiet,
   // dismissible nudge toward Billing instead of letting the cap fail silently.
   const FREE_ROOM_LIMIT = 3;
+  const FREE_AI_LIMIT = 40;
   const atRoomLimit = !!usage && usage.rooms >= FREE_ROOM_LIMIT;
   const showLimitNote = atRoomLimit && !dismissedLimitNote;
+  const roomPct = Math.min(100, ((usage?.rooms ?? 0) / FREE_ROOM_LIMIT) * 100);
+  const aiPct = Math.min(100, ((usage?.aiSuggestions ?? 0) / FREE_AI_LIMIT) * 100);
 
   const handleCreateRoom = async () => {
     if (!activeWorkspaceId) return;
@@ -189,40 +232,49 @@ export function Dashboard() {
             <span className="sidebar-workspace-avatar" aria-hidden="true">
               {workspaceName.charAt(0).toUpperCase()}
             </span>
+            <span className="sidebar-workspace-meta">
+              <span className="sidebar-workspace-name">{workspaceName}</span>
+              <span className="sidebar-workspace-plan">Free plan</span>
+            </span>
           </div>
+          <button
+            className="sidebar-new-room"
+            onClick={() => { setRoomName(''); setModal({ kind: 'create' }); }}
+          >
+            <Plus size={16} />
+            New room
+          </button>
           <nav className="sidebar-nav" aria-label="Dashboard">
             <button
               className="sidebar-nav-item active"
-              title="Rooms"
-              aria-label="Rooms"
               onClick={() => navigate('/dashboard')}
             >
-              <LayoutDashboard size={20} />
+              <LayoutDashboard size={18} />
+              <span>Rooms</span>
             </button>
             <button
               className="sidebar-nav-item"
-              title="Billing"
-              aria-label="Billing"
               onClick={() => navigate('/billing')}
             >
-              <CreditCard size={20} />
+              <CreditCard size={18} />
+              <span>Billing</span>
             </button>
             <button
               className="sidebar-nav-item"
-              title="Settings"
-              aria-label="Settings"
               onClick={() => navigate('/settings')}
             >
-              <Settings size={20} />
+              <Settings size={18} />
+              <span>Settings</span>
             </button>
           </nav>
         </div>
         <div className="sidebar-bottom">
-          <button className="sidebar-nav-item" title="Toggle theme" onClick={toggleTheme}>
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          <button className="sidebar-theme" onClick={toggleTheme}>
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
           </button>
-          <div className="sidebar-avatar">
-            <UserMenu />
+          <div className="sidebar-user-row">
+            <UserMenu placement="up" align="left" />
           </div>
         </div>
       </aside>
@@ -238,10 +290,15 @@ export function Dashboard() {
               {todayLabel()} · {workspaceName}
             </p>
           </div>
-          <button className="btn btn-primary" onClick={() => { setRoomName(''); setModal({ kind: 'create' }); }}>
-            <Plus size={16} />
-            New room
-          </button>
+          <div className="dashboard-header-actions">
+            <div className="dashboard-header-avatar">
+              <UserMenu />
+            </div>
+            <button className="btn btn-primary" onClick={() => { setRoomName(''); setModal({ kind: 'create' }); }}>
+              <Plus size={16} />
+              New room
+            </button>
+          </div>
         </header>
 
         {showLimitNote && (
@@ -267,15 +324,28 @@ export function Dashboard() {
           <section className="dashboard-stats" aria-label="Workspace summary">
             <div className="stat-tile">
               <span className="stat-value">{usage.rooms}</span>
-              <span className="stat-label">Rooms</span>
+              <span className="stat-label">Rooms of {FREE_ROOM_LIMIT}</span>
+              <div className="stat-meter" aria-hidden="true">
+                <span style={{ width: `${roomPct}%` }} />
+              </div>
+              <button className="stat-link" onClick={() => navigate('/billing')}>
+                {atRoomLimit ? 'Unlock unlimited rooms' : 'View plans'} →
+              </button>
             </div>
             <div className="stat-tile">
               <span className="stat-value">{usage.aiSuggestions}</span>
-              <span className="stat-label">AI suggestions</span>
+              <span className="stat-label">AI suggestions this month</span>
+              <div className="stat-meter stat-meter-ai" aria-hidden="true">
+                <span style={{ width: `${aiPct}%` }} />
+              </div>
+              <p className="stat-note">{usage.aiSuggestions} of {FREE_AI_LIMIT} this month</p>
             </div>
-            <div className="stat-tile">
-              <span className="stat-value">{TEMPLATES.length}</span>
-              <span className="stat-label">Starter templates</span>
+            <div className="stat-tile stat-tile-plan">
+              <span className="stat-value">Free</span>
+              <span className="stat-label">Current plan</span>
+              <button className="stat-link" onClick={() => navigate('/billing')}>
+                Upgrade to Team →
+              </button>
             </div>
           </section>
         )}

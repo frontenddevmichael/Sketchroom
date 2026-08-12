@@ -401,7 +401,7 @@
   border-top-color: var(--dark-hairline);
 }
 
-/* --- UserMenu (account avatar + dropdown) --- */
+/* --- UserMenu (account avatar + hover/click account modal) --- */
 .user-menu {
   position: relative;
   display: inline-flex;
@@ -416,7 +416,7 @@
   justify-content: center;
   overflow: hidden;
   border: 1px solid var(--glass-border);
-  background: var(--color-surface);
+  background: var(--color-bg-surface);
   color: var(--color-text-primary);
   font-size: 13px;
   font-weight: 700;
@@ -435,6 +435,15 @@
   outline-offset: 2px;
 }
 
+/* lg: the larger account avatar (Settings → Account). */
+.user-menu-lg .user-menu-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  font-size: 22px;
+  border-width: 2px;
+}
+
 .user-menu-img {
   width: 100%;
   height: 100%;
@@ -445,12 +454,15 @@
   line-height: 1;
 }
 
+/* The account modal — a floating glass surface with a caret pointing at the
+   avatar. Opens upward by default for the sidebar's bottom-mounted avatar
+   (the menu must never render off-screen); "down" is used for header avatars. */
 .user-menu-popover {
   position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  top: calc(100% + 10px);
+  right: -8px;
   z-index: 40;
-  min-width: 200px;
+  width: 264px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -464,17 +476,92 @@
   animation: menu-in var(--duration-fast) var(--ease-spring);
 }
 
+/* Up placement (sidebar, settings rows): open above the avatar, growing over
+   the main content to the right so the 264px modal never clips off-screen. */
+.user-menu-up .user-menu-popover {
+  top: auto;
+  bottom: calc(100% + 10px);
+}
+
+/* Left-half avatars: extend the modal rightward past the narrow rail. */
+.user-menu-up.user-menu-left .user-menu-popover {
+  left: 0;
+  right: auto;
+}
+
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .user-menu-popover {
     background: var(--glass-bg-fallback);
   }
 }
 
+/* The caret: a rotated square half-overlapping the avatar, tinted to match
+   its glass surface. */
+.user-menu-caret {
+  position: absolute;
+  top: calc(100% - 1px);
+  right: 14px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+  background: var(--glass-bg-dense);
+  border-right: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  border-radius: 0 0 3px 0;
+  pointer-events: none;
+}
+
+.user-menu-up .user-menu-caret {
+  top: auto;
+  bottom: calc(100% - 1px);
+  right: 14px;
+  transform: rotate(45deg);
+  border: none;
+  border-left: 1px solid var(--glass-border);
+  border-top: 1px solid var(--glass-border);
+  border-radius: 3px 0 0 0;
+}
+
+/* Left-aligned: the caret tracks the avatar's left quarter. */
+.user-menu-up.user-menu-left .user-menu-caret {
+  left: 8px;
+  right: auto;
+}
+
+/* Profile header: avatar chip + name/email stacked. */
 .user-menu-head {
   display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-3);
+}
+
+.user-menu-head-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--neutral-400);
+}
+
+.user-menu-head-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-menu-head-id {
+  display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: var(--space-1) var(--space-2) var(--space-2);
+  gap: 1px;
+  min-width: 0;
 }
 
 .user-menu-head-name {
@@ -492,6 +579,75 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Free-plan meter: a live room-usage bar with an upgrade path. */
+.user-menu-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 var(--space-1) var(--space-1);
+  padding: var(--space-2) var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-100);
+}
+
+.user-menu-plan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.user-menu-plan-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.user-menu-plan-count {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.user-menu-plan-bar {
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--neutral-100);
+  overflow: hidden;
+}
+
+.user-menu-plan-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--green-500);
+  transition: width var(--duration-base) var(--ease-spring);
+}
+
+.user-menu-plan-upgrade {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 3px 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--green-700);
+  font: 600 12px var(--font-family);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.user-menu-plan-upgrade:hover {
+  background: var(--green-500-12);
+}
+
+[data-theme='dark'] .user-menu-plan-upgrade {
+  color: var(--green-400);
 }
 
 .user-menu-sep {
@@ -524,4 +680,65 @@
 .user-menu-item:focus-visible {
   outline: 2px solid var(--green-500);
   outline-offset: -2px;
+}
+
+/* Sign out is the terminal action — the one destructive row in the modal. */
+.user-menu-item-danger {
+  color: var(--color-status-danger-text);
+}
+
+.user-menu-item-danger:hover {
+  background: var(--color-status-danger-bg);
+}
+
+[data-theme='dark'] .user-menu-plan {
+  background: var(--dark-elevation-1);
+  border-color: var(--dark-hairline);
+}
+
+[data-theme='dark'] .user-menu-plan-bar {
+  background: var(--dark-elevation-4);
+}
+
+[data-theme='dark'] .user-menu-head-avatar {
+  background: var(--dark-elevation-4);
+}
+
+/* On phones the modal centers under the header avatar instead of hugging the
+   narrow sidebar; on very small screens it spans the width. */
+@media (max-width: 720px) {
+  .user-menu-popover,
+  .user-menu-up .user-menu-popover,
+  .user-menu-up.user-menu-left .user-menu-popover {
+    top: calc(100% + 10px);
+    bottom: auto;
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+
+  .user-menu-caret,
+  .user-menu-up .user-menu-caret,
+  .user-menu-up.user-menu-left .user-menu-caret {
+    top: calc(100% - 1px);
+    bottom: auto;
+    left: auto;
+    right: 14px;
+    transform: rotate(45deg);
+    border: none;
+    border-right: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0 0 3px 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .user-menu-popover,
+  .user-menu-up .user-menu-popover {
+    position: fixed;
+    right: var(--space-3);
+    left: var(--space-3);
+    width: auto;
+    transform: none;
+  }
 }

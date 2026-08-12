@@ -1,6 +1,25 @@
 import type { QueryCtx, MutationCtx, ActionCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
+// ── Free-plan limits ─────────────────────────────────────────────────────
+// Single source of truth for the promised free tier. The marketing site, the
+// dashboard banner, and the billing meters all reference these numbers, and
+// the mutations below enforce them server-side (rooms, collaborators, AI
+// quota). Export/version-history are intentionally NOT gated: there is no
+// payment path yet, so locking them would be a dead end for every user.
+export const FREE_ROOM_LIMIT = 3;
+export const FREE_COLLABORATORS_PER_ROOM = 3; // owner + 3 = 4 room members
+export const FREE_AI_SUGGESTIONS_PER_MONTH = 40;
+export const SNAPSHOT_RETENTION = 60;
+
+/** First instant of the current calendar month, in epoch ms. */
+export function monthStartMs(now = Date.now()): number {
+  const d = new Date(now);
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
 export const auth = {
   async getIdentity(ctx: QueryCtx | MutationCtx | ActionCtx) {
     const identity = await ctx.auth.getUserIdentity();

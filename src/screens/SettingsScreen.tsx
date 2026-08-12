@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from 'convex/react';
+import { useAuthActions } from '@convex-dev/auth/react';
 import { api } from '../../convex/_generated/api';
 import { useTheme } from '../lib/useTheme';
 import { useCurrentUser } from '../hooks/useCurrentUser';
@@ -8,10 +9,13 @@ import { UserMenu } from '../components/UserMenu';
 import { AppTabBar } from '../components/AppTabBar';
 import { usePageTitle } from '../lib/usePageTitle';
 import { FormSkeleton } from '../components/skeletons';
-import { Moon, Sun, Trash2, ArrowLeft, Check } from 'lucide-react';
+import { Moon, Sun, Trash2, ArrowLeft, Check, LogOut, Sparkles } from 'lucide-react';
 import '../components/shared.css';
 import '../components/skeletons.css';
 import './SettingsScreen.css';
+
+const FREE_ROOM_LIMIT = 3;
+const FREE_AI_LIMIT = 40;
 
 interface DeleteState {
   inProgress: boolean;
@@ -22,7 +26,8 @@ export function SettingsScreen() {
   usePageTitle('Settings — Sketchroom');
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const { signOut } = useAuthActions();
   const [tab, setTab] = useState<'workspace' | 'account'>('workspace');
   const [workspaceName, setWorkspaceName] = useState('');
   const [deleteState, setDeleteState] = useState<DeleteState>({ inProgress: false, error: null });
@@ -34,6 +39,7 @@ export function SettingsScreen() {
   const [savedDisplayName, setSavedDisplayName] = useState(false);
 
   const workspaces = useQuery(api.rooms.getWorkspaces);
+  const usage = useQuery(api.rooms.getUsage);
   const updateWorkspaceName = useMutation(api.rooms.updateWorkspaceName);
   const deleteWorkspace = useMutation(api.rooms.deleteWorkspace);
   const updateProfile = useMutation(api.users.updateProfile);
@@ -41,6 +47,11 @@ export function SettingsScreen() {
   if (!workspaces) return <SettingsLoadingShell />;
 
   const workspace = workspaces[0];
+
+  const roomCount = usage?.rooms ?? 0;
+  const aiCount = usage?.aiSuggestions ?? 0;
+  const roomPct = Math.min(100, (roomCount / FREE_ROOM_LIMIT) * 100);
+  const aiPct = Math.min(100, (aiCount / FREE_AI_LIMIT) * 100);
 
   const handleSaveName = async () => {
     if (!workspace || !workspaceName.trim()) return;
@@ -85,6 +96,10 @@ export function SettingsScreen() {
     } finally {
       setSavingDisplayName(false);
     }
+  };
+
+  const handleSignOut = () => {
+    void signOut().then(() => navigate('/'));
   };
 
   return (
@@ -136,12 +151,37 @@ export function SettingsScreen() {
                 {savedName ? <><Check size={14} />Saved</> : 'Save'}
               </button>
             </div>
+
+            <div className="settings-section">
+              <label className="settings-label" htmlFor="settings-usage">Plan & usage</label>
+              <div className="settings-usage" id="settings-usage">
+                <div className="settings-usage-row">
+                  <span className="settings-usage-label">Rooms</span>
+                  <div className="settings-usage-bar" aria-hidden="true">
+                    <span className="settings-usage-fill" style={{ width: `${roomPct}%` }} />
+                  </div>
+                  <span className="settings-usage-count">{roomCount} / {FREE_ROOM_LIMIT}</span>
+                </div>
+                <div className="settings-usage-row">
+                  <span className="settings-usage-label">AI suggestions</span>
+                  <div className="settings-usage-bar" aria-hidden="true">
+                    <span className="settings-usage-fill settings-usage-fill-ai" style={{ width: `${aiPct}%` }} />
+                  </div>
+                  <span className="settings-usage-count">{aiCount} / {FREE_AI_LIMIT} this month</span>
+                </div>
+              </div>
+              <button className="settings-plan-link" onClick={() => navigate('/billing')}>
+                <Sparkles size={14} />
+                View plans & upgrade
+              </button>
+            </div>
+
             <div className="settings-section">
               <label className="settings-label">Members</label>
               <div className="settings-members">
                 <div className="settings-member">
                   <div className="settings-member-avatar">
-                    <UserMenu />
+                    <UserMenu placement="down" align="left" />
                   </div>
                   <div className="settings-member-info">
                     <span className="settings-member-name">{workspace?.name}</span>
@@ -167,7 +207,7 @@ export function SettingsScreen() {
             <h1 className="settings-title">Account settings</h1>
             <div className="settings-section settings-account-row">
               <div className="settings-avatar-large">
-                <UserMenu />
+                <UserMenu placement="down" size="lg" align="left" />
               </div>
               <div className="settings-account-fields">
                 <label className="settings-label" htmlFor="display-name">Display name</label>
@@ -199,9 +239,32 @@ export function SettingsScreen() {
             </div>
             <div className="settings-section">
               <label className="settings-label">Appearance</label>
-              <button className="theme-toggle" onClick={toggleTheme}>
-                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-                <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
+              <div className="settings-theme-seg" role="radiogroup" aria-label="Theme">
+                <button
+                  className={`settings-theme-opt${theme === 'light' ? ' active' : ''}`}
+                  aria-checked={theme === 'light'}
+                  role="radio"
+                  onClick={() => setTheme('light')}
+                >
+                  <Sun size={15} />
+                  Light
+                </button>
+                <button
+                  className={`settings-theme-opt${theme === 'dark' ? ' active' : ''}`}
+                  aria-checked={theme === 'dark'}
+                  role="radio"
+                  onClick={() => setTheme('dark')}
+                >
+                  <Moon size={15} />
+                  Dark
+                </button>
+              </div>
+            </div>
+            <div className="settings-section">
+              <label className="settings-label">Session</label>
+              <button className="settings-signout" onClick={handleSignOut}>
+                <LogOut size={16} />
+                Sign out
               </button>
             </div>
           </>

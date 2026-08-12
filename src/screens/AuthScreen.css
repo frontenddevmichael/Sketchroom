@@ -6,19 +6,10 @@
   color: var(--color-text-primary);
   background: var(--color-bg-canvas);
   overflow: hidden;
+  padding: var(--space-4) ;
+
 }
 
-/* The product's own surface: a faint infinite dot-grid with a soft green glow
-   pooled behind the card — the room you're about to enter, at first paint. */
-.auth-screen::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(var(--color-text-tertiary) 1px, transparent 1px);
-  background-size: 26px 26px;
-  opacity: 0.26;
-  pointer-events: none;
-}
 
 [data-theme='dark'] .auth-screen::before {
   background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
@@ -36,22 +27,14 @@
   pointer-events: none;
 }
 
-/* ---- topbar ---- */
-.auth-topbar {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) clamp(var(--space-5), 4vw, var(--space-10));
-}
+
 
 .auth-wordmark {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 300;
   letter-spacing: -0.02em;
   color: var(--color-text-primary);
   text-decoration: none;
@@ -62,21 +45,26 @@
 }
 
 .auth-home-link {
-  display: inline-flex;
+  position: relative;
+  top: .5rem;
+  left: -5rem;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  color: var(--color-text-secondary);
+  gap: 8px;
+  color: var(--color-text-primary);
   text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
   padding: 8px 14px;
-  border-radius: var(--radius-full);
+
+  border-radius: var(--radius-sm);
   transition: color var(--duration-fast), background var(--duration-fast);
 }
 
 .auth-home-link:hover {
+  background: var(--surface-translucency-light-hover);
   color: var(--color-text-primary);
-  background: var(--color-selected-bg);
+  cursor: pointer;
 }
 
 .auth-home-link:focus-visible {
@@ -105,8 +93,8 @@
 /* The brand mark sits above the card, giving the moment a quiet focal point
    before the form takes over. */
 .auth-card-mark {
-  width: 52px;
-  height: 52px;
+  width: 62px;
+  height: 62px;
   border-radius: 16px;
   display: inline-flex;
   align-items: center;
@@ -115,6 +103,7 @@
   border: 1px solid rgba(37, 211, 102, 0.25);
   margin-bottom: var(--space-5);
   animation: auth-mark-in 0.5s var(--ease-spring) both;
+    display: none;
 }
 
 [data-theme='dark'] .auth-card-mark {
@@ -136,22 +125,12 @@
 /* ---- auth card ---- */
 .auth-card {
   width: 100%;
-  background: var(--surface-translucency-light);
-  backdrop-filter: blur(var(--surface-blur));
-  -webkit-backdrop-filter: blur(var(--surface-blur));
-  border: 1px solid var(--neutral-100);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-float);
-  padding: var(--space-10) var(--space-8);
+  background: var(--color-bg-canvas);
   text-align: center;
   animation: auth-card-in 0.55s var(--ease-spring) both;
   animation-delay: 0.06s;
 }
 
-[data-theme='dark'] .auth-card {
-  background: var(--surface-translucency-dark);
-  border-color: var(--dark-hairline);
-}
 
 @keyframes auth-card-in {
   from {
@@ -166,17 +145,17 @@
 
 .auth-card-title {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: -0.4px;
-  margin: 0 0 var(--space-2);
-  color: var(--color-text-primary);
+  margin: 0 ;
+  color: var(--color-text-secondary);
 }
 
 .auth-card-sub {
   font-size: 14px;
   line-height: 1.6;
   color: var(--color-text-secondary);
-  margin: 0 0 var(--space-8);
+  margin: 0 0 var(--space-4);
 }
 
 .auth-google-btn {
@@ -233,7 +212,7 @@
   font-size: 12px;
   color: var(--color-text-secondary);
   line-height: 1.7;
-  margin: 0;
+  margin-top: 2rem;
 }
 
 .auth-card-small a {
@@ -249,6 +228,7 @@
   margin-top: var(--space-6);
   animation: auth-card-in 0.55s var(--ease-spring) both;
   animation-delay: 0.14s;
+  display: none;
 }
 
 .auth-avatars {
@@ -289,6 +269,7 @@
 /* ---- footer ---- */
 .auth-footer {
   position: relative;
+
   z-index: 2;
   display: flex;
   align-items: center;
@@ -297,6 +278,7 @@
   padding: var(--space-6) var(--space-4) var(--space-7);
   font-size: 12px;
   color: var(--color-text-secondary);
+
 }
 
 .auth-footer a {
@@ -357,11 +339,11 @@
   padding: 4px;
   border-radius: var(--radius-full);
   background: var(--color-selected-bg);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-2);
 }
 
 .auth-tab {
-  padding: 9px 12px;
+  padding: 9px ;
   border: none;
   border-radius: var(--radius-full);
   background: transparent;
@@ -392,7 +374,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   text-align: left;
 }
 
@@ -403,9 +385,9 @@
 }
 
 .auth-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
 }
 
 .auth-input {

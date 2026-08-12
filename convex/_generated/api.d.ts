@@ -22,6 +22,7 @@ import type * as presence from "../presence.js";
 import type * as rateLimiter from "../rateLimiter.js";
 import type * as rooms from "../rooms.js";
 import type * as snapshots from "../snapshots.js";
+import type * as usage from "../usage.js";
 import type * as users from "../users.js";
 
 import type {
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   rateLimiter: typeof rateLimiter;
   rooms: typeof rooms;
   snapshots: typeof snapshots;
+  usage: typeof usage;
   users: typeof users;
 }>;
 

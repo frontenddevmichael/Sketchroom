@@ -138,6 +138,7 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   animation: chat-in var(--duration-base) var(--ease-spring);
+
 }
 
 @keyframes chat-in {
@@ -478,7 +479,7 @@
 /* Selection-aware chip bar — floats in the bottom stack between the chat and
    the input bar (a flex child, so it rides above the bar automatically). */
 .ai-refine-bar {
-  display: flex;
+  display: none;
   align-items: center;
   gap: var(--space-3);
   flex-wrap: wrap;
@@ -487,6 +488,7 @@
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-full);
   animation: ai-refine-in var(--duration-fast) var(--ease-spring);
+  border:2px solid red
 }
 
 @keyframes ai-refine-in {
