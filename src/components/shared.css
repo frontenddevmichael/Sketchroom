@@ -1,0 +1,402 @@
+.loading-screen {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  background: var(--color-bg-canvas);
+  overflow: hidden;
+}
+
+/* Layered backdrop: a faint infinite dot-grid (the canvas's own surface) with
+   a soft green glow pooled behind the mark — the product's identity at first
+   paint, never a flat gray rectangle. */
+.loading-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--color-text-tertiary) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.26;
+  pointer-events: none;
+}
+
+.loading-screen::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 520px;
+  height: 520px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(37, 211, 102, 0.08), transparent 64%);
+  pointer-events: none;
+  /* The glow breathes on a long cycle — the room feels alive while it loads,
+     not pinned. */
+  animation: loader-glow-breathe 4.5s var(--ease-spring) infinite;
+}
+
+@keyframes loader-glow-breathe {
+  0%, 100% {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+.loading-screen > * {
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme='dark'] .loading-screen::before {
+  /* The shared 0.26 opacity would bury white@0.08 to ~2% on true black.
+     Brighten the dots so the effective value lands near the canvas grid's
+     spec (~5%) — a visible-but-quiet surface, not an invisible one. */
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+}
+
+.loader-mark-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-mark {
+  display: block;
+}
+
+.loader-ring {
+  stroke: var(--color-text-tertiary);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+  animation: loader-spin 9s linear infinite;
+  opacity: 0.55;
+}
+
+.loader-star {
+  stroke: var(--green-500);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  fill: var(--green-500);
+  fill-opacity: 0;
+  animation:
+    loader-draw 1.3s var(--ease-spring) forwards,
+    loader-fill 0.5s ease 1.05s forwards;
+}
+
+@keyframes loader-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes loader-fill {
+  to {
+    fill-opacity: 0.12;
+  }
+}
+
+@keyframes loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loader-word-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.loader-wordmark {
+  display: flex;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.loader-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: loader-letter-in var(--duration-base) var(--ease-spring) forwards;
+  animation-delay: calc(0.28s + var(--i) * 45ms);
+}
+
+@keyframes loader-letter-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The hand-drawn underline draws itself in beneath the wordmark — the same
+   stroke technique as the star, tying the mark together. */
+.loader-underline {
+  display: block;
+  margin-top: var(--space-1);
+}
+
+.loader-underline path {
+  stroke: var(--green-500);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: loader-underline-draw 0.7s var(--ease-spring) 0.5s forwards;
+}
+
+@keyframes loader-underline-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.loader-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  animation: loader-fade-in 0.6s ease 0.6s both;
+}
+
+.loader-sub {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+@keyframes loader-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen::after,
+  .loader-ring,
+  .loader-star,
+  .loader-letter,
+  .loader-label,
+  .loader-underline path {
+    animation: none;
+  }
+
+  .loading-screen::after {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+
+  .loader-star {
+    stroke-dashoffset: 0;
+  }
+
+  .loader-underline path {
+    stroke-dashoffset: 0;
+  }
+
+  .loader-letter {
+    opacity: 1;
+    transform: none;
+  }
+
+  .loader-label {
+    opacity: 1;
+  }
+}
+
+/* Glass surface: frosted, saturated backdrop with a light-catching rim. Used
+   by all floating tool chrome (dock, rail, topbar, panels, modals). Falls back
+   to a near-opaque surface when backdrop-filter is unavailable. */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-shadow);
+}
+
+/* Denser glass for text-heavy surfaces (modals) where legibility wins. */
+.glass-dense {
+  background: var(--glass-bg-dense);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-shadow);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass,
+  .glass-dense {
+    background: var(--glass-bg-fallback);
+  }
+}
+
+/* Hidden scrollbars on floating surfaces: wheel/trackpad scrolling still
+   works, but no visible bar ever distorts a pill's rounded edges. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.error-screen {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-canvas);
+  padding: var(--space-6);
+  overflow: hidden;
+}
+
+.error-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--neutral-100) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.5;
+}
+
+.error-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.error-icon {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.error-title {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.error-message {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--space-4);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--neutral-150);
+}
+
+.btn-outline:hover {
+  background: var(--color-selected-bg);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.btn-danger {
+  background: transparent;
+  color: #c0392b;
+  border: 1px solid #e8c8c8;
+}
+
+.btn-danger:hover {
+  background: #fdf1f0;
+}
+
+[data-theme="dark"] .error-grid-bg {
+  background-image: radial-gradient(var(--dark-canvas-grid-dot) 1px, transparent 1px);
+}
+
+[data-theme="dark"] .btn-outline {
+  border-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .btn-danger {
+  color: #ff8a7a;
+  border-color: rgba(255, 99, 71, 0.35);
+}
+
+[data-theme="dark"] .btn-danger:hover {
+  background: rgba(255, 99, 71, 0.12);
+}/* ── Phone bottom tab bar ──────────────────────────────────────────────────
+   Shared by Dashboard, Billing, and Settings: below 720px the desktop side
+   rails step aside and this fixed bar carries the four destinations with
+   labels — same places, no recall, theme included. */
+.app-tabbar {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .app-tabbar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    background: var(--color-bg-surface);
+    border-top: 1px solid var(--neutral-100);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .app-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 4px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    transition: color var(--duration-fast) var(--ease-spring),
+      background var(--duration-fast) var(--ease-spring);
+  }
+
+  .app-tab.active {
+    color: var(--color-text-primary);
+    background: var(--color-selected-bg);
+  }
+}
+
+[data-theme='dark'] .app-tabbar {
+  border-top-color: var(--dark-hairline);
+}

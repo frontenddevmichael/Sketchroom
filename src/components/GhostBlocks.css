@@ -1,0 +1,94 @@
+.ghost-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.ghost-block {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--green-500-45);
+  background: rgba(13, 24, 18, 0.82);
+  color: #e5f6ec;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(3px);
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.ghost-block.ghost-focused {
+  border-color: var(--green-500);
+  border-style: solid;
+  box-shadow: 0 0 0 3px var(--green-500-25), 0 8px 24px var(--green-500-28);
+  transform: scale(1.04);
+}
+
+.ghost-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.ghost-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ghost-tone-blue { border-color: rgba(70, 137, 255, 0.5); color: #dbe7ff; }
+.ghost-tone-blue .ghost-icon { color: #5b8cff; }
+.ghost-tone-purple { border-color: rgba(165, 100, 255, 0.5); color: #eee0ff; }
+.ghost-tone-purple .ghost-icon { color: #a96bff; }
+.ghost-tone-green { border-color: rgba(37, 211, 102, 0.5); color: #d9ffe6; }
+.ghost-tone-green .ghost-icon { color: #25d366; }
+.ghost-tone-orange { border-color: rgba(255, 149, 56, 0.5); color: #ffe7d2; }
+.ghost-tone-orange .ghost-icon { color: #ff9548; }
+.ghost-tone-teal { border-color: rgba(44, 199, 190, 0.5); color: #d4fffb; }
+.ghost-tone-teal .ghost-icon { color: #2cc7be; }
+.ghost-tone-yellow { border-color: rgba(255, 205, 66, 0.5); color: #fff3cf; }
+.ghost-tone-yellow .ghost-icon { color: #ffcd42; }
+.ghost-tone-gray { border-color: rgba(160, 160, 170, 0.5); color: #e6e6ea; }
+.ghost-tone-gray .ghost-icon { color: #a0a0aa; }
+
+.ghost-block.ghost-focused.ghost-tone-blue { border-color: #5b8cff; box-shadow: 0 0 0 3px rgba(91, 140, 255, 0.25), 0 8px 24px rgba(91, 140, 255, 0.28); }
+.ghost-block.ghost-focused.ghost-tone-purple { border-color: #a96bff; box-shadow: 0 0 0 3px rgba(169, 107, 255, 0.25), 0 8px 24px rgba(169, 107, 255, 0.28); }
+.ghost-block.ghost-focused.ghost-tone-green { border-color: #25d366; box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.25), 0 8px 24px rgba(37, 211, 102, 0.28); }
+.ghost-block.ghost-focused.ghost-tone-orange { border-color: #ff9548; box-shadow: 0 0 0 3px rgba(255, 149, 72, 0.25), 0 8px 24px rgba(255, 149, 72, 0.28); }
+.ghost-block.ghost-focused.ghost-tone-teal { border-color: #2cc7be; box-shadow: 0 0 0 3px rgba(44, 199, 190, 0.25), 0 8px 24px rgba(44, 199, 190, 0.28); }
+.ghost-block.ghost-focused.ghost-tone-yellow { border-color: #ffcd42; box-shadow: 0 0 0 3px rgba(255, 205, 66, 0.25), 0 8px 24px rgba(255, 205, 66, 0.28); }
+.ghost-block.ghost-focused.ghost-tone-gray { border-color: #a0a0aa; box-shadow: 0 0 0 3px rgba(160, 160, 170, 0.25), 0 8px 24px rgba(160, 160, 170, 0.28); }
+
+.ghost-edges {
+  position: absolute;
+  overflow: visible;
+}
+
+.ghost-edge-line {
+  stroke: var(--green-500-50);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  fill: none;
+}
+
+.ghost-edge-arrow {
+  fill: var(--green-500-60);
+}
+
+.ghost-edge-label {
+  fill: rgba(229, 246, 236, 0.75);
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}

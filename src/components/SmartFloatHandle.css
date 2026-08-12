@@ -1,0 +1,65 @@
+.smart-float-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.smart-float-grip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 4px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  opacity: 0.35;
+  cursor: grab;
+  touch-action: none;
+  transition: opacity var(--duration-fast) var(--ease-spring),
+    background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.smart-float-grip:hover,
+.smart-float-grip:active {
+  opacity: 1;
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.smart-float-grip:active {
+  cursor: grabbing;
+}
+
+.smart-float-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.smart-float-reset:hover {
+  color: var(--color-text-primary);
+  background: var(--color-selected-bg);
+}
+
+/* Panels adopt smart-float: inline left/top take over, entry transforms are
+   cleared (e.g. the AI feed's translateX centering) and position changes spring. */
+[data-float="active"] {
+  transform: none;
+  left: auto;
+  top: auto;
+  transition: left var(--duration-base) var(--ease-spring),
+    top var(--duration-base) var(--ease-spring),
+    opacity var(--duration-base) var(--ease-spring);
+}
+
+[data-float="active"][data-dragging="true"] {
+  transition: none;
+}

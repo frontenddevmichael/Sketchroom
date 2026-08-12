@@ -1,0 +1,1524 @@
+.room-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  background: var(--color-bg-canvas);
+}
+
+/* Top bar: a 3-zone grid — left (back + room name), center (the room pulse:
+   save/connection status + live presence), right (help, history, export,
+   share). The center zone is the flex-fill column, so status and presence
+   appear and change without ever shifting the right-side actions. */
+.room-topbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--neutral-150);
+  /* Above the floating chrome (rail 35, controls) so the ⋯ overflow menu —
+     stacked inside this context — can never render underneath it; below the
+     modal layer (60) so overlays still cover the bar. */
+  z-index: var(--room-z-context);
+}
+
+[data-theme="dark"] .room-topbar {
+  border-bottom-color: var(--dark-hairline);
+}
+
+.room-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.room-back-btn {
+  width: var(--room-btn-sm);
+  height: var(--room-btn-sm);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+  flex-shrink: 0;
+}
+
+.room-back-btn:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+/* Room name: a clamped footprint (never a 676px void at wide widths, never a
+   crushed field at narrow ones) with a pencil affordance on hover/focus. */
+.room-name-wrap {
+  position: relative;
+  width: clamp(140px, 30vw, 320px);
+  min-width: 0;
+}
+
+.room-name-input {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  padding: 6px 30px 6px 10px;
+  border-radius: var(--radius-sm);
+  width: 100%;
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.room-name-input:hover {
+  background: var(--color-selected-bg);
+}
+
+.room-name-input:focus {
+  outline: none;
+  background: var(--color-selected-bg);
+  box-shadow: 0 0 0 1.5px var(--green-500);
+}
+
+.room-name-pencil {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-spring);
+  pointer-events: none;
+}
+
+.room-name-wrap:hover .room-name-pencil,
+.room-name-wrap:focus-within .room-name-pencil {
+  opacity: 1;
+}
+
+/* Center zone: absorbs the free space; nothing here ever pushes the actions. */
+.room-topbar-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.room-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The ⋯ overflow: hidden above the narrow breakpoint, it becomes the home of
+   the less-frequent actions (export, shortcuts) on small phones so the room
+   name keeps a readable footprint next to the primary actions. */
+.room-topbar-more {
+  position: relative;
+  display: none;
+}
+
+.room-topbar-more-btn {
+  display: inline-flex;
+}
+
+.room-more-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 176px;
+  z-index: var(--room-z-menu);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  animation: zoom-menu-in var(--duration-fast) var(--ease-spring);
+}
+
+.room-more-menu button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.room-more-menu button:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.room-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  /* Every status change springs in — the save confirmation is a moment, not
+     a silent text swap. */
+  animation: status-pill-in var(--duration-base) var(--ease-spring);
+}
+
+@keyframes status-pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.room-status-ok {
+  background: var(--color-status-ok-bg);
+  color: var(--color-status-ok-text);
+}
+
+.room-status-warn {
+  background: var(--color-status-warn-bg);
+  color: var(--color-status-warn-text);
+  animation: status-pulse 1.6s ease-in-out infinite;
+}
+
+.room-status-danger {
+  background: var(--color-status-danger-bg);
+  color: var(--color-status-danger-text);
+}
+
+.room-status-neutral {
+  background: var(--color-selected-bg);
+  color: var(--color-text-secondary);
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.room-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* The Saved confirmation: a hand-drawn checkmark that draws itself in with
+   the product's stroke technique — satisfying proof, not a passive glyph. */
+.room-status-check {
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: status-check-draw 0.55s var(--ease-spring) 0.06s forwards;
+}
+
+@keyframes status-check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-status-check {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+.room-presence-avatars {
+  display: flex;
+  align-items: center;
+}
+
+.room-presence-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-bg-canvas);
+  background: var(--neutral-150);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-left: -8px;
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.room-presence-avatar:hover {
+  transform: translateY(-2px);
+}
+
+.room-presence-avatar:first-child {
+  margin-left: 0;
+}
+
+.room-presence-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.room-presence-more {
+  background: var(--color-selected-bg);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.room-icon-btn {
+  width: var(--room-btn-sm);
+  height: var(--room-btn-sm);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.room-icon-btn:hover:not(:disabled) {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.room-icon-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.room-icon-btn.active {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.room-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-cta-default);
+  border: 1px solid var(--color-cta-default);
+  border-radius: var(--radius-full);
+  padding: 6px 18px;
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.room-share-btn:hover {
+  background: var(--color-cta-default);
+  color: #fff;
+}
+
+/* The stage is the room's single positioning context: the canvas fills it and
+   every piece of floating chrome (dock, panels, feed) anchors to it. */
+.room-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.room-canvas {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Top-right controls: undo/redo and zoom joined in one glass pill below the
+   topbar — every navigation action in a single, predictable place. The depth
+   gauge rides the pill's bottom edge. Right-side panels (history, AI chat)
+   reserve the --room-panel-top band so they can never collide with it. */
+.room-controls {
+  position: absolute;
+  right: var(--room-gutter);
+  top: var(--room-gutter);
+  z-index: var(--room-z-rail);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-1);
+  border-radius: var(--radius-full);
+  animation: cluster-in var(--duration-base) var(--ease-spring);
+}
+
+@keyframes cluster-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.room-controls-btn {
+  width: var(--room-btn-sm);
+  height: var(--room-btn-sm);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.room-controls-btn:hover:not(:disabled) {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.room-controls-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.room-controls-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 6px;
+  background: var(--neutral-150);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .room-controls-divider {
+  background: var(--dark-hairline);
+}
+
+.room-controls-pct {
+  width: auto;
+  min-width: 44px;
+  height: var(--room-btn-sm);
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.room-controls-pct:hover,
+.room-controls-pct[aria-expanded='true'] {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+/* History depth gauge: undo fills from the left, redo from the right, so how
+   much history exists is visible at a glance — never a hidden boolean. */
+.room-controls-depth {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--color-selected-bg);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.room-controls-depth-undo,
+.room-controls-depth-redo {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-text-tertiary);
+  transition: width var(--duration-base) var(--ease-spring);
+}
+
+.room-controls-depth-undo {
+  left: 0;
+  opacity: 0.55;
+}
+
+.room-controls-depth-redo {
+  right: 0;
+  opacity: 0.28;
+}
+
+/* The zoom menu opens downward from the top-right controls pill. */
+.room-controls .room-zoom-menu {
+  top: calc(100% + 6px);
+  right: 0;
+  left: auto;
+}
+
+.room-zoom-menu {
+  position: absolute;
+  min-width: 168px;
+  z-index: var(--room-z-menu);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  animation: zoom-menu-in var(--duration-fast) var(--ease-spring);
+}
+
+@keyframes zoom-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.room-zoom-menu button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--color-text-primary);
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.room-zoom-menu button:hover {
+  background: var(--color-selected-bg);
+}
+
+.room-zoom-menu-pct {
+  width: 14px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.room-empty-hero {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding: var(--space-8);
+  pointer-events: none;
+  z-index: var(--room-z-overlays);
+}
+
+/* The hero is a backdrop, not a barrier: the canvas stays interactive and the
+   first click lands on a real stroke. Only the CTA is clickable. */
+.room-empty-hero .btn {
+  pointer-events: auto;
+}
+
+/* The canvas empty state wears the hand-drawn family a size up — a pencil
+   sketching a note, drawing itself in, instead of a floating icon. */
+.room-empty-illo {
+  margin-bottom: var(--space-3);
+}
+
+.room-empty-illo .illo {
+  width: 148px;
+  height: 111px;
+}
+
+.room-empty-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.room-empty-subtitle {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  max-width: 440px;
+  margin: 0 0 var(--space-2);
+}
+
+.room-empty-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* First-visit onboarding: a pencil → note → connector scene drawing itself
+   in above the AI bar. Quiet, non-interactive (the first click passes
+   through to the canvas), and gone the moment real work begins. */
+.room-onboarding {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--room-gutter) + var(--room-bar-h) + var(--space-6));
+  transform: translateX(-50%);
+  z-index: var(--room-z-overlays);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  pointer-events: none;
+  animation: room-onboarding-in 500ms var(--ease-spring) both;
+}
+
+.room-onboarding svg {
+  width: min(300px, calc(100vw - var(--space-14)));
+  height: auto;
+}
+
+.room-onboarding-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--color-text-tertiary);
+  opacity: 0; /* the label lands after the scene finishes drawing */
+  animation: room-onboarding-label-in 400ms var(--ease-spring) 2.3s forwards;
+}
+
+@keyframes room-onboarding-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes room-onboarding-label-in {
+  to {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-onboarding {
+    animation: none;
+  }
+
+  .room-onboarding-label {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
+/* ── Guided walkthrough ──────────────────────────────────────────────────
+   After the onboarding scene finishes drawing itself in, the canvas dims and
+   the real pencil / note / connector tools glow one at a time; each step
+   completes only when the user actually performs it. The guide steps aside
+   the moment the user demonstrates they're working on their own. Green here
+   is a guided moment — the same deliberate reservation as the flourish. */
+.room-walkthrough {
+  position: absolute;
+  inset: 0;
+  /* No z-index: the children carry their own layers, so the dim can sit
+     under the rail (35) while the card floats above the AI bar (40). */
+  pointer-events: none;
+  transition: opacity 380ms var(--ease-spring);
+}
+
+.room-walkthrough.closing {
+  opacity: 0;
+}
+
+.room-wt-dim {
+  position: absolute;
+  inset: 0;
+  z-index: var(--room-z-panels);
+  background: rgba(96, 96, 96, 0.16);
+  pointer-events: none;
+}
+
+[data-theme='dark'] .room-wt-dim {
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.room-wt-card {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--room-gutter) + var(--room-bar-h) + var(--space-6));
+  transform: translateX(-50%);
+  z-index: var(--room-z-menu);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  pointer-events: auto;
+  animation: wt-card-in 450ms var(--ease-spring) both;
+}
+
+@keyframes wt-card-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.room-wt-step {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--green-600);
+}
+
+[data-theme='dark'] .room-wt-step {
+  color: var(--green-400);
+}
+
+.room-wt-copy {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.room-wt-skip {
+  margin-top: var(--space-1);
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--ease-spring);
+}
+
+.room-wt-skip:hover {
+  color: var(--color-text-primary);
+}
+
+/* The sketch hands off to the guide: once the walkthrough is up the scene
+   fades rather than sitting dimmed underneath it. (!important wins over the
+   scene's own fill-mode entrance animation.) */
+.room-screen.walkthrough .room-onboarding {
+  opacity: 0 !important;
+  transition: opacity 320ms var(--ease-spring);
+}
+
+/* The guided tool glows; everything else on the rail recedes so the eye goes
+   straight to the one action the step needs. */
+.room-rail-tool.wt-target {
+  color: var(--green-600);
+}
+
+[data-theme='dark'] .room-rail-tool.wt-target {
+  color: var(--green-400);
+}
+
+.room-rail-tool.wt-target::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: calc(var(--radius-md) + 4px);
+  border: 1.5px solid var(--green-500);
+  opacity: 0.9;
+  animation: wt-ring 1.7s var(--ease-spring) infinite;
+  pointer-events: none;
+}
+
+@keyframes wt-ring {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.055);
+  }
+}
+
+.room-screen.walkthrough .room-rail-tool:not(.wt-target),
+.room-screen.walkthrough .room-rail-divider {
+  opacity: 0.4;
+  transition: opacity var(--duration-base) var(--ease-spring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-walkthrough {
+    transition: none;
+  }
+  .room-wt-card {
+    animation: none;
+  }
+  .room-rail-tool.wt-target::before {
+    animation: none;
+    opacity: 0.9;
+  }
+}
+
+.room-first-stroke {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: var(--room-z-overlays);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  pointer-events: none;
+  color: var(--color-text-secondary);
+}
+
+.room-first-stroke-ring {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px dashed var(--green-500);
+  animation: first-stroke-pulse var(--duration-pulse) var(--ease-spring) infinite;
+}
+
+.room-first-stroke-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  opacity: 0.85;
+}
+
+@keyframes first-stroke-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+}
+
+@keyframes coachmark-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Sequential first-run coachmark pills — neutral, informational (never green),
+   positioned next to their target (rail, AI icon, Share) and fixed to the
+   viewport since they must float above the stage chrome. */
+.room-coachmark {
+  position: fixed;
+  z-index: var(--room-z-coachmarks);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: min(340px, calc(100vw - var(--space-8)));
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  animation: coachmark-in var(--duration-base) var(--ease-spring);
+}
+
+.room-coachmark-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+.room-coachmark-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.room-coachmark-next {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: var(--color-selected-bg);
+  white-space: nowrap;
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.room-coachmark-next:hover {
+  background: var(--neutral-150);
+}
+
+.room-coachmark-done {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 4px;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-spring);
+}
+
+.room-coachmark-done:hover {
+  color: var(--color-text-primary);
+}
+
+.room-coachmark-x {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.room-coachmark-x:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.room-tldraw {
+  position: absolute;
+  inset: 0;
+}
+
+/* Theme the tldraw canvas onto the app's dark elevation system: a true-black
+   canvas with faint white grid dots, elevation-based panels, and hairline
+   dividers — never flat dark grays or box shadows. */
+[data-theme="dark"] .room-tldraw,
+[data-theme="dark"] .room-tldraw .tl-theme__dark {
+  --tl-color-background: var(--dark-elevation-0);
+  --tl-color-grid: var(--dark-canvas-grid-dot);
+  --tl-color-panel: var(--dark-elevation-3);
+  --tl-color-panel-contrast: var(--dark-elevation-4);
+  --tl-color-panel-overlay: var(--surface-translucency-dark);
+  --tl-color-panel-transparent: rgba(20, 20, 20, 0.75);
+  --tl-color-tooltip: var(--dark-elevation-4);
+  --tl-color-muted-1: var(--dark-elevation-2);
+  --tl-color-muted-2: var(--dark-elevation-3);
+  --tl-color-low: var(--dark-elevation-2);
+  --tl-color-low-border: var(--dark-hairline);
+  --tl-color-divider: var(--dark-hairline);
+  --tl-color-hint: var(--dark-hairline);
+  --tl-color-text: #F5F5F5;
+  --tl-color-text-1: #F5F5F5;
+  --tl-color-text-2: #A3A3A3;
+  --tl-color-text-3: #6E6E6E;
+  --tl-color-text-disabled: #5A5A5A;
+  --tl-color-selected: var(--green-500);
+  --tl-color-selection-stroke: var(--green-500);
+  --tl-color-focus: var(--green-500);
+  --tl-color-success: var(--green-500);
+  --tl-color-overlay: rgba(0, 0, 0, 0.55);
+}
+
+/* Light theme: a proper faint dot-grid on pure white, tuned below tldraw's
+   defaults (which ship a gray canvas and a much stronger grid). */
+[data-theme="light"] .room-tldraw,
+[data-theme="light"] .room-tldraw .tl-theme__light {
+  --tl-color-background: #FFFFFF;
+  --tl-color-grid: var(--neutral-100);
+  --tl-color-selected: var(--green-500);
+  --tl-color-selection-stroke: var(--green-500);
+  --tl-color-focus: var(--green-500);
+  --tl-color-success: var(--green-500);
+}
+
+/* Left tool rail: the design brief's tool surface — select, draw, sticky note,
+   text, connector, shapes, divider, block-library trigger. Every slot is a
+   uniform 42px (40px button + 2px rhythm), including the divider, so the
+   spring-loaded active indicator's translateY(index*42) lands exactly on the
+   active tool — never green for the active state (green is reserved for CTA
+   and AI). */
+.room-tool-rail {
+  position: absolute;
+  left: var(--room-gutter);
+  /* Vertically centered in the stage, but never rising into the top-left
+     zoom cluster: the rail centers within (cluster bottom → stage bottom)
+     instead of the full stage, so short viewports can't collide. */
+  top: calc(var(--room-gutter) + 52px);
+  bottom: var(--room-gutter);
+  height: fit-content;
+  margin: auto 0;
+  z-index: var(--room-z-rail);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  animation: rail-in var(--duration-base) var(--ease-spring);
+}
+
+@keyframes rail-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.room-rail-indicator {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: var(--room-btn);
+  height: var(--room-btn);
+  border-radius: var(--radius-md);
+  background: var(--color-selected-bg);
+  transition: transform calc(var(--duration-base) * 1.15) var(--ease-spring);
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.room-rail-tool {
+  position: relative;
+  z-index: 1;
+  width: var(--room-btn);
+  height: var(--room-btn);
+  margin-bottom: 2px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: color var(--duration-fast) var(--ease-spring);
+}
+
+.room-rail-tool:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+.room-rail-tool.active {
+  color: var(--color-text-primary);
+}
+
+.room-rail-tool:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Custom hint chips: the tool name + shortcut in a glass chip beside the
+   icon, replacing slow native title tooltips. Pure CSS, no JS. */
+.room-rail-tool[data-hint]::after {
+  content: attr(data-hint);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg-dense);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-card-hover);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 30;
+  transition: opacity var(--duration-fast) var(--ease-spring),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.room-rail-tool[data-hint]:hover::after,
+.room-rail-tool[data-hint]:focus-visible::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* The divider is a full 42px slot so the indicator math stays uniform; the
+   visual line is centered inside it. */
+.room-rail-divider {
+  width: 22px;
+  height: var(--room-btn);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.room-rail-divider::after {
+  content: '';
+  width: 22px;
+  height: 1px;
+  background: var(--neutral-150);
+}
+
+[data-theme="dark"] .room-rail-divider::after {
+  background: var(--dark-hairline);
+}
+
+/* Bottom-center stack: the single anchor for the quick-styles strip, the AI
+   bar, and the refine chips. Children stack upward from the bar and each
+   defines its own width. The stack spans the full stage width with no
+   transform so right-docked fixed chrome (the AI chat) is never trapped
+   inside a transformed containing block; it is click-through and children
+   re-enable pointer events. */
+.room-bottom-stack {
+  position: absolute;
+  inset-inline: 0;
+  bottom: var(--room-gutter);
+  z-index: var(--room-z-context);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.room-bottom-stack > * {
+  pointer-events: auto;
+}
+
+
+/* Shortcuts reference modal */
+.room-shortcuts-modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--room-z-modal);
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.room-shortcuts-card {
+  width: 100%;
+  max-width: 400px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  animation: modal-in var(--duration-base) var(--ease-spring);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.room-shortcuts-card::-webkit-scrollbar {
+  display: none;
+}
+
+.room-shortcuts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  padding-bottom: var(--space-4);
+}
+
+.room-shortcuts-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.room-shortcuts-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.room-shortcuts-close:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.room-shortcuts-body {
+  padding: 0 var(--space-6) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.room-shortcuts-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.room-shortcuts-group-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-2);
+}
+
+.room-shortcuts-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.room-shortcuts-label {
+  color: var(--color-text-primary);
+}
+
+.room-shortcuts-key,
+.room-shortcuts-keys {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+kbd.room-shortcuts-key,
+.room-shortcuts-keys kbd {
+  min-width: 24px;
+  padding: 3px 7px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--neutral-150);
+  border-bottom-width: 2px;
+  background: var(--color-bg-surface);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .room-shortcuts-key,
+[data-theme="dark"] .room-shortcuts-keys kbd {
+  border-color: var(--dark-hairline);
+}
+/* --- Responsive behavior ---
+   The left rail stays put; the bottom stack and floating panels cap their
+   width so nothing escapes the viewport on narrow screens. */
+@media (max-width: 720px) {
+  .block-library {
+    width: min(260px, calc(100vw - var(--space-6)));
+  }
+  .history-panel {
+    right: var(--space-3);
+    width: min(320px, calc(100vw - var(--space-6)));
+  }
+}
+
+/* Mid screens: presence folds away so the center zone stays calm; the status
+   pill keeps the topbar's pulse readable. */
+@media (max-width: 980px) {
+  .room-presence-avatars {
+    display: none;
+  }
+}
+
+/* Narrow screens: the status pill becomes a quiet dot so the name keeps its
+   readable footprint. */
+@media (max-width: 560px) {
+  .room-status-pill {
+    font-size: 0;
+    line-height: 0;
+    padding: 4px 6px;
+  }
+  .room-status-pill .room-status-dot {
+    margin: 0;
+  }
+}
+
+
+
+
+/* ── Canvas blur-up loading ──────────────────────────────────────────────
+   The room's last-known thumbnail stands in, blurred, while the live canvas
+   hydrates underneath; the surface then cross-fades away. No blank rectangle
+   is ever shown — something meaningful is visible within milliseconds. */
+.room-canvas-loading {
+  position: absolute;
+  inset: 0;
+  z-index: var(--room-z-panels);
+  background: var(--color-bg-canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 520ms var(--ease-spring);
+}
+
+.room-canvas-loading.leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.room-canvas-loading-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(22px) saturate(0.9);
+  transform: scale(1.12);
+  opacity: 0.55;
+}
+
+/* When no thumbnail exists yet: a faint dot-grid stand-in so the surface
+   already reads as the product's infinite canvas, not a flat void. */
+.room-canvas-loading-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--color-text-tertiary) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.35;
+}
+
+[data-theme='dark'] .room-canvas-loading-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+}
+
+.room-canvas-loading-center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.room-canvas-loading-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  animation: loader-fade-in 0.6s ease 0.4s both;
+}
+
+/* ── Solo presence: a quiet, muted note — no one else is here right now. ── */
+.room-presence-solo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+/* ── Room boot (first load, before the room doc resolves) ────────────────
+   Sits on the shared loader family (`.loading-screen` backdrop + mark) with
+   room-specific copy and a calm retry path. */
+.room-boot-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  animation: loader-fade-in 0.6s ease both;
+}
+
+.room-boot-error-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.room-boot-error-sub {
+  margin: 0 0 var(--space-3);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* ── First-room flourish ─────────────────────────────────────────────────
+   A one-time "your room is live" beat for brand-new rooms: a hand-drawn
+   ring and sparkle draw themselves in green, then the whole mark dissolves.
+   Green here is a creation moment, the same deliberate reservation. */
+.room-flourish {
+  position: absolute;
+  inset: 0;
+  z-index: var(--room-z-overlays);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  pointer-events: none;
+  animation: flourish-fade-out 0.8s var(--ease-spring) 1.4s forwards;
+}
+
+.room-flourish svg {
+  width: 120px;
+  height: 120px;
+}
+
+.room-flourish-ring {
+  stroke: var(--green-500);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.7;
+  animation: flourish-draw 0.9s var(--ease-spring) 0.1s forwards;
+}
+
+.room-flourish-star {
+  stroke: var(--green-500);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: flourish-draw 0.6s var(--ease-spring) 0.75s forwards;
+}
+
+@keyframes flourish-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.room-flourish-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green-600);
+  animation: loader-fade-in 0.5s ease 0.55s both;
+}
+
+[data-theme='dark'] .room-flourish-label {
+  color: var(--green-400);
+}
+
+@keyframes flourish-fade-out {
+  to {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-flourish-ring,
+  .room-flourish-star {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .room-flourish-label {
+    animation: none;
+    opacity: 1;
+  }
+  .room-flourish {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* ── Focus mode ──────────────────────────────────────────────────────────
+   The canvas dim is punched around the selection (FocusDim); the chrome
+   quietly recedes so the work at hand owns the screen. Nothing is disabled —
+   chrome returns to full presence the moment focus exits. */
+.room-screen.focusing .room-topbar,
+.room-screen.focusing .room-tool-rail,
+.room-screen.focusing .room-controls,
+.room-screen.focusing .tool-options-rail,
+.room-screen.focusing .room-bottom-stack {
+  opacity: 0.22;
+  transition: opacity var(--duration-base) var(--ease-spring);
+}
+
+.room-screen:not(.focusing) .room-topbar,
+.room-screen:not(.focusing) .room-tool-rail,
+.room-screen:not(.focusing) .room-controls,
+.room-screen:not(.focusing) .tool-options-rail,
+.room-screen:not(.focusing) .room-bottom-stack {
+  transition: opacity var(--duration-base) var(--ease-spring);
+}
+
+/* ── Responsive chrome (kept last so these win the cascade over the base
+   rules defined above) ──────────────────────────────────────────────────
+   Mid phones: the solo-presence note folds away — nothing in the center zone
+   may drift into the actions. (The avatar stack already folds at 980px.) */
+@media (max-width: 640px) {
+  .room-presence-solo {
+    display: none;
+  }
+}
+
+/* Small phones: the topbar rebalances — export and shortcuts move into the ⋯
+   overflow, the name column takes the freed space, and the chrome compacts
+   so nothing is crushed or overlapping. */
+@media (max-width: 560px) {
+  .room-topbar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-3);
+  }
+  .room-topbar-left {
+    min-width: 0;
+  }
+  .room-name-wrap {
+    width: 100%;
+    max-width: none;
+  }
+  .room-name-input {
+    padding: 6px 24px 6px 8px;
+  }
+  .room-topbar-center {
+    justify-content: flex-start;
+  }
+  .room-topbar-right {
+    gap: var(--space-2);
+  }
+  .room-icon-btn {
+    width: 32px;
+    height: 32px;
+  }
+  .room-share-btn {
+    padding: 0 12px;
+    height: 32px;
+    font-size: 13px;
+  }
+  .room-topbar-hideable {
+    display: none;
+  }
+  .room-topbar-more {
+    display: block;
+  }
+}

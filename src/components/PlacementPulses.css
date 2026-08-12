@@ -1,0 +1,59 @@
+/* The placement pulse: a ring that springs out of the block as it lands and
+   dissolves — the "snap" conveyed through motion alone. Neutral for library
+   drops; green for AI placements, which is the AI's reserved color. */
+
+.placement-pulse-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 300;
+}
+
+.placement-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 6px;
+  border: 2px solid var(--neutral-400);
+  opacity: 0;
+  transform-origin: 50% 50%;
+  animation: pulse-in 340ms var(--ease-spring) forwards;
+}
+
+.placement-pulse-ai {
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 6px rgba(37, 211, 102, 0.14);
+}
+
+.placement-pulse.leaving {
+  animation: pulse-out 540ms var(--ease-spring) forwards;
+}
+
+@keyframes pulse-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  60% {
+    opacity: 0.95;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-out {
+  to {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placement-pulse {
+    animation: none;
+    opacity: 0.5;
+  }
+}

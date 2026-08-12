@@ -1,0 +1,276 @@
+/* Elevation-aware skeleton system.
+   Base blocks sit at the elevation the real surface would (neutral-150 in
+   light; the dark elevation scale in dark). The shimmer band is a soft sweep
+   that eases back and forth — never a linear stripe — and in dark mode it's a
+   *lighter band on the elevation* rather than a white flash. */
+
+.skel {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--color-selected-bg);
+}
+
+[data-theme='dark'] .skel {
+  background: var(--dark-elevation-3);
+}
+
+/* The moving band: gradients only read as "shimmer" when the band color is
+   derived from the surface it sits on. Light = white on neutral; dark = a
+   soft lighter band on elevation. The band is off-screen at BOTH keyframe
+   endpoints (fully transparent edges), so the loop reset is invisible — a
+   continuous scan, never the cross-then-freeze stutter of a fixed pause. */
+.skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.7) 38%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.7) 62%,
+    transparent 100%
+  );
+  animation: skel-sweep 2.6s cubic-bezier(0.33, 0, 0.2, 1) infinite;
+}
+
+[data-theme='dark'] .skel::after {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 38%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 62%,
+    transparent 100%
+  );
+}
+
+@keyframes skel-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Entrance: staggered fade/slide per item (index via --i). */
+.skel-card,
+.skel-row,
+.skel-tile,
+.skel-form,
+.skel-plan-card {
+  animation: skel-in calc(var(--duration-base) * 1.15) var(--ease-spring) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@keyframes skel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Room card ───────────────────────────────────────────────────────── */
+.skel-room-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-100);
+}
+
+[data-theme='dark'] .skel-room-card {
+  background: var(--dark-elevation-2);
+  border-color: var(--dark-hairline);
+}
+
+.skel-room-thumb {
+  aspect-ratio: 16 / 9;
+  margin: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.skel-room-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.skel-line-title {
+  width: 62%;
+  height: 14px;
+}
+
+.skel-line-meta {
+  width: 84%;
+  height: 10px;
+}
+
+.skel-room-avatars {
+  display: flex;
+  gap: 6px;
+  margin-top: var(--space-1);
+}
+
+.skel-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+/* ── List rows (history / members / invites) ─────────────────────────── */
+.skel-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-100);
+}
+
+[data-theme='dark'] .skel-row {
+  background: var(--dark-elevation-2);
+  border-color: var(--dark-hairline);
+}
+
+.skel-row-thumb {
+  width: 56px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.skel-row-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.skel-line-row-main {
+  width: 44%;
+  height: 12px;
+}
+
+.skel-line-row-sub {
+  width: 70%;
+  height: 10px;
+}
+
+.skel-row-action {
+  width: 52px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* ── Block library tiles ─────────────────────────────────────────────── */
+.skel-tile-grid {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.skel-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.skel-tile-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+}
+
+.skel-line-tile-label {
+  width: 60%;
+  height: 8px;
+}
+
+/* ── Settings form ───────────────────────────────────────────────────── */
+.skel-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.skel-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skel-line-label {
+  width: 30%;
+  height: 10px;
+}
+
+.skel-field {
+  height: 42px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Billing plan card ───────────────────────────────────────────────── */
+.skel-plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-100);
+}
+
+[data-theme='dark'] .skel-plan-card {
+  background: var(--dark-elevation-2);
+  border-color: var(--dark-hairline);
+}
+
+.skel-line-plan-name {
+  width: 40%;
+  height: 16px;
+}
+
+.skel-line-plan-price {
+  width: 55%;
+  height: 26px;
+}
+
+.skel-line-plan-tag {
+  width: 70%;
+  height: 11px;
+}
+
+.skel-line-plan-item {
+  width: 88%;
+  height: 10px;
+}
+
+.skel-plan-cta {
+  width: 100%;
+  height: 40px;
+  border-radius: var(--radius-full);
+  margin-top: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel::after {
+    animation: none;
+    transform: none;
+  }
+}

@@ -1,0 +1,83 @@
+/* Teammate viewport outlines: the quietest awareness surface. A soft tinted
+   frame around where each collaborator is looking, with their name tag — so
+   simultaneous editing never feels chaotic or collision-prone. Sits below
+   the selection and cursor layers. */
+
+.viewport-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.viewport-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  transition: transform 140ms ease, width 140ms ease, height 140ms ease;
+}
+
+.viewport-tag {
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  line-height: 1.5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  opacity: 0.92;
+}
+
+/* Off-screen edge tabs: a 1px marker with a name pill, pinned to the edge
+   they're near — you always know which way a teammate wandered. */
+.viewport-tab {
+  position: absolute;
+  width: 1px;
+  height: 22px;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.viewport-tab-top,
+.viewport-tab-bottom {
+  width: 44px;
+  height: 1px;
+}
+
+.viewport-tab-name {
+  position: absolute;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  line-height: 1.5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.viewport-tab-left .viewport-tab-name {
+  left: 6px;
+  top: -2px;
+}
+
+.viewport-tab-right .viewport-tab-name {
+  right: 6px;
+  top: -2px;
+}
+
+.viewport-tab-top .viewport-tab-name {
+  top: 6px;
+  left: 0;
+}
+
+.viewport-tab-bottom .viewport-tab-name {
+  bottom: 6px;
+  left: 0;
+}

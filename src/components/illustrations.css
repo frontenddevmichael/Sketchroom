@@ -1,0 +1,90 @@
+/* The empty-state illustration family: single-line, grayscale-first, each
+   path drawing itself in with the product's spring. Green appears on exactly
+   one element in the whole family — the AI sparkle. */
+
+.illo {
+  display: block;
+  width: 120px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.illo-stroke {
+  fill: none;
+  stroke: var(--color-text-tertiary);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* pathLength=1 on every path + dasharray 1 = draw speed proportional to
+     length: each element draws itself over its own window, like a hand. */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: illo-draw 850ms var(--ease-spring) forwards;
+  animation-delay: var(--d, 0ms);
+}
+
+.illo-stroke.illo-accent {
+  stroke: var(--green-500);
+}
+
+@keyframes illo-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The drawn headline: title reveals softly, then a single hand-drawn stroke
+   draws itself in beneath — same stroke language as the illo above it. */
+.illo-headline {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+}
+
+.illo-headline-title {
+  animation: illo-title-in 550ms var(--ease-spring) both;
+}
+
+@keyframes illo-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.illo-headline-underline {
+  display: block;
+  overflow: visible;
+}
+
+.illo-headline-underline path {
+  stroke: var(--color-text-tertiary);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: illo-draw 700ms var(--ease-spring) forwards;
+  animation-delay: var(--d, 650ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .illo-stroke {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .illo-headline-title {
+    animation: none;
+  }
+
+  .illo-headline-underline path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

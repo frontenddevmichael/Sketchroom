@@ -1,0 +1,441 @@
+/* Tool sub-options, split into two fixed surfaces — no compact/expanded
+   toggle anymore:
+   • .quick-styles — the bottom-center strip above the AI input: color
+     swatches + one primary control, wrapping naturally (never scrolls).
+   • .tool-options-rail — the right-side dock: the full per-tool options in a
+     vertical panel, paired with the strip through one shared style engine. */
+
+@keyframes tool-pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Quick styles strip (bottom center, above the AI bar) ─────────────── */
+.quick-styles {
+  width: min(440px, calc(100vw - var(--space-6)));
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  animation: tool-pill-in var(--duration-fast) var(--ease-spring);
+}
+
+.quick-styles-swatches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.quick-styles-swatch-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-styles-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  transition: transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-spring);
+}
+
+.quick-styles-swatch:hover {
+  transform: scale(1.15);
+}
+
+.quick-styles-swatch.active {
+  box-shadow: 0 0 0 2px var(--color-bg-surface), 0 0 0 3.5px var(--green-500);
+}
+
+[data-theme="dark"] .quick-styles-swatch {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.quick-styles-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.quick-styles-primary-control {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.quick-styles-focus,
+.tool-options-focus {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-selected-bg);
+  border: 1px solid var(--neutral-150);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring),
+    border-color var(--duration-fast) var(--ease-spring);
+}
+
+[data-theme='dark'] .quick-styles-focus,
+[data-theme='dark'] .tool-options-focus {
+  border-color: var(--dark-hairline);
+}
+
+.quick-styles-focus:hover,
+.tool-options-focus:hover {
+  background: var(--neutral-100);
+  color: var(--color-text-primary);
+}
+
+.quick-styles-focus.active,
+.tool-options-focus.active {
+  background: rgba(37, 211, 102, 0.12);
+  border-color: var(--green-500);
+  color: var(--green-600);
+}
+
+[data-theme='dark'] .quick-styles-focus.active,
+[data-theme='dark'] .tool-options-focus.active {
+  color: var(--green-400);
+}
+
+/* ── Extended rail (right dock) ───────────────────────────────────────── */
+.tool-options-rail {
+  position: absolute;
+  right: var(--room-gutter);
+  top: var(--room-panel-top);
+  bottom: var(--room-gutter);
+  height: fit-content;
+  /* The exact vertical budget between panel-top and the bottom gutter — never
+     larger, or auto margins would go negative and push the rail off-screen. */
+  max-height: calc(100svh - var(--room-topbar-h) - var(--room-panel-top) - var(--room-gutter));
+  margin: auto 0;
+  z-index: var(--room-z-rail);
+  width: 236px;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  animation: tool-pill-in var(--duration-fast) var(--ease-spring);
+}
+
+.tool-options-rail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--neutral-100);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .tool-options-rail-header {
+  border-bottom-color: var(--dark-hairline);
+}
+
+.tool-options-rail-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.tool-options-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-selected-bg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.tool-options-mode {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.tool-options-mode-btn {
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.tool-options-mode-btn:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+.tool-options-mode-btn.active {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.tool-options-mode-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tool-options-rail-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tool-options-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tool-options-section-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--color-text-secondary);
+}
+
+/* Small group labels inside a section (e.g. Align/Distribute/Order). */
+.tool-options-sub-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-2);
+}
+
+.tool-options-segmented {
+  display: flex;
+  gap: 2px;
+  background: var(--color-selected-bg);
+  padding: 3px;
+  border-radius: var(--radius-full);
+}
+
+.tool-options-seg-btn {
+  flex: 1;
+  padding: 5px 6px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.tool-options-seg-btn.active {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card-rest);
+}
+
+.tool-options-seg-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tool-options-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-1);
+}
+
+.tool-options-grid-btn {
+  padding: 5px 2px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  border: 1px solid transparent;
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring),
+    border-color var(--duration-fast) var(--ease-spring);
+}
+
+.tool-options-grid-btn:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.tool-options-grid-btn.active {
+  background: var(--color-selected-bg);
+  border-color: var(--green-500);
+  color: var(--color-text-primary);
+}
+
+.tool-options-icon-grid {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.tool-options-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring),
+    border-color var(--duration-fast) var(--ease-spring);
+}
+
+.tool-options-icon-btn:hover:not(:disabled) {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.tool-options-icon-btn.active {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.tool-options-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.tool-options-color-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tool-options-color {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  transition: transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-spring);
+}
+
+.tool-options-color:hover {
+  transform: scale(1.12);
+}
+
+.tool-options-color.active {
+  box-shadow: 0 0 0 2px var(--color-bg-surface), 0 0 0 3.5px var(--green-500);
+}
+
+[data-theme="dark"] .tool-options-color {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.tool-options-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.tool-options-paint-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: var(--color-selected-bg);
+  transition: background var(--duration-fast) var(--ease-spring),
+    opacity var(--duration-fast) var(--ease-spring);
+}
+
+.tool-options-paint-btn:hover:not(:disabled) {
+  background: var(--neutral-150);
+}
+
+[data-theme="dark"] .tool-options-paint-btn {
+  background: var(--dark-elevation-4);
+}
+
+[data-theme="dark"] .tool-options-paint-btn:hover:not(:disabled) {
+  background: var(--dark-elevation-3);
+}
+
+.tool-options-paint-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tool-options-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.tool-options-rail-footer {
+  border-top: 1px solid var(--neutral-100);
+  padding: var(--space-2) var(--space-4);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .tool-options-rail-footer {
+  border-top-color: var(--dark-hairline);
+}
+
+.tool-options-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.tool-options-reset:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+/* Medium/narrow screens: the extended rail yields to the quick strip — below
+   ~980px the centered strip would reach the rail, so the rail hides and the
+   strip (colors + primary control) carries the tool options. */
+@media (max-width: 980px) {
+  .tool-options-rail {
+    display: none;
+  }
+}

@@ -1,0 +1,592 @@
+/* AI surface: a persistent input bar bottom-center with a selection-aware
+   chip row, plus a chat panel that docks to the right edge so it never
+   covers the canvas center. The chat is position:fixed because the bottom
+   stack must stay transform-free for it to escape; it reserves the top-right
+   controls band via --room-panel-top. */
+
+.ai-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: min(440px, calc(100vw - var(--space-6)));
+  max-width: 100%;
+}
+
+/* The persistent input bar — the single AI entry point. One container: the
+   input runs flush inside the pill and the send button is seated at its end
+   (no pill-within-a-pill). Focus draws a green ring on the container. */
+.ai-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  height: var(--room-bar-h);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  animation: bar-in var(--duration-base) var(--ease-spring);
+  transition: box-shadow var(--duration-fast) var(--ease-spring);
+}
+
+.ai-bar:focus-within {
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-shadow),
+    0 0 0 2px var(--green-500);
+}
+
+@keyframes bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-bar-icon {
+  flex-shrink: 0;
+  color: var(--green-500);
+  position: relative;
+  margin-left: 12px;
+}
+
+/* AI-only pulse: an expanding soft ring while a suggestion is unviewed. */
+.ai-bar-icon.unviewed::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45);
+  animation: ai-bar-pulse var(--duration-pulse) ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ai-bar-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45);
+    opacity: 0.85;
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(37, 211, 102, 0);
+    opacity: 1;
+  }
+}
+
+.ai-bar-input {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 10px 0 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.ai-bar-input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.ai-bar-input:focus {
+  outline: none;
+}
+
+.ai-bar-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--green-500);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 2px;
+  transition: background var(--duration-fast) var(--ease-spring),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.ai-bar-send:hover {
+  background: var(--green-600);
+}
+
+.ai-bar-send:active {
+  transform: scale(0.94);
+}
+
+.ai-bar-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* The chat panel, docked to the right edge below the topbar. It is fixed
+   (viewport-relative), so its top = topbar + --room-panel-top: the same
+   band the absolute-positioned controls cluster occupies in the stage — it
+   always starts BELOW the cluster. Height-capped so it never climbs into
+   the AI bar band. The message body scrolls internally with its scrollbar
+   hidden — a clean panel, not a scrollbox. */
+.ai-chat {
+  position: fixed;
+  right: var(--room-gutter);
+  top: calc(var(--room-topbar-h) + var(--room-panel-top));
+  z-index: var(--room-z-panels);
+  width: min(368px, calc(100vw - var(--space-6)));
+  max-height: min(440px, calc(100svh - var(--room-topbar-h) - var(--room-panel-top) - var(--room-bar-h) - var(--room-gutter)));
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  animation: chat-in var(--duration-base) var(--ease-spring);
+}
+
+@keyframes chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ai-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--neutral-100);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .ai-chat-header {
+  border-bottom-color: var(--dark-hairline);
+}
+
+.ai-feed-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.ai-feed-icon {
+  color: var(--green-500);
+}
+
+.ai-feed-close {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.ai-feed-close:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.ai-feed-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ai-feed-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* Chat-loading skeletons mirror message rows; the empty state is a real
+   moment (first-use vs. after-use), not a one-line placeholder. */
+.ai-feed-skel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ai-feed-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-2) var(--space-4);
+  text-align: center;
+}
+
+.ai-feed-empty .illo {
+  width: 96px;
+  height: 72px;
+}
+
+.ai-feed-empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.ai-feed-empty-text {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 300px;
+}
+
+.ai-feed-error {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  font-size: 13px;
+}
+
+[data-theme="dark"] .ai-feed-error {
+  color: #ff8a7a;
+}
+
+.ai-message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-100);
+}
+
+[data-theme="dark"] .ai-message {
+  border-color: var(--dark-hairline);
+}
+
+.ai-message-prompt {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.ai-message-response {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* The AI's thinking state: anticipation for a specific answer, so it wears
+   the AI's own pulse signature — the sparkle with an expanding spring ring —
+   not a borrowed spinner. Copy breathes between phrases as the wait runs
+   on (long-load honesty), never a frozen marker. */
+.ai-message-thinking {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.ai-thinking-mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--green-500);
+}
+
+.ai-thinking-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4);
+  animation: ai-thinking-ping 1.9s var(--ease-spring) infinite;
+}
+
+@keyframes ai-thinking-ping {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4);
+  }
+  70%, 100% {
+    box-shadow: 0 0 0 14px rgba(37, 211, 102, 0);
+  }
+}
+
+.ai-thinking-copy {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  animation: ai-copy-in var(--duration-fast) var(--ease-spring);
+}
+
+@keyframes ai-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-thinking-ring {
+    animation: none;
+  }
+}
+
+.ai-message-error {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ai-message-error-actions {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.ai-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 13px;
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0;
+}
+
+.ai-text-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+.ai-message-author {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--green-500);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.ai-ghost-block-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.ai-ghost-block {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-selected-bg);
+  border: 1px solid var(--neutral-150);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="dark"] .ai-ghost-block {
+  border-color: var(--dark-hairline);
+}
+
+.ai-ghost-kind {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ai-ghost-kind-green { background: rgba(37, 211, 102, 0.16); color: #1db954; }
+.ai-ghost-kind-blue { background: rgba(70, 137, 255, 0.16); color: #3b82f6; }
+.ai-ghost-kind-light-blue { background: rgba(120, 190, 255, 0.16); color: #60a5fa; }
+.ai-ghost-kind-orange { background: rgba(255, 149, 56, 0.16); color: #f97316; }
+.ai-ghost-kind-yellow { background: rgba(255, 205, 66, 0.16); color: #ca8a04; }
+.ai-ghost-kind-light-violet { background: rgba(165, 100, 255, 0.16); color: #a855f7; }
+.ai-ghost-kind-light-green { background: rgba(120, 220, 140, 0.16); color: #4ade80; }
+.ai-ghost-kind-grey { background: rgba(160, 160, 170, 0.16); color: #6b7280; }
+
+.ai-ghost-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-ghost-actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: var(--space-3);
+}
+
+.ai-insert-all-row {
+  margin-top: var(--space-3);
+}
+
+.ai-insert-all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  background: var(--green-500);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background var(--duration-fast) var(--ease-spring),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.ai-insert-all:hover {
+  background: var(--green-600);
+}
+
+.ai-insert-all:active {
+  transform: scale(0.96);
+}
+
+/* Selection-aware chip bar — floats in the bottom stack between the chat and
+   the input bar (a flex child, so it rides above the bar automatically). */
+.ai-refine-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  animation: ai-refine-in var(--duration-fast) var(--ease-spring);
+}
+
+@keyframes ai-refine-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-refine-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--green-500);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ai-refine-text {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.ai-refine-clear {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+}
+
+.ai-refine-clear:hover {
+  color: var(--color-text-primary);
+}
+
+.ai-refine-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ai-refine-chip {
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-150);
+  font-size: 12px;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  transition: border-color var(--duration-fast) var(--ease-spring),
+    background var(--duration-fast) var(--ease-spring);
+}
+
+[data-theme="dark"] .ai-refine-chip {
+  border-color: var(--dark-hairline);
+}
+
+.ai-refine-chip:hover {
+  background: var(--color-selected-bg);
+  border-color: var(--neutral-150);
+}
+
+/* ── Phone: the chat becomes a bottom sheet ──────────────────────────────
+   A 368px right-docked panel leaves a ~12px canvas sliver on a phone. Below
+   640px it docks to the bottom edge instead — full width, height-capped
+   above the AI bar, sliding up — the canvas stays visible and tappable
+   above it. */
+@media (max-width: 640px) {
+  .ai-chat {
+    left: var(--space-2);
+    right: var(--space-2);
+    top: auto;
+    bottom: calc(var(--room-bar-h) + var(--room-gutter) + var(--space-2));
+    width: auto;
+    max-height: min(
+      480px,
+      calc(100svh - var(--room-topbar-h) - var(--room-bar-h) - var(--room-gutter) - var(--space-6))
+    );
+    border-radius: var(--radius-lg);
+    animation: ai-chat-sheet-in var(--duration-base) var(--ease-spring);
+  }
+}
+
+@keyframes ai-chat-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

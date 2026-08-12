@@ -1,0 +1,39 @@
+/* Brand spinner: a single thin arc advancing in spring-stepped hops. The
+   keyframes break the turn into uneven arcs so the motion reads as a
+   catch-and-release flick — the product's spring language, not a linear CSS
+   spin. Color follows currentColor: green on CTAs, secondary elsewhere. */
+.spinner-arc {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 42;
+  stroke-dashoffset: 12;
+  transform-origin: 50% 50%;
+  animation: spinner-hop 1.3s infinite;
+  animation-timing-function: var(--ease-spring);
+}
+
+@keyframes spinner-hop {
+  0% {
+    transform: rotate(0deg);
+  }
+  40% {
+    transform: rotate(150deg);
+  }
+  65% {
+    transform: rotate(240deg);
+  }
+  88% {
+    transform: rotate(345deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner-arc {
+    animation-duration: 2.4s;
+  }
+}
