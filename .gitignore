@@ -30,7 +30,7 @@ dist-ssr
 skills-lock.json
 
 # Internal planning / prompt docs (not product docs)
-new prompts/
+new prompts*/
 sketchroom-opencode-design-brief.md
 sketchroom-opencode-master-prompt.md
 sketchroom-stitch-master-prompt.md
