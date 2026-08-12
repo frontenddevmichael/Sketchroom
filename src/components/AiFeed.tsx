@@ -3,7 +3,7 @@ import type { RefObject } from 'react';
 import { useQuery, useMutation, useAction } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
-import { X, Sparkles, RefreshCw, Plus, MapPin, LayoutGrid, Send } from 'lucide-react';
+import { X, Sparkles, RefreshCw, Plus, LayoutGrid, Send } from 'lucide-react';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import type { Editor } from 'tldraw';
 import type { AiCopilot } from '../lib/useAiCopilot';
@@ -50,7 +50,6 @@ interface AiFeedProps {
   barRef?: RefObject<HTMLDivElement | null>;
   /** Whether a completed suggestion hasn't been viewed yet — drives the pulse. */
   unviewed?: boolean;
-  onViewOnCanvas: (messageId: string, index: number) => void;
 }
 
 export function AiFeed({
@@ -61,7 +60,6 @@ export function AiFeed({
   inputRef,
   barRef,
   unviewed = false,
-  onViewOnCanvas,
 }: AiFeedProps) {
   const { user } = useCurrentUser();
   const messages = useQuery(api.ai.getAiMessages, { roomId });
@@ -211,14 +209,6 @@ export function AiFeed({
                                       {copilot.inserted === block.label ? 'Added' : 'Insert'}
                                     </button>
                                   )}
-                                  <button
-                                    className="ai-text-link"
-                                    title="View on canvas"
-                                    onClick={() => onViewOnCanvas(msg._id, i)}
-                                  >
-                                    <MapPin size={12} />
-                                    View
-                                  </button>
                                 </span>
                               </div>
                             );

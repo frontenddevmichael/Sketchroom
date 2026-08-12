@@ -10,7 +10,7 @@ import { MemoryRouter } from 'react-router-dom';
 import '../src/index.css';
 import '../src/screens/RoomScreen.css';
 import { AiFeed } from '../src/components/AiFeed';
-import { QuickStyles, ToolOptionsRail } from '../src/components/ToolOptions';
+import { ToolOptionsRail } from '../src/components/ToolOptions';
 import type { ToolStyleMode } from '../src/components/ToolOptions';
 import { BlockLibrary } from '../src/components/BlockLibrary';
 import { VersionHistory } from '../src/components/VersionHistory';
@@ -374,11 +374,12 @@ function ChromeHarness() {
     },
   };
 
-  const showQuickStyles =
+  const showOptionsRail =
     !readOnly &&
     ['select', 'draw', 'sticky', 'text', 'connector', 'shapes'].includes(tool) &&
-    (tool !== 'select' || selectedCount > 0);
-  const showOptionsRail = showQuickStyles && panel === 'none' && !aiPanelOpen;
+    (tool !== 'select' || selectedCount > 0) &&
+    panel === 'none' &&
+    !aiPanelOpen;
 
   const targetRefs: Record<string, React.RefObject<HTMLElement | null>> = {
     rail: railRef,
@@ -502,7 +503,6 @@ function ChromeHarness() {
         </div>
 
         <div className="room-bottom-stack">
-          {showQuickStyles && <QuickStyles key={tool} editor={editor} tool={tool} mode={styleMode} />}
           <AiFeed
             copilot={copilot}
             roomId={'r1' as never}
@@ -511,7 +511,6 @@ function ChromeHarness() {
             inputRef={inputRef}
             barRef={barRef}
             unviewed={unviewed}
-            onViewOnCanvas={() => {}}
           />
         </div>
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, RefObject } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'convex/react';
@@ -20,11 +20,13 @@ import { AiFeed } from '../components/AiFeed';
 import { useAiCopilot } from '../lib/useAiCopilot';
 import { ShareModal } from '../components/ShareModal';
 import { VersionHistory } from '../components/VersionHistory';
-import { ExportDialog } from '../components/ExportDialog';
+// jspdf is ~600 kB — only download it when someone actually exports.
+const ExportDialog = lazy(() =>
+  import('../components/ExportDialog').then((m) => ({ default: m.ExportDialog })),
+);
 import { BlockLibrary } from '../components/BlockLibrary';
-import { QuickStyles, ToolOptionsRail } from '../components/ToolOptions';
+import { ToolOptionsRail } from '../components/ToolOptions';
 import type { ToolStyleMode } from '../components/ToolOptions';
-import { GhostBlocks } from '../components/GhostBlocks';
 import { PresenceCursors } from '../components/PresenceCursors';
 import { SelectionAwareness } from '../components/SelectionAwareness';
 import { ViewportAwareness } from '../components/ViewportAwareness';
@@ -33,7 +35,6 @@ import { FocusDim, FocusHint } from '../components/FocusDim';
 import '../components/shared.css';
 import './RoomScreen.css';
 import '../components/AiFeed.css';
-import '../components/GhostBlocks.css';
 import '../components/VersionHistory.css';
 import '../components/BlockLibrary.css';
 import '../components/ToolOptions.css';
@@ -169,7 +170,6 @@ export function RoomScreen() {
   const [showShare, setShowShare] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [activeTool, setActiveTool] = useState('select');
-  const [ghostFocus, setGhostFocus] = useState<{ messageId: string; index: number } | null>(null);
   const [zoom, setZoom] = useState(1);
   const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -796,15 +796,15 @@ export function RoomScreen() {
     return () => window.clearTimeout(t);
   }, [walkthrough, dismissWalkthrough]);
 
-  // Sub-tools live on two fixed surfaces (no compact/expanded toggle): the
-  // quick strip stays above the AI bar whenever the active tool has options;
-  // the extended rail docks on the right but yields while the AI chat is open
-  // (one right-side surface at a time) or a side panel is up.
-  const showQuickStyles =
+  // Tool options live on one fixed surface — the right-side rail. The
+  // bottom-center area belongs to the AI chat alone. The rail yields while
+  // the AI chat is open or a side panel is up (one right-side surface at a
+  // time).
+  const toolHasOptions =
     !isReadOnly &&
     TOOL_OPTIONS_TOOLS.has(activeTool) &&
     (activeTool !== 'select' || selectionCount > 0);
-  const showOptionsRail = showQuickStyles && activePanel === null && !aiPanelOpen;
+  const showOptionsRail = toolHasOptions && activePanel === null && !aiPanelOpen;
 
   const zoomRef = useRef<HTMLDivElement | null>(null);
   const toolRailRef = useRef<HTMLDivElement | null>(null);
@@ -918,7 +918,6 @@ export function RoomScreen() {
         setZoomMenuOpen(false);
         setMoreMenuOpen(false);
         setActivePanel(null);
-        setGhostFocus(null);
         setShowShortcuts(false);
         setShowShare(false);
         setShowExport(false);
@@ -1264,13 +1263,6 @@ export function RoomScreen() {
             <PlacementPulses editor={editorState} />
             <FocusDim editor={editorState} active={effectiveFocus} />
             <FocusHint active={effectiveFocus} />
-            <GhostBlocks
-              editor={editorState}
-              roomId={roomIdArg}
-              visible={ai.feedOpen || ai.isAsking}
-              focus={ghostFocus}
-              onFocus={(f) => setGhostFocus(f)}
-            />
 
             {!isReadOnly && activePanel === 'blocks' && (
               <BlockLibrary editor={editorState} onClose={() => setActivePanel(null)} anchorRef={blockBtnRef} />
@@ -1302,17 +1294,6 @@ export function RoomScreen() {
         )}
 
         <div className="room-bottom-stack">
-          {showQuickStyles && (
-            <QuickStyles
-              key={activeTool}
-              editor={editorState}
-              tool={activeTool}
-              mode={styleMode}
-              focusMode={effectiveFocus}
-              onToggleFocus={() => setFocusMode((f) => !f)}
-            />
-          )}
-
           <AiFeed
             copilot={ai}
             roomId={roomIdArg as Id<'rooms'>}
@@ -1321,9 +1302,6 @@ export function RoomScreen() {
             inputRef={aiInputRef}
             barRef={aiBarRef}
             unviewed={hasUnviewed}
-            onViewOnCanvas={(messageId, index) => {
-              setGhostFocus({ messageId, index });
-            }}
           />
         </div>
 
@@ -1558,7 +1536,9 @@ export function RoomScreen() {
         <ShareModal roomId={roomIdArg as Id<'rooms'>} onClose={() => setShowShare(false)} />
       )}
       {showExport && (
-        <ExportDialog editor={editorState} onClose={() => setShowExport(false)} />
+        <Suspense fallback={null}>
+          <ExportDialog editor={editorState} onClose={() => setShowExport(false)} />
+        </Suspense>
       )}
     </div>
   );

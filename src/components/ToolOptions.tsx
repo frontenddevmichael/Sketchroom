@@ -23,7 +23,6 @@ import {
 import {
   PaintBucket,
   Copy,
-  Focus,
   AlignLeft,
   AlignCenterHorizontal,
   AlignRight,
@@ -457,83 +456,6 @@ function useToolStyles(editor: Editor | null, tool: string, mode: ToolStyleMode)
     runZ,
     copiedKey,
   };
-}
-
-interface QuickStylesProps {
-  editor: Editor | null;
-  tool: string;
-  mode: ToolStyleMode;
-  /** Focus mode state + toggle (dim everything except the selection). */
-  focusMode?: boolean;
-  onToggleFocus?: () => void;
-}
-
-// The bottom-center quick strip: color swatches plus one primary control per
-// tool, above the AI input. It never scrolls — rows wrap naturally within the
-// pill — so it stays a calm surface next to the input bar.
-export function QuickStyles({ editor, tool, mode, focusMode = false, onToggleFocus }: QuickStylesProps) {
-  const s = useToolStyles(editor, tool, mode);
-  const colorLabel = tool === 'sticky' ? 'Note color' : 'Color';
-
-  const primaryControl =
-    tool === 'shapes' ? (
-      <GridPicker options={GEO_OPTIONS} current={s.geo} onPick={(v) => s.applyStyle(GeoShapeGeoStyle, v)} />
-    ) : tool === 'draw' || tool === 'select' || tool === 'connector' ? (
-      <Segmented options={SIZES.map((o) => ({ ...o, active: s.size === o.value }))} onPick={(v) => s.applyStyle(DefaultSizeStyle, v)} />
-    ) : (
-      <Segmented options={FONTS.map((o) => ({ ...o, active: s.font === o.value }))} onPick={(v) => s.applyStyle(DefaultFontStyle, v)} />
-    );
-
-  return (
-    <div
-      className="quick-styles glass"
-      role="group"
-      aria-label={`${TOOL_TITLES[tool] ?? 'Tool'} styles`}
-    >
-      <div className="quick-styles-swatches">
-        {s.recent.length > 0 && (
-          <div className="quick-styles-swatch-row" role="group" aria-label="Recent colors">
-            {s.recent.map((c) => (
-              <button
-                key={`recent-${c}`}
-                className={`quick-styles-swatch ${s.color === c ? 'active' : ''}`}
-                style={{ background: COLOR_HEX[c] }}
-                title={c}
-                aria-label={`Color: ${c}`}
-                onClick={() => s.applyStyle(DefaultColorStyle, c)}
-              />
-            ))}
-          </div>
-        )}
-        <div className="quick-styles-swatch-row" role="group" aria-label={colorLabel}>
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              className={`quick-styles-swatch ${s.color === c ? 'active' : ''}`}
-              style={{ background: COLOR_HEX[c] }}
-              title={c}
-              aria-label={`${colorLabel}: ${c}`}
-              onClick={() => s.applyStyle(DefaultColorStyle, c)}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="quick-styles-primary">
-        <div className="quick-styles-primary-control">{primaryControl}</div>
-        {s.hasSelection && onToggleFocus && (
-          <button
-            className={`quick-styles-focus ${focusMode ? 'active' : ''}`}
-            onClick={onToggleFocus}
-            title="Focus mode (F) — dim everything except the selection"
-            aria-pressed={focusMode}
-          >
-            <Focus size={13} />
-            {focusMode ? 'Focused' : 'Focus'}
-          </button>
-        )}
-      </div>
-    </div>
-  );
 }
 
 interface ToolOptionsRailProps {
