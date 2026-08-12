@@ -14,7 +14,7 @@ const modules = import.meta.glob("./**/*.ts");
 
 const alice = {
   subject: "user_alice",
-  tokenIdentifier: "https://test.clerk.dev|user_alice",
+  tokenIdentifier: "https://test.auth|user_alice",
   name: "Alice",
   email: "alice@example.com",
 };

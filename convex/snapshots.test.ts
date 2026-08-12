@@ -14,14 +14,14 @@ const modules = import.meta.glob("./**/*.ts");
 
 const alice = {
   subject: "user_alice",
-  tokenIdentifier: "https://test.clerk.dev|user_alice",
+  tokenIdentifier: "https://test.auth|user_alice",
   name: "Alice",
   email: "alice@example.com",
 };
 
 const bob = {
   subject: "user_bob",
-  tokenIdentifier: "https://test.clerk.dev|user_bob",
+  tokenIdentifier: "https://test.auth|user_bob",
   name: "Bob",
   email: "bob@example.com",
 };

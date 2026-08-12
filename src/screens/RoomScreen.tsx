@@ -4,8 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
-import { useUser } from '@clerk/react';
 import { useTheme } from '../lib/useTheme';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { createTLStore, setUserPreferences } from 'tldraw';
 import { Tldraw } from 'tldraw';
 import type { Editor, TLRecord, TLStore } from 'tldraw';
@@ -162,7 +162,7 @@ function CanvasOnboardingSketch() {
 export function RoomScreen() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user } = useCurrentUser();
   const [isConnected, setIsConnected] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'offline'>('idle');
   const [activePanel, setActivePanel] = useState<Panel>(null);
@@ -597,7 +597,7 @@ export function RoomScreen() {
   useEffect(() => {
     if (!roomIdArg || !room) return;
     const name =
-      user?.fullName || user?.firstName || user?.emailAddresses?.[0]?.emailAddress || 'Unknown';
+      user?.name || user?.email || 'Unknown';
     const ship = (throttled: boolean) => {
       const now = Date.now();
       if (throttled && now - lastPresenceShip.current < 150) return;
@@ -608,7 +608,7 @@ export function RoomScreen() {
       upsertPresence({
         roomId: roomIdArg,
         name,
-        avatarUrl: user?.imageUrl,
+        avatarUrl: user?.imageUrl ?? undefined,
         color: presenceColorFor(user?.id || name),
         camera:
           camera && canvasRef.current
@@ -729,9 +729,8 @@ export function RoomScreen() {
       if (selection !== lastSelection.current && roomIdArg && room) {
         lastSelection.current = selection;
         const displayName =
-          user?.fullName ||
-          user?.firstName ||
-          user?.emailAddresses?.[0]?.emailAddress ||
+          user?.name ||
+          user?.email ||
           'Unknown';
         // Send the full presence payload so the selection change never clears
         // the cursor/camera fields this user already shipped.
@@ -740,7 +739,7 @@ export function RoomScreen() {
         void upsertPresence({
           roomId: roomIdArg,
           name: displayName,
-          avatarUrl: user?.imageUrl,
+          avatarUrl: user?.imageUrl ?? undefined,
           color: presenceColorFor(user?.id || displayName),
           camera: { x: camera.x, y: camera.y, zoom: camera.z },
           cursorX: cursor?.x,
@@ -1242,7 +1241,7 @@ export function RoomScreen() {
                 editor.updateInstanceState({ isReadonly: isReadOnly, isGridMode: true });
                 setUserPreferences({
                   id: user?.id || 'user',
-                  name: user?.fullName || user?.firstName || 'Unknown',
+                  name: user?.name || 'Unknown',
                   color: presenceColorFor(user?.id || 'user'),
                 });
                 editor.getContainer().addEventListener(

@@ -1,16 +1,17 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { ClerkProvider } from '@clerk/react';
-import { ConvexClerkWrapper } from './lib/convex-wrapper';
+import { ConvexAuthProvider } from '@convex-dev/auth/react';
+import { convex } from './lib/convex-client';
+import { AppProviders } from './lib/AppProviders';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string}>
+    <ConvexAuthProvider client={convex}>
       <BrowserRouter>
-        <ConvexClerkWrapper />
+        <AppProviders />
       </BrowserRouter>
-    </ClerkProvider>
+    </ConvexAuthProvider>
   </StrictMode>
 );

@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useConvexAuth } from 'convex/react';
+import { useConvexAuth } from '@convex-dev/auth/react';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ErrorScreen } from './components/ErrorScreen';
 import { AuthScreen } from './screens/AuthScreen';

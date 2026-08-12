@@ -11,7 +11,7 @@ import './Faq.css';
 const FAQS = [
   {
     q: 'Is our data secure?',
-    a: 'Sign-in is OAuth-only through Clerk — no passwords for us to lose. Every room checks membership on each request, so only people you invite can open it. Your canvases live in Convex, and invites are explicit: by email or a link you create yourself.',
+    a: 'Sign in with your email and a password, or continue with Google — your password is stored Scrypt-hashed by Convex Auth, never in plaintext. Every room checks membership on each request, so only people you invite can open it. Your canvases live in Convex, and invites are explicit: by email or a link you create yourself.',
   },
   {
     q: 'Will I be charged later without warning?',

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser, UserButton } from '@clerk/react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { useTheme } from '../lib/useTheme';
+import { useCurrentUser } from '../hooks/useCurrentUser';
+import { UserMenu } from '../components/UserMenu';
 import { AppTabBar } from '../components/AppTabBar';
 import { usePageTitle } from '../lib/usePageTitle';
 import { FormSkeleton } from '../components/skeletons';
@@ -20,14 +21,14 @@ interface DeleteState {
 export function SettingsScreen() {
   usePageTitle('Settings — Sketchroom');
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user } = useCurrentUser();
   const { theme, toggleTheme } = useTheme();
   const [tab, setTab] = useState<'workspace' | 'account'>('workspace');
   const [workspaceName, setWorkspaceName] = useState('');
   const [deleteState, setDeleteState] = useState<DeleteState>({ inProgress: false, error: null });
   const [nameError, setNameError] = useState<string | null>(null);
   const [savedName, setSavedName] = useState(false);
-  const [displayName, setDisplayName] = useState(user?.fullName || user?.firstName || '');
+  const [displayName, setDisplayName] = useState(user?.name || '');
   const [savingDisplayName, setSavingDisplayName] = useState(false);
   const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const [savedDisplayName, setSavedDisplayName] = useState(false);
@@ -35,6 +36,7 @@ export function SettingsScreen() {
   const workspaces = useQuery(api.rooms.getWorkspaces);
   const updateWorkspaceName = useMutation(api.rooms.updateWorkspaceName);
   const deleteWorkspace = useMutation(api.rooms.deleteWorkspace);
+  const updateProfile = useMutation(api.users.updateProfile);
 
   if (!workspaces) return <SettingsLoadingShell />;
 
@@ -75,7 +77,7 @@ export function SettingsScreen() {
     setSavingDisplayName(true);
     setDisplayNameError(null);
     try {
-      await user.update({ firstName: trimmed.split(' ')[0], lastName: trimmed.split(' ').slice(1).join(' ') || undefined });
+      await updateProfile({ name: trimmed });
       setSavedDisplayName(true);
       window.setTimeout(() => setSavedDisplayName(false), 1600);
     } catch (err) {
@@ -139,7 +141,7 @@ export function SettingsScreen() {
               <div className="settings-members">
                 <div className="settings-member">
                   <div className="settings-member-avatar">
-                    <UserButton />
+                    <UserMenu />
                   </div>
                   <div className="settings-member-info">
                     <span className="settings-member-name">{workspace?.name}</span>
@@ -165,7 +167,7 @@ export function SettingsScreen() {
             <h1 className="settings-title">Account settings</h1>
             <div className="settings-section settings-account-row">
               <div className="settings-avatar-large">
-                <UserButton />
+                <UserMenu />
               </div>
               <div className="settings-account-fields">
                 <label className="settings-label" htmlFor="display-name">Display name</label>
@@ -190,7 +192,7 @@ export function SettingsScreen() {
                 <input
                   id="email"
                   className="input"
-                  value={user?.emailAddresses?.[0]?.emailAddress || ''}
+                  value={user?.email || ''}
                   readOnly
                 />
               </div>

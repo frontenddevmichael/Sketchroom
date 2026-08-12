@@ -9,7 +9,7 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: 'convex/react', replacement: stub('convex-react.tsx') },
-      { find: '@clerk/react', replacement: stub('clerk-react.tsx') },
+      { find: '@convex-dev/auth/react', replacement: stub('convex-auth-react.tsx') },
       // The generated api is `anyApi` (a Proxy producing a fresh object per
       // access) — unusable as a Map key. The stub uses stable string keys so
       // the harness can seed per-query results that the real components see.

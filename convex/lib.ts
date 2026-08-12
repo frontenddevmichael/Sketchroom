@@ -4,7 +4,13 @@ import type { Id } from "./_generated/dataModel";
 export const auth = {
   async getIdentity(ctx: QueryCtx | MutationCtx | ActionCtx) {
     const identity = await ctx.auth.getUserIdentity();
-    return identity;
+    if (!identity) return null;
+    // Convex Auth packs the user id and session id into the `sub` claim
+    // ("<userId>|<sessionId>"). Normalize it so the rest of the backend can
+    // keep treating `subject` as the app-wide user id — exactly as it did
+    // when Clerk was the provider. `getAuthUserId` does the same split.
+    const [userId] = identity.subject.split("|");
+    return { ...identity, subject: userId };
   },
 };
 

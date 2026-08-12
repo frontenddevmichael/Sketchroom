@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
-import { useUser, UserButton } from '@clerk/react';
 import {
   Plus,
   Settings,
@@ -24,6 +23,8 @@ import { RoomCardSkeleton } from '../components/skeletons';
 import { RoomsEmptyIllo, SearchEmptyIllo, DrawnTitle } from '../components/illustrations';
 import { AppTabBar } from '../components/AppTabBar';
 import { useStaleData } from '../hooks/useStaleData';
+import { useCurrentUser } from '../hooks/useCurrentUser';
+import { UserMenu } from '../components/UserMenu';
 import { useLongLoad } from '../hooks/useLongLoad';
 import { Spinner } from '../components/Spinner';
 import { ErrorIllo } from '../components/illustrations';
@@ -43,7 +44,7 @@ type Modal =
 export function Dashboard() {
   usePageTitle('Rooms — Sketchroom');
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user } = useCurrentUser();
   const { theme, toggleTheme } = useTheme();
   const [modal, setModal] = useState<Modal>(null);
   const modalRef = useModalFocus<HTMLDivElement>(() => setModal(null), !!modal);
@@ -88,7 +89,7 @@ export function Dashboard() {
   useEffect(() => {
     if (workspaces && workspaces.length === 0 && user && !creatingWorkspace.current) {
       creatingWorkspace.current = true;
-      const name = (user.fullName || user.firstName || 'My') + "'s Workspace";
+      const name = (user?.name || 'My') + "'s Workspace";
       createWorkspace({ name })
         .then((w) => {
           setWorkspaceId(w.id as Id<'workspaces'>);
@@ -123,7 +124,7 @@ export function Dashboard() {
   if (!workspaces) return <DashboardLoadingShell failed={loadFailed} />;
 
   const workspaceName = workspaces[0]?.name ?? 'Workspace';
-  const firstName = user?.firstName || user?.fullName?.split(' ')[0] || 'there';
+  const firstName = user?.name?.split(' ')[0] || 'there';
 
   // Free-plan cap awareness: once the room limit is reached, surface a quiet,
   // dismissible nudge toward Billing instead of letting the cap fail silently.
@@ -221,7 +222,7 @@ export function Dashboard() {
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
           <div className="sidebar-avatar">
-            <UserButton />
+            <UserMenu />
           </div>
         </div>
       </aside>

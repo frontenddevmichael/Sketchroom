@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import type { RefObject } from 'react';
 import { useQuery, useMutation, useAction } from 'convex/react';
-import { useUser } from '@clerk/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { X, Sparkles, RefreshCw, Plus, MapPin, LayoutGrid, Send } from 'lucide-react';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import type { Editor } from 'tldraw';
 import type { AiCopilot } from '../lib/useAiCopilot';
 import { useLongLoad } from '../hooks/useLongLoad';
@@ -63,7 +63,7 @@ export function AiFeed({
   unviewed = false,
   onViewOnCanvas,
 }: AiFeedProps) {
-  const { user } = useUser();
+  const { user } = useCurrentUser();
   const messages = useQuery(api.ai.getAiMessages, { roomId });
   const dismissAi = useMutation(api.ai.dismissAiSuggestion);
   const requestAi = useAction(api.ai.requestAiSuggestion);
@@ -146,7 +146,7 @@ export function AiFeed({
               return (
                 <div key={msg._id} className="ai-message">
                   <div className="ai-message-prompt">
-                    {user && <span className="ai-message-author">{user.firstName?.[0] ?? 'You'}</span>}
+                    {user && <span className="ai-message-author">{user.name?.[0] ?? 'You'}</span>}
                     {msg.prompt}
                   </div>
                   {msg.status === 'pending' && <AiThinking />}

@@ -1,10 +1,16 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
+  // Convex Auth's own tables (users, authAccounts, authSessions,
+  // authVerificationTokens). The rest of the schema keys off the `users`
+  // table id as the app-wide user id (`ctx.auth.getUserIdentity().subject`).
+  ...authTables,
+
   workspaces: defineTable({
     name: v.string(),
-    ownerId: v.string(), // Clerk user ID
+    ownerId: v.string(), // user id (Convex Auth `users` table)
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_owner", ["ownerId"]),
@@ -12,7 +18,7 @@ export default defineSchema({
   rooms: defineTable({
     workspaceId: v.id("workspaces"),
     name: v.string(),
-    ownerId: v.string(), // Clerk user ID
+    ownerId: v.string(), // user id (Convex Auth `users` table)
     canvasData: v.optional(v.string()), // JSON canonical record map (document scope only)
     canvasVersion: v.number(), // monotonic, bumped by every change batch and snapshot
     // Optional for back-compat with rooms created before compaction existed; 0
@@ -30,7 +36,7 @@ export default defineSchema({
 
   roomMembers: defineTable({
     roomId: v.id("rooms"),
-    userId: v.string(), // Clerk user ID
+    userId: v.string(), // user id (Convex Auth `users` table)
     email: v.string(),
     name: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
@@ -45,7 +51,7 @@ export default defineSchema({
     roomId: v.id("rooms"),
     version: v.number(),
     canvasData: v.string(), // JSON blob
-    createdBy: v.string(), // Clerk user ID
+    createdBy: v.string(), // user id (Convex Auth `users` table)
     createdAt: v.number(),
     description: v.optional(v.string()),
     // Idempotency key: a full-state save retried after a dropped connection
@@ -59,7 +65,7 @@ export default defineSchema({
 
   aiMessages: defineTable({
     roomId: v.id("rooms"),
-    userId: v.string(), // Clerk user ID (who asked)
+    userId: v.string(), // user id (Convex Auth `users` table) (who asked)
     prompt: v.string(),
     response: v.string(),
     ghostBlocks: v.optional(v.string()), // JSON of suggested blocks
@@ -70,7 +76,7 @@ export default defineSchema({
 
   presence: defineTable({
     roomId: v.id("rooms"),
-    userId: v.string(), // Clerk user ID
+    userId: v.string(), // user id (Convex Auth `users` table)
     name: v.string(),
     avatarUrl: v.optional(v.string()),
     color: v.string(),
@@ -87,7 +93,7 @@ export default defineSchema({
     roomId: v.id("rooms"),
     email: v.string(),
     role: v.union(v.literal("editor"), v.literal("viewer")),
-    invitedBy: v.string(), // Clerk user ID
+    invitedBy: v.string(), // user id (Convex Auth `users` table)
     token: v.string(),
     status: v.union(v.literal("pending"), v.literal("accepted"), v.literal("expired")),
     createdAt: v.number(),
@@ -97,7 +103,7 @@ export default defineSchema({
     .index("by_token", ["token"]),
 
   errorLogs: defineTable({
-    userId: v.optional(v.string()), // Clerk user ID, if logged in
+    userId: v.optional(v.string()), // user id (Convex Auth `users` table), if logged in
     source: v.string(), // e.g. "react", "api"
     message: v.string(),
     stack: v.optional(v.string()),

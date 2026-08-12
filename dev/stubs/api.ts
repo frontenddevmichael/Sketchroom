@@ -54,6 +54,11 @@ export const api = {
   errors: {
     reportError: 'errors:reportError',
   },
+  users: {
+    me: 'users:me',
+    updateProfile: 'users:updateProfile',
+    authConfig: 'users:authConfig',
+  },
 } as const;
 
 export const internal = api;

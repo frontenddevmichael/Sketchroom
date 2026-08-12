@@ -1,10 +1,7 @@
-import { useAuth } from '@clerk/react';
-import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import { useMutation } from 'convex/react';
-import { convex } from './convex-client';
+import { api } from '../../convex/_generated/api';
 import { ThemeProvider } from './ThemeProvider';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { api } from '../../convex/_generated/api';
 import App from '../App';
 
 function ReportingErrorBoundary() {
@@ -26,12 +23,14 @@ function ReportingErrorBoundary() {
   );
 }
 
-export function ConvexClerkWrapper() {
+/**
+ * App-level providers that don't depend on auth. The Convex client and auth
+ * provider wrap this tree in `main.tsx`.
+ */
+export function AppProviders() {
   return (
-    <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-      <ThemeProvider>
-        <ReportingErrorBoundary />
-      </ThemeProvider>
-    </ConvexProviderWithClerk>
+    <ThemeProvider>
+      <ReportingErrorBoundary />
+    </ThemeProvider>
   );
 }

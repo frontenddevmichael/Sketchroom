@@ -187,6 +187,15 @@ export function seedAppStubs(opts: { snapshots?: boolean } = {}) {
   __setQueryResult(api.snapshots.listSnapshots, snapshots);
   __setQueryResult(api.invites.listMembers, []);
   __setQueryResult(api.invites.getRoomInvites, []);
+  __setQueryResult(api.users.me, {
+    id: 'u_harness',
+    name: 'Ada Lovelace',
+    email: 'ada@example.com',
+    imageUrl: null,
+    emailVerified: true,
+  });
+  __setQueryResult(api.users.authConfig, { emailEnabled: false, googleEnabled: false });
+  __setMutationHandler(api.users.updateProfile, () => true);
 
   registerMutations();
 }

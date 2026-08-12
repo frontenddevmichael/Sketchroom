@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useConvexAuth } from 'convex/react';
+import { useConvexAuth } from '@convex-dev/auth/react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Moon, Sun } from 'lucide-react';
 import { getLenis } from '../lib/useLenis';
