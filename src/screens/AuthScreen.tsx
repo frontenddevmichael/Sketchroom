@@ -4,7 +4,6 @@ import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { usePageTitle } from '../lib/usePageTitle';
-import { DemoCanvas } from '../landing/demo/DemoCanvas';
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import '../components/shared.css';
 import './AuthScreen.css';
@@ -20,9 +19,9 @@ function GoogleGlyph({ size }: { size: number }) {
   );
 }
 
-function LogoGlyph() {
+function LogoGlyph({ size = 20 }: { size?: number }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M12 3l1.9 5.6L19.5 10l-4.5 2.1L12 18l-3-5.9L4.5 10l5.6-1.4z" fill="var(--green-500)" stroke="var(--green-500)" />
     </svg>
   );
@@ -143,286 +142,258 @@ export function AuthScreen() {
 
   return (
     <div className="auth-screen">
-      <header className="auth-nav">
+      <header className="auth-topbar">
         <a className="auth-wordmark" href="/" aria-label="Sketchroom home">
-          <LogoGlyph />
+          <LogoGlyph size={18} />
           Sketchroom
         </a>
-        <nav className="auth-nav-links" aria-label="Primary">
-          <a className="auth-nav-link" href="/#product">Product</a>
-          <a className="auth-nav-link" href="/#workflow">How it works</a>
-          <a className="auth-nav-link" href="/#pricing">Pricing</a>
-        </nav>
-        <div className="auth-nav-cta">
-          <a className="auth-nav-link auth-nav-signin" href="#join">Sign in</a>
-          <a className="btn btn-primary auth-nav-start" href="#join">Start free</a>
-        </div>
+        <a className="auth-home-link" href="/">
+          <ArrowLeft size={14} aria-hidden="true" />
+          Back to home
+        </a>
       </header>
 
-      <main className="auth-hero">
-        <section className="auth-showcase">
-          <span className="auth-eyebrow">
-            <span className="auth-eyebrow-dot" aria-hidden="true" />
-            Realtime whiteboards for teams
+      <main className="auth-main">
+        <div className="auth-wrap">
+          <span className="auth-card-mark" aria-hidden="true">
+            <LogoGlyph size={22} />
           </span>
-          <h1 className="auth-title">Think together, in the open.</h1>
-          <p className="auth-lead">
-            Sketch architecture, wireframes, and features with your team — live cursors,
-            multiplayer undo, and an AI copilot that drafts ideas right in the room.
-          </p>
 
-          <div className="auth-cta-row">
-            {googleEnabled && (
-              <button
-                className="btn btn-primary auth-google"
-                type="button"
-                onClick={() => void run('google', {})}
-                disabled={submitting}
-              >
-                <span className="auth-google-mark"><GoogleGlyph size={11} /></span>
-                Continue with Google
-              </button>
+          <aside className="auth-card" aria-label="Account">
+            {step.kind === 'signin' || step.kind === 'signup' ? (
+              <>
+                <h2 className="auth-card-title">{passwordTitle}</h2>
+                <p className="auth-card-sub">
+                  {step.kind === 'signup'
+                    ? 'A few seconds and you\'re sketching with your team.'
+                    : 'Sign in to pick up right where you left off.'}
+                </p>
+
+                <div className="auth-tabs" role="tablist" aria-label="Sign in or create an account">
+                  <button
+                    className={`auth-tab ${tabActive === 'signin' ? 'active' : ''}`}
+                    role="tab"
+                    aria-selected={tabActive === 'signin'}
+                    onClick={() => switchMode('signin')}
+                  >
+                    Sign in
+                  </button>
+                  <button
+                    className={`auth-tab ${tabActive === 'signup' ? 'active' : ''}`}
+                    role="tab"
+                    aria-selected={tabActive === 'signup'}
+                    onClick={() => switchMode('signup')}
+                  >
+                    Create account
+                  </button>
+                </div>
+
+                {googleEnabled && (
+                  <>
+                    <button
+                      className="auth-google-btn"
+                      type="button"
+                      onClick={() => void run('google', {})}
+                      disabled={submitting}
+                    >
+                      <GoogleGlyph size={18} />
+                      Continue with Google
+                    </button>
+                    <div className="auth-card-divider" role="separator"><span>or use your email</span></div>
+                  </>
+                )}
+
+                <form className="auth-form" onSubmit={onPassword}>
+                  {step.kind === 'signup' && (
+                    <label className="auth-field">
+                      <span className="auth-label">Name</span>
+                      <input
+                        className="input auth-input"
+                        name="name"
+                        type="text"
+                        autoComplete="name"
+                        placeholder="Ada Lovelace"
+                        maxLength={60}
+                      />
+                    </label>
+                  )}
+                  <label className="auth-field">
+                    <span className="auth-label">Email</span>
+                    <input
+                      className="input auth-input"
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      placeholder="you@studio.com"
+                    />
+                  </label>
+                  <label className="auth-field">
+                    <span className="auth-label">Password</span>
+                    <input
+                      className="input auth-input"
+                      name="password"
+                      type="password"
+                      required
+                      minLength={8}
+                      autoComplete={step.kind === 'signup' ? 'new-password' : 'current-password'}
+                      placeholder="8+ characters"
+                    />
+                  </label>
+                  {step.kind === 'signin' && emailEnabled && (
+                    <button
+                      type="button"
+                      className="auth-link-btn"
+                      onClick={() => { setError(null); setStep({ kind: 'forgot' }); }}
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                  {error && <p className="auth-error" role="alert">{error}</p>}
+                  <button className="btn btn-primary auth-submit" type="submit" disabled={submitting}>
+                    {submitting ? (
+                      <span className="auth-spinner" aria-hidden="true" />
+                    ) : step.kind === 'signup' ? (
+                      <>
+                        Create account <ArrowRight size={16} />
+                      </>
+                    ) : (
+                      'Sign in'
+                    )}
+                  </button>
+                </form>
+
+                <p className="auth-card-small">
+                  By continuing you agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
+                </p>
+              </>
+            ) : step.kind === 'verify' ? (
+              <>
+                <h2 className="auth-card-title">Check your inbox</h2>
+                <p className="auth-card-sub">
+                  We sent a code to <strong>{step.email}</strong>. Enter it below to finish signing in.
+                </p>
+                <form className="auth-form" onSubmit={onVerify}>
+                  <label className="auth-field">
+                    <span className="auth-label">Verification code</span>
+                    <input
+                      className="input auth-input auth-code"
+                      name="code"
+                      type="text"
+                      required
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="00000000"
+                      autoFocus
+                    />
+                  </label>
+                  {error && <p className="auth-error" role="alert">{error}</p>}
+                  <button className="btn btn-primary auth-submit" type="submit" disabled={submitting}>
+                    {submitting ? <span className="auth-spinner" aria-hidden="true" /> : 'Verify and continue'}
+                  </button>
+                </form>
+                <button className="auth-link-btn auth-back" type="button" onClick={goBack}>
+                  <ArrowLeft size={14} /> Back to sign in
+                </button>
+              </>
+            ) : step.kind === 'forgot' ? (
+              <>
+                <h2 className="auth-card-title">Reset your password</h2>
+                <p className="auth-card-sub">
+                  Enter your email and we'll send you a one-time code.
+                </p>
+                <form className="auth-form" onSubmit={onForgot}>
+                  <label className="auth-field">
+                    <span className="auth-label">Email</span>
+                    <input
+                      className="input auth-input"
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      placeholder="you@studio.com"
+                    />
+                  </label>
+                  {error && <p className="auth-error" role="alert">{error}</p>}
+                  <button className="btn btn-primary auth-submit" type="submit" disabled={submitting}>
+                    {submitting ? <span className="auth-spinner" aria-hidden="true" /> : 'Send code'}
+                  </button>
+                </form>
+                <button className="auth-link-btn auth-back" type="button" onClick={goBack}>
+                  <ArrowLeft size={14} /> Back to sign in
+                </button>
+              </>
+            ) : step.kind === 'reset' ? (
+              <>
+                <h2 className="auth-card-title">Choose a new password</h2>
+                <p className="auth-card-sub">
+                  We sent a code to <strong>{step.email}</strong>. Enter it with your new password.
+                </p>
+                <form className="auth-form" onSubmit={onReset}>
+                  <label className="auth-field">
+                    <span className="auth-label">Verification code</span>
+                    <input
+                      className="input auth-input auth-code"
+                      name="code"
+                      type="text"
+                      required
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="00000000"
+                    />
+                  </label>
+                  <label className="auth-field">
+                    <span className="auth-label">New password</span>
+                    <input
+                      className="input auth-input"
+                      name="newPassword"
+                      type="password"
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      placeholder="8+ characters"
+                    />
+                  </label>
+                  {error && <p className="auth-error" role="alert">{error}</p>}
+                  <button className="btn btn-primary auth-submit" type="submit" disabled={submitting}>
+                    {submitting ? <span className="auth-spinner" aria-hidden="true" /> : 'Update password'}
+                  </button>
+                </form>
+                <button className="auth-link-btn auth-back" type="button" onClick={goBack}>
+                  <ArrowLeft size={14} /> Back to sign in
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="auth-card-title">Password updated</h2>
+                <p className="auth-card-sub">
+                  Your password is set. Sign in with the new one.
+                </p>
+                <button className="btn btn-primary auth-submit" type="button" onClick={goBack}>
+                  <Sparkles size={16} /> Back to sign in
+                </button>
+              </>
             )}
-            <span className="auth-cta-note">Free to start · No credit card · AI copilot included</span>
-          </div>
+          </aside>
 
-          <div className="auth-proof">
+          <div className="auth-note">
             <div className="auth-avatars" aria-hidden="true">
               <span className="auth-avatar">MK</span>
               <span className="auth-avatar">AJ</span>
               <span className="auth-avatar">SR</span>
               <span className="auth-avatar auth-avatar-ai">✦</span>
             </div>
-            <p className="auth-proof-text">Your team, <strong>one live canvas</strong> — copilot included</p>
+            <p className="auth-note-text">
+              Free to start · No credit card · Your data stays yours
+            </p>
           </div>
-
-          <div className="auth-demo">
-            <DemoCanvas />
-          </div>
-        </section>
-
-        <aside className="auth-card" id="join">
-          {step.kind === 'signin' || step.kind === 'signup' ? (
-            <>
-              <h2 className="auth-card-title">{passwordTitle}</h2>
-              <p className="auth-card-sub">
-                {step.kind === 'signup'
-                  ? 'A few seconds and you\'re sketching with your team.'
-                  : 'Sign in to pick up right where you left off.'}
-              </p>
-
-              <div className="auth-tabs" role="tablist" aria-label="Sign in or create an account">
-                <button
-                  className={`auth-tab ${tabActive === 'signin' ? 'active' : ''}`}
-                  role="tab"
-                  aria-selected={tabActive === 'signin'}
-                  onClick={() => switchMode('signin')}
-                >
-                  Sign in
-                </button>
-                <button
-                  className={`auth-tab ${tabActive === 'signup' ? 'active' : ''}`}
-                  role="tab"
-                  aria-selected={tabActive === 'signup'}
-                  onClick={() => switchMode('signup')}
-                >
-                  Create account
-                </button>
-              </div>
-
-              {googleEnabled && (
-                <>
-                  <button
-                    className="auth-google-btn"
-                    type="button"
-                    onClick={() => void run('google', {})}
-                    disabled={submitting}
-                  >
-                    <GoogleGlyph size={18} />
-                    Continue with Google
-                  </button>
-                  <div className="auth-card-divider" role="separator"><span>or use your email</span></div>
-                </>
-              )}
-
-              <form className="auth-form" onSubmit={onPassword}>
-                {step.kind === 'signup' && (
-                  <label className="auth-field">
-                    <span className="auth-label">Name</span>
-                    <input
-                      className="input auth-input"
-                      name="name"
-                      type="text"
-                      autoComplete="name"
-                      placeholder="Ada Lovelace"
-                      maxLength={60}
-                    />
-                  </label>
-                )}
-                <label className="auth-field">
-                  <span className="auth-label">Email</span>
-                  <input
-                    className="input auth-input"
-                    name="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    placeholder="you@studio.com"
-                  />
-                </label>
-                <label className="auth-field">
-                  <span className="auth-label">Password</span>
-                  <input
-                    className="input auth-input"
-                    name="password"
-                    type="password"
-                    required
-                    minLength={8}
-                    autoComplete={step.kind === 'signup' ? 'new-password' : 'current-password'}
-                    placeholder="8+ characters"
-                  />
-                </label>
-                {step.kind === 'signin' && emailEnabled && (
-                  <button
-                    type="button"
-                    className="auth-link-btn"
-                    onClick={() => { setError(null); setStep({ kind: 'forgot' }); }}
-                  >
-                    Forgot password?
-                  </button>
-                )}
-                {error && <p className="auth-error" role="alert">{error}</p>}
-                <button className="btn btn-primary auth-submit" type="submit" disabled={submitting}>
-                  {submitting ? (
-                    <span className="auth-spinner" aria-hidden="true" />
-                  ) : step.kind === 'signup' ? (
-                    <>
-                      Create account <ArrowRight size={16} />
-                    </>
-                  ) : (
-                    'Sign in'
-                  )}
-                </button>
-              </form>
-
-              <p className="auth-card-small">
-                By continuing you agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
-              </p>
-            </>
-          ) : step.kind === 'verify' ? (
-            <>
-              <h2 className="auth-card-title">Check your inbox</h2>
-              <p className="auth-card-sub">
-                We sent a code to <strong>{step.email}</strong>. Enter it below to finish signing in.
-              </p>
-              <form className="auth-form" onSubmit={onVerify}>
-                <label className="auth-field">
-                  <span className="auth-label">Verification code</span>
-                  <input
-                    className="input auth-input auth-code"
-                    name="code"
-                    type="text"
-                    required
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    placeholder="00000000"
-                    autoFocus
-                  />
-                </label>
-                {error && <p className="auth-error" role="alert">{error}</p>}
-                <button className="btn btn-primary auth-submit" type="submit" disabled={submitting}>
-                  {submitting ? <span className="auth-spinner" aria-hidden="true" /> : 'Verify and continue'}
-                </button>
-              </form>
-              <button className="auth-link-btn auth-back" type="button" onClick={goBack}>
-                <ArrowLeft size={14} /> Back to sign in
-              </button>
-            </>
-          ) : step.kind === 'forgot' ? (
-            <>
-              <h2 className="auth-card-title">Reset your password</h2>
-              <p className="auth-card-sub">
-                Enter your email and we'll send you a one-time code.
-              </p>
-              <form className="auth-form" onSubmit={onForgot}>
-                <label className="auth-field">
-                  <span className="auth-label">Email</span>
-                  <input
-                    className="input auth-input"
-                    name="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    placeholder="you@studio.com"
-                  />
-                </label>
-                {error && <p className="auth-error" role="alert">{error}</p>}
-                <button className="btn btn-primary auth-submit" type="submit" disabled={submitting}>
-                  {submitting ? <span className="auth-spinner" aria-hidden="true" /> : 'Send code'}
-                </button>
-              </form>
-              <button className="auth-link-btn auth-back" type="button" onClick={goBack}>
-                <ArrowLeft size={14} /> Back to sign in
-              </button>
-            </>
-          ) : step.kind === 'reset' ? (
-            <>
-              <h2 className="auth-card-title">Choose a new password</h2>
-              <p className="auth-card-sub">
-                We sent a code to <strong>{step.email}</strong>. Enter it with your new password.
-              </p>
-              <form className="auth-form" onSubmit={onReset}>
-                <label className="auth-field">
-                  <span className="auth-label">Verification code</span>
-                  <input
-                    className="input auth-input auth-code"
-                    name="code"
-                    type="text"
-                    required
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    placeholder="00000000"
-                  />
-                </label>
-                <label className="auth-field">
-                  <span className="auth-label">New password</span>
-                  <input
-                    className="input auth-input"
-                    name="newPassword"
-                    type="password"
-                    required
-                    minLength={8}
-                    autoComplete="new-password"
-                    placeholder="8+ characters"
-                  />
-                </label>
-                {error && <p className="auth-error" role="alert">{error}</p>}
-                <button className="btn btn-primary auth-submit" type="submit" disabled={submitting}>
-                  {submitting ? <span className="auth-spinner" aria-hidden="true" /> : 'Update password'}
-                </button>
-              </form>
-              <button className="auth-link-btn auth-back" type="button" onClick={goBack}>
-                <ArrowLeft size={14} /> Back to sign in
-              </button>
-            </>
-          ) : (
-            <>
-              <h2 className="auth-card-title">Password updated</h2>
-              <p className="auth-card-sub">
-                Your password is set. Sign in with the new one.
-              </p>
-              <button className="btn btn-primary auth-submit" type="button" onClick={goBack}>
-                <Sparkles size={16} /> Back to sign in
-              </button>
-            </>
-          )}
-        </aside>
+        </div>
       </main>
 
       <footer className="auth-footer">
         <span>© 2026 Sketchroom</span>
-        <span>Terms</span>
-        <span>Privacy</span>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
         <span>Status</span>
       </footer>
     </div>
