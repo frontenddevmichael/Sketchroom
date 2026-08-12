@@ -6,7 +6,11 @@ import { auth } from "./lib";
 import { rateLimiter } from "./rateLimiter";
 import { buildDiagram, buildPrompt, type AiResult } from "./aiDiagram";
 
-const OPENAI_KEY = process.env.OPENAI_API_KEY;
+// The copilot runs through OpenRouter so the model is swappable per
+// deployment (OPENROUTER_MODEL) without a code change. The key and model are
+// secrets set with `npx convex env set` — never in the repo.
+const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL ?? "google/gemma-4-26b-a4b-it:free";
 
 const SYSTEM_PROMPT = [
   "You are Sketchroom, a collaborative architecture-planning copilot.",
@@ -50,21 +54,25 @@ function openAiFailureMessage(status: number): string {
 }
 
 async function callOpenAi(prompt: string): Promise<AiResult> {
-  if (!OPENAI_KEY) {
+  if (!OPENROUTER_KEY) {
     return {
       error: "AI is not configured on this workspace yet — the owner needs to add the API key.",
     };
   }
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_KEY}`,
+      Authorization: `Bearer ${OPENROUTER_KEY}`,
+      // Public attribution so OpenRouter ranks the app (optional, helpful).
+      "HTTP-Referer": process.env.SITE_URL ?? "https://sketchroom.app",
+      "X-Title": "Sketchroom",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: OPENROUTER_MODEL,
       temperature: 0.4,
-      response_format: { type: "json_object" },
+      // Free models don't reliably support response_format, so strict JSON
+      // comes from the prompt contract instead.
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: prompt },
@@ -75,7 +83,7 @@ async function callOpenAi(prompt: string): Promise<AiResult> {
     // Never surface the raw provider error body to the user — it can contain
     // opaque internal detail. Log it server-side instead, show clean copy.
     const body = await res.text();
-    console.error(`[ai] openai ${res.status}: ${body.slice(0, 300)}`);
+    console.error(`[ai] openrouter ${res.status} (${OPENROUTER_MODEL}): ${body.slice(0, 300)}`);
     return { error: openAiFailureMessage(res.status) };
   }
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
