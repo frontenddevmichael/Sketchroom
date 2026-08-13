@@ -92,7 +92,10 @@ function usePencilTrail(
         .getPropertyValue('--green-500')
         .trim() || '#22c55e';
 
-    function resize() {
+    // Arrow functions (not hoisted `function` declarations) so the
+    // non-null narrowing of canvas/footer/ctx above actually holds
+    // inside them.
+    const resize = () => {
       const rect = footer.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
@@ -101,7 +104,7 @@ function usePencilTrail(
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
+    };
     resize();
     window.addEventListener('resize', resize);
 
@@ -109,7 +112,7 @@ function usePencilTrail(
     let rafId: number | null = null;
     let running = false;
 
-    function draw() {
+    const draw = () => {
       ctx.clearRect(0, 0, width, height);
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
@@ -139,9 +142,9 @@ function usePencilTrail(
         running = false;
         rafId = null;
       }
-    }
+    };
 
-    function handlePointerMove(event: PointerEvent) {
+    const handlePointerMove = (event: PointerEvent) => {
       const rect = footer.getBoundingClientRect();
       points.push({
         x: event.clientX - rect.left,
@@ -154,7 +157,7 @@ function usePencilTrail(
         running = true;
         rafId = requestAnimationFrame(draw);
       }
-    }
+    };
 
     footer.addEventListener('pointermove', handlePointerMove);
 
