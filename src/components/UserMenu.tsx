@@ -14,9 +14,8 @@ import {
 } from 'lucide-react';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useTheme } from '../lib/useTheme';
+import { FREE_ROOM_LIMIT } from '../lib/plans';
 import './shared.css';
-
-const FREE_ROOM_LIMIT = 3;
 
 type Placement = 'up' | 'down';
 type Size = 'sm' | 'lg';
@@ -159,7 +158,7 @@ export function UserMenu({ placement = 'down', size = 'sm', align = 'right' }: U
               onClick={() => go('/billing')}
             >
               <Sparkles size={13} />
-              {atRoomLimit ? 'Unlock unlimited rooms' : 'Upgrade to Team'}
+              {atRoomLimit ? 'Team plan coming' : 'See plans'}
             </button>
           </div>
 

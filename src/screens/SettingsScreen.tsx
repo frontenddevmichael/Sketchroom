@@ -8,14 +8,13 @@ import { useCurrentUser } from '../hooks/useCurrentUser';
 import { UserMenu } from '../components/UserMenu';
 import { AppTabBar } from '../components/AppTabBar';
 import { usePageTitle } from '../lib/usePageTitle';
+import { useModalFocus } from '../lib/useModalFocus';
 import { FormSkeleton } from '../components/skeletons';
-import { Moon, Sun, Trash2, ArrowLeft, Check, LogOut, Sparkles } from 'lucide-react';
+import { FREE_ROOM_LIMIT, FREE_AI_LIMIT } from '../lib/plans';
+import { Moon, Sun, Trash2, ArrowLeft, Check, LogOut, Sparkles, X, TriangleAlert } from 'lucide-react';
 import '../components/shared.css';
 import '../components/skeletons.css';
 import './SettingsScreen.css';
-
-const FREE_ROOM_LIMIT = 3;
-const FREE_AI_LIMIT = 40;
 
 interface DeleteState {
   inProgress: boolean;
@@ -37,12 +36,15 @@ export function SettingsScreen() {
   const [savingDisplayName, setSavingDisplayName] = useState(false);
   const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const [savedDisplayName, setSavedDisplayName] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const workspaces = useQuery(api.rooms.getWorkspaces);
   const usage = useQuery(api.rooms.getUsage);
   const updateWorkspaceName = useMutation(api.rooms.updateWorkspaceName);
   const deleteWorkspace = useMutation(api.rooms.deleteWorkspace);
   const updateProfile = useMutation(api.users.updateProfile);
+
+  const confirmRef = useModalFocus<HTMLDivElement>(() => setConfirmDeleteOpen(false), confirmDeleteOpen);
 
   if (!workspaces) return <SettingsLoadingShell />;
 
@@ -68,7 +70,6 @@ export function SettingsScreen() {
 
   const handleDeleteWorkspace = async () => {
     if (!workspace) return;
-    if (!window.confirm('This will permanently delete your workspace and all rooms. This cannot be undone.')) return;
     setDeleteState({ inProgress: true, error: null });
     try {
       await deleteWorkspace({ workspaceId: workspace._id });
@@ -106,7 +107,7 @@ export function SettingsScreen() {
     <div className="settings-screen">
       <AppTabBar />
       <aside className="settings-sidebar">
-        <button className="settings-back" onClick={() => navigate('/dashboard')}>
+        <button className="settings-back" onClick={() => navigate('/dashboard')} aria-label="Back to dashboard">
           <ArrowLeft size={18} />
         </button>
         <div className="settings-nav">
@@ -172,7 +173,7 @@ export function SettingsScreen() {
               </div>
               <button className="settings-plan-link" onClick={() => navigate('/billing')}>
                 <Sparkles size={14} />
-                View plans & upgrade
+                See plans & Team
               </button>
             </div>
 
@@ -196,9 +197,9 @@ export function SettingsScreen() {
                 Deleting your workspace permanently removes all rooms, snapshots, and data.
               </p>
               {deleteState.error && <p className="settings-error" role="alert">{deleteState.error}</p>}
-              <button className="btn btn-danger" onClick={handleDeleteWorkspace} disabled={deleteState.inProgress}>
+              <button className="btn btn-danger" onClick={() => setConfirmDeleteOpen(true)}>
                 <Trash2 size={16} />
-                {deleteState.inProgress ? 'Deleting…' : 'Delete workspace'}
+                Delete workspace
               </button>
             </div>
           </>
@@ -270,6 +271,44 @@ export function SettingsScreen() {
           </>
         )}
       </main>
+
+      {confirmDeleteOpen && (
+        <div className="settings-confirm-backdrop" onClick={() => setConfirmDeleteOpen(false)} role="presentation">
+          <div
+            ref={confirmRef}
+            className="settings-confirm-card glass-dense"
+            onClick={(e) => e.stopPropagation()}
+            role="alertdialog"
+            aria-modal="true"
+            aria-label="Delete workspace"
+          >
+            <header className="settings-confirm-head">
+              <h2 className="settings-confirm-title">
+                <TriangleAlert size={18} />
+                Delete workspace?
+              </h2>
+              <button className="settings-confirm-close" onClick={() => setConfirmDeleteOpen(false)} aria-label="Close">
+                <X size={18} />
+              </button>
+            </header>
+            <p className="settings-confirm-text">
+              This will permanently delete your workspace and all rooms, snapshots, and data. This cannot be undone.
+            </p>
+            {deleteState.error && <p className="settings-error" role="alert">{deleteState.error}</p>}
+            <div className="settings-confirm-actions">
+              <button className="btn btn-ghost" onClick={() => setConfirmDeleteOpen(false)}>Cancel</button>
+              <button
+                className="btn btn-danger"
+                onClick={() => void handleDeleteWorkspace()}
+                disabled={deleteState.inProgress}
+              >
+                <Trash2 size={16} />
+                {deleteState.inProgress ? 'Deleting…' : 'Delete workspace'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

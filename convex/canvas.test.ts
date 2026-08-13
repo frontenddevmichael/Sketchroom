@@ -183,3 +183,17 @@ test("applyCanvasChanges drops records without a typeName so the store never cra
   expect(canonical["junk"]).toBeUndefined();
   expect(canonical["wrapper"]).toBeUndefined();
 });
+
+test("applyCanvasChanges rejects writes that would exceed the canvas size ceiling", async () => {
+  const { aliceT, roomId } = await setup();
+  // A single record carrying a payload near the ceiling: the merge re-serializes
+  // the whole canonical map, so an oversized addition must be rejected outright.
+  const big = rectRecord("shape:big", 1);
+  big["payload"] = "x".repeat(860 * 1024);
+  await expect(
+    aliceT.mutation(api.canvas.applyCanvasChanges, {
+      roomId,
+      changes: JSON.stringify({ put: { "shape:big": big } }),
+    })
+  ).rejects.toThrow("size limit");
+});

@@ -39,7 +39,7 @@ const FAQS = [
   },
   {
     q: 'How do I get more rooms or seats?',
-    a: 'The free plan covers 3 rooms and 3 collaborators per room — enough to pilot with a small team. The Team plan is on its way; when it ships it will unlock unlimited rooms, collaborators, and AI suggestions. Until then, if you need more room to work, write to us from the billing screen and we will set you up.',
+    a: 'The free plan covers 3 rooms and 3 collaborators per room — enough to pilot with a small team. The Team plan is on its way and will unlock unlimited rooms, collaborators, and AI suggestions. Until it ships, nothing is locked behind a paywall: if you hit a limit, your rooms stay open and editable.',
   },
 ];
 

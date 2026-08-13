@@ -155,13 +155,14 @@
   cursor: not-allowed;
 }
 
-.plan-upgrade {
+.plan-coming-soon {
   margin-top: auto;
-  width: 100%;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
 }
 
-/* Recommended: the Team card carries a small green ribbon so the upgrade
-   path reads at a glance — the one moment the plan screen gets its CTAs. */
+/* The Team ribbon reads honest: it is coming soon, not a purchasable CTA. */
 .plan-recommended {
   align-self: flex-start;
   padding: 3px 10px;

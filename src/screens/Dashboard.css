@@ -23,13 +23,40 @@
 }
 
 /* Workspace card: avatar + name + plan chip. */
+.sidebar-workspace-switch {
+  position: relative;
+}
+
 .sidebar-workspace {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  width: 100%;
   padding: var(--space-2);
   border-radius: var(--radius-md);
   min-width: 0;
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.sidebar-workspace:hover {
+  background: var(--color-selected-bg);
+}
+
+.sidebar-workspace:focus-visible {
+  outline: 2px solid var(--green-500);
+  outline-offset: -2px;
+}
+
+.sidebar-workspace-caret {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.sidebar-workspace-caret.open {
+  transform: rotate(180deg);
 }
 
 .sidebar-workspace-avatar {
@@ -129,6 +156,129 @@
   background: var(--color-cta-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(37, 211, 102, 0.25);
+}
+
+/* Workspace switcher menu — a floating surface under the workspace card,
+   listing every workspace this user owns with the active one checked, plus
+   an inline create input. Same glass language as the room-card menus. */
+.sidebar-workspace-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  animation: menu-in var(--duration-fast) var(--ease-spring);
+}
+
+.sidebar-workspace-menu-label {
+  margin: 0;
+  padding: 4px 8px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.sidebar-workspace-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--color-text-primary);
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-spring);
+}
+
+.sidebar-workspace-menu-item:hover {
+  background: var(--color-selected-bg);
+}
+
+.sidebar-workspace-menu-item.active {
+  background: var(--color-selected-bg);
+  font-weight: 600;
+}
+
+.sidebar-workspace-menu-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-workspace-menu-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-workspace-menu-check {
+  flex-shrink: 0;
+  color: var(--green-500);
+}
+
+.sidebar-workspace-menu-sep {
+  height: 1px;
+  margin: 4px 0 6px;
+  background: var(--glass-border);
+}
+
+.sidebar-workspace-create {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px 2px 2px 8px;
+}
+
+.sidebar-workspace-create-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.sidebar-workspace-create-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.sidebar-workspace-create-btn:hover {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .sidebar-workspace-menu-item:hover,
+[data-theme="dark"] .sidebar-workspace-menu-item.active {
+  background: var(--dark-elevation-4);
+}
+
+[data-theme="dark"] .sidebar-workspace-menu-avatar {
+  background: var(--dark-elevation-4);
 }
 
 .sidebar-bottom {

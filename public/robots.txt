@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /room/
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /billing
+Disallow: /settings
+Disallow: /invite/
+
+Sitemap: /sitemap.xml

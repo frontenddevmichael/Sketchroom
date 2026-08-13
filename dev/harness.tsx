@@ -260,6 +260,7 @@ const MUTATION_BY_NAME: Record<string, unknown> = {
   createWorkspace: api.rooms.createWorkspace,
   updateRoomName: api.rooms.updateRoomName,
   deleteRoom: api.rooms.deleteRoom,
+  deleteWorkspace: api.rooms.deleteWorkspace,
   applyCanvasChanges: api.canvas.applyCanvasChanges,
   saveSnapshot: api.snapshots.saveSnapshot,
   restoreSnapshot: api.snapshots.restoreSnapshot,

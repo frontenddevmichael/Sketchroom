@@ -1,6 +1,14 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { auth, requireRole, SNAPSHOT_RETENTION } from "./lib";
+import { auth, requireRole, SNAPSHOT_RETENTION, MAX_CANVAS_BYTES } from "./lib";
+
+function assertWithinCanvasLimit(canvasData: string): void {
+  if (canvasData.length > MAX_CANVAS_BYTES) {
+    throw new Error(
+      "This canvas is at its size limit — remove a few blocks before saving a version."
+    );
+  }
+}
 
 export const saveSnapshot = mutation({
   args: { roomId: v.id("rooms"), canvasData: v.string(), description: v.optional(v.string()) },
@@ -8,6 +16,7 @@ export const saveSnapshot = mutation({
     const { identity, member } = await requireRole(ctx, args.roomId, ["owner", "editor"]);
     const room = await ctx.db.get(args.roomId);
     if (!room) throw new Error("Room not found");
+    assertWithinCanvasLimit(args.canvasData);
     const newVersion = room.canvasVersion + 1;
     await ctx.db.patch(args.roomId, {
       canvasData: args.canvasData,
@@ -94,6 +103,7 @@ export const restoreSnapshot = mutation({
     // Preserve the current canvas before overwriting it, so a restore is
     // always reversible — the state you had is one click away afterwards.
     if (room.canvasData && room.canvasData.length > 2) {
+      assertWithinCanvasLimit(room.canvasData);
       await ctx.db.insert("snapshots", {
         roomId: args.roomId,
         version: newVersion,
@@ -104,6 +114,7 @@ export const restoreSnapshot = mutation({
       });
     }
     const restoreVersion = newVersion + (room.canvasData && room.canvasData.length > 2 ? 1 : 0);
+    assertWithinCanvasLimit(snapshot.canvasData);
     await ctx.db.patch(args.roomId, {
       canvasData: snapshot.canvasData,
       canvasVersion: restoreVersion,

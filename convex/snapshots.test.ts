@@ -121,3 +121,11 @@ test("listSnapshots is empty for non-members", async () => {
   const snapshots = await stranger.query(api.snapshots.listSnapshots, { roomId });
   expect(snapshots).toEqual([]);
 });
+
+test("saveSnapshot rejects a canvas above the size ceiling", async () => {
+  const { aliceT, roomId } = await setup();
+  const big = "{v" + "x".repeat(860 * 1024) + "}";
+  await expect(
+    aliceT.mutation(api.snapshots.saveSnapshot, { roomId, canvasData: big })
+  ).rejects.toThrow("size limit");
+});

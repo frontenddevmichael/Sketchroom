@@ -51,7 +51,9 @@ test.describe('room creation', () => {
   test('creating a room navigates to it with the given name', async ({ page }) => {
     await page.goto(appUrl('/dashboard'));
 
-    await page.getByRole('button', { name: /new room/i }).click();
+    // Both the sidebar and the header carry a "New room" CTA; target the
+    // header one in the main content so the locator stays unambiguous.
+    await page.locator('main').getByRole('button', { name: /new room/i }).click();
     const modal = page.locator('.new-room-modal');
     await expect(modal).toBeVisible();
 
@@ -103,6 +105,32 @@ test.describe('version history', () => {
 
     const calls = await mutationCalls(page, 'restoreSnapshot');
     expect(calls.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+test.describe('settings', () => {
+  test('deleting a workspace asks for confirmation before calling deleteWorkspace', async ({ page }) => {
+    await page.goto(appUrl('/settings'));
+
+    await expect(page.getByRole('heading', { name: 'Workspace settings' })).toBeVisible();
+
+    // First click opens a custom confirmation dialog (no native confirm()).
+    await page.getByRole('button', { name: 'Delete workspace' }).click();
+    const dialog = page.getByRole('alertdialog', { name: 'Delete workspace' });
+    await expect(dialog).toBeVisible();
+
+    // Cancelling closes the dialog without deleting.
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(dialog).toBeHidden();
+    let calls = await mutationCalls(page, 'deleteWorkspace');
+    expect(calls.length).toBe(0);
+
+    // Confirming runs the delete.
+    await page.getByRole('button', { name: 'Delete workspace' }).click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Delete workspace', exact: true }).click();
+    calls = await mutationCalls(page, 'deleteWorkspace');
+    expect(calls.length).toBe(1);
   });
 });
 

@@ -176,23 +176,17 @@ export function AuthScreen() {
 
   return (
     <div className="auth-screen">
-
-
       <main className="auth-main">
         <div className="auth-wrap">
-          <span className="auth-card-mark" aria-hidden="true">
-            <LogoGlyph size={22} />
-          </span>
-
           <aside className="auth-card" aria-label="Account">
-             <a className="auth-home-link" href="/">
-          <ArrowLeft size={14} color ={'green'}aria-hidden="true" />
-          Back to home
-        </a>
-              <a className="auth-wordmark" href="/" aria-label="Sketchroom home">
-          <LogoGlyph size={18} />
-          Sketchroom
-        </a>
+            <a className="auth-home-link" href="/">
+              <ArrowLeft size={14} aria-hidden="true" />
+              Back to home
+            </a>
+            <a className="auth-wordmark" href="/" aria-label="Sketchroom home">
+              <LogoGlyph size={18} />
+              Sketchroom
+            </a>
             {step.kind === "signin" || step.kind === "signup" ? (
               <>
                 <h2 className="auth-card-title">{passwordTitle}</h2>
@@ -492,12 +486,6 @@ export function AuthScreen() {
           </aside>
 
           <div className="auth-note">
-            <div className="auth-avatars" aria-hidden="true">
-              <span className="auth-avatar">MK</span>
-              <span className="auth-avatar">AJ</span>
-              <span className="auth-avatar">SR</span>
-              <span className="auth-avatar auth-avatar-ai">✦</span>
-            </div>
             <p className="auth-note-text">
               Free to start · No credit card · Your data stays yours
             </p>

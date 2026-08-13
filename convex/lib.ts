@@ -12,6 +12,16 @@ export const FREE_COLLABORATORS_PER_ROOM = 3; // owner + 3 = 4 room members
 export const FREE_AI_SUGGESTIONS_PER_MONTH = 40;
 export const SNAPSHOT_RETENTION = 60;
 
+// Payload ceilings. Convex caps any single value near 1MB, but these tighter
+// limits exist so a stray oversized write (a runaway canvas, a huge base64
+// thumbnail, an AI blob) fails with a clear message instead of a storage
+// error — and so one room cannot quietly dominate the database.
+export const MAX_CANVAS_BYTES = 850 * 1024; // room canvasData, UTF-8
+export const MAX_THUMBNAIL_CHARS = 900 * 1024; // base64 PNG thumbnail
+export const MAX_AI_PROMPT_CHARS = 4000;
+export const MAX_AI_RESPONSE_CHARS = 16000;
+export const MAX_AI_GHOST_BLOCKS_CHARS = 200_000;
+
 /** First instant of the current calendar month, in epoch ms. */
 export function monthStartMs(now = Date.now()): number {
   const d = new Date(now);

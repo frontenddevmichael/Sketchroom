@@ -1,9 +1,10 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useConvexAuth } from '@convex-dev/auth/react';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ErrorScreen } from './components/ErrorScreen';
 import { AuthScreen } from './screens/AuthScreen';
+import { LegalScreen } from './screens/LegalScreen';
 
 const Landing = lazy(() => import('./landing/Landing').then((m) => ({ default: m.Landing })));
 const Dashboard = lazy(() => import('./screens/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -14,15 +15,32 @@ const InviteScreen = lazy(() => import('./screens/InviteScreen').then((m) => ({ 
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const location = useLocation();
   if (isLoading) return <LoadingScreen label="Checking your session" />;
-  if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (!isAuthenticated) {
+    // Preserve intent: send a signed-out user to sign-in with the page they
+    // wanted, so an invite link (or any protected route) resumes where they
+    // were headed instead of stranding them on the homepage.
+    const next = location.pathname + location.search;
+    return <Navigate to={`/auth?next=${encodeURIComponent(next)}`} replace />;
+  }
   return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const location = useLocation();
   if (isLoading) return <LoadingScreen label="Checking your session" />;
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  if (isAuthenticated) {
+    // After a successful sign-in, return the user to the page they were
+    // headed for (from ProtectedRoute) instead of always dumping them on the
+    // dashboard. `next` is sanitized to stay within the app.
+    const next = new URLSearchParams(location.search).get('next');
+    if (next && next.startsWith('/') && !next.startsWith('//')) {
+      return <Navigate to={next} replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
   return <>{children}</>;
 }
 
@@ -65,6 +83,8 @@ export default function App() {
         </ProtectedRoute>
       } />
       <Route path="/error" element={<ErrorScreen />} />
+      <Route path="/terms" element={<LegalScreen page="terms" />} />
+      <Route path="/privacy" element={<LegalScreen page="privacy" />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

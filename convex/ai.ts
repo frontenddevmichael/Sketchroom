@@ -2,7 +2,7 @@ import { query, action, mutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { api } from "./_generated/api";
 import { internal } from "./_generated/api";
-import { auth } from "./lib";
+import { auth, MAX_AI_PROMPT_CHARS, MAX_AI_RESPONSE_CHARS, MAX_AI_GHOST_BLOCKS_CHARS } from "./lib";
 import { rateLimiter } from "./rateLimiter";
 import { buildDiagram, buildPrompt, type AiResult } from "./aiDiagram";
 import { countAiSuggestions, FREE_PLAN, planLimitError } from "./usage";
@@ -123,6 +123,10 @@ export const requestAiSuggestion = action({
     const room = await ctx.runQuery(api.rooms.getRoom, { roomId: args.roomId });
     if (!room) throw new Error("Room not found");
     if (room.userRole === "viewer") throw new Error("You're viewing this room — ask an editor to make changes.");
+    if (args.prompt.trim().length === 0) throw new Error("Ask the copilot something first.");
+    if (args.prompt.length > MAX_AI_PROMPT_CHARS) {
+      throw new Error("That prompt is too long — try a shorter one.");
+    }
 
     // Monthly free-plan AI quota, checked BEFORE any paid provider call or
     // pending-message write, so a capped user gets a clear limit error and no
@@ -172,6 +176,9 @@ export const requestAiSuggestion = action({
         blocks: diagram.blocks,
         edges: diagram.edges,
       });
+      if (response.length > MAX_AI_RESPONSE_CHARS || ghostBlocks.length > MAX_AI_GHOST_BLOCKS_CHARS) {
+        throw new Error("The AI response was too large to save — try a smaller ask.");
+      }
       await ctx.runMutation(internal.aiStore.updateAiMessage, {
         messageId,
         response,

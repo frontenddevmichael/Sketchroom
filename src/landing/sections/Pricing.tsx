@@ -7,14 +7,14 @@ const FREE_FEATURES = [
   'Up to 3 collaborators per room',
   '40 AI suggestions per month',
   'Unlimited sketching',
+  'Version history',
+  'PNG / PDF / SVG export',
 ];
 
 const TEAM_FEATURES = [
   'Unlimited rooms',
   'Unlimited collaborators',
   'Unlimited AI suggestions',
-  'Version history',
-  'PNG / PDF export',
   'Priority support',
 ];
 
@@ -60,10 +60,10 @@ export function Pricing() {
 
         <Reveal delay={0.12}>
           <article className="pricing-card pricing-card-featured">
-            <span className="pricing-badge">For working teams</span>
+            <span className="pricing-badge">Coming soon</span>
             <h3 className="pricing-card-name">Team</h3>
             <p className="pricing-price">
-              $8<span className="pricing-period">/seat/mo</span>
+              Unlimited<span className="pricing-period">when it ships</span>
             </p>
             <p className="pricing-desc">Unlimited rooms and the copilot without limit.</p>
             <ul className="pricing-list">
@@ -78,17 +78,16 @@ export function Pricing() {
                 </li>
               ))}
             </ul>
-            <Link to="/auth" className="btn btn-primary pricing-cta">
-              Start Team
-            </Link>
-            <p className="pricing-note">Cancel anytime · No surprise charges</p>
+            <p className="pricing-note">
+              The Team plan is on its way. Until it ships, version history and export are free for everyone.
+            </p>
           </article>
         </Reveal>
       </div>
 
       <Reveal delay={0.1}>
         <p className="pricing-footnote">
-          Rooms run free forever on the free plan. Billing lives in the app, after you've sketched enough to want it.
+          Rooms run free forever on the free plan, and nothing is locked behind a paywall yet. When Team ships, billing lives in the app.
         </p>
       </Reveal>
     </section>

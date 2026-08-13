@@ -2,45 +2,47 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { ArrowLeft, ArrowRight, Check, ChevronDown, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronDown } from 'lucide-react';
 import { PlanCardSkeleton } from '../components/skeletons';
 import { LimitEmptyIllo, DrawnTitle } from '../components/illustrations';
 import { AppTabBar } from '../components/AppTabBar';
 import { usePageTitle } from '../lib/usePageTitle';
+import { FREE_ROOM_LIMIT, FREE_AI_LIMIT } from '../lib/plans';
 import '../components/skeletons.css';
 import './BillingScreen.css';
-
-const FREE_ROOM_LIMIT = 3;
-const FREE_AI_LIMIT = 40;
 
 const FREE_FEATURES = [
   'Up to 3 rooms',
   'Up to 3 collaborators per room',
   '40 AI suggestions per month',
   'Unlimited sketching',
+  'Version history',
+  'PNG / PDF / SVG export',
 ];
 
 const TEAM_FEATURES = [
   'Unlimited rooms',
   'Unlimited collaborators',
   'Unlimited AI suggestions',
-  'Version history',
-  'PNG / PDF export',
   'Priority support',
 ];
 
 const FAQS: Array<{ q: string; a: string }> = [
   {
-    q: 'How do I upgrade to Team?',
-    a: 'Team upgrades are handled from the landing page FAQ — use the "How to upgrade" button and we\'ll take care of it. Nothing on your free plan is locked while you decide.',
+    q: 'When can I upgrade to Team?',
+    a: 'The Team plan is on its way — it will unlock unlimited rooms, collaborators, and AI suggestions. Until it ships, everyone is on the free plan, and no paid feature is locked behind a paywall.',
   },
   {
     q: 'What happens to my rooms if I hit the free limits?',
-    a: 'Nothing is deleted. Rooms stay open and editable; you just can\u2019t create new ones (or generate more AI suggestions this month) until you upgrade.',
+    a: 'Nothing is deleted. Rooms stay open and editable; you just can\u2019t create new ones (or generate more AI suggestions this month) until the allowance refreshes or Team ships.',
   },
   {
     q: 'Do AI suggestions roll over?',
-    a: 'No — the 40 suggestion allowance resets at the start of each calendar month. Team gives you unlimited suggestions.',
+    a: 'No — the 40 suggestion allowance resets at the start of each calendar month. Team will give you unlimited suggestions.',
+  },
+  {
+    q: 'Is export or version history locked?',
+    a: 'No. Version history and PNG / PDF / SVG export are available on the free plan — your work is never held hostage.',
   },
 ];
 
@@ -67,13 +69,14 @@ export function BillingScreen() {
   const roomPct = Math.min(100, (usage.rooms / FREE_ROOM_LIMIT) * 100);
   const aiPct = Math.min(100, (usage.aiSuggestions / FREE_AI_LIMIT) * 100);
   // A reached cap is a moment of its own — neither an error nor "empty" — so
-  // it gets a calm, non-punitive treatment with a clear path to upgrade.
+  // it gets a calm, non-punitive treatment with a clear answer about what
+  // comes next.
   const atRoomLimit = usage.rooms >= FREE_ROOM_LIMIT;
   const atAiLimit = usage.aiSuggestions >= FREE_AI_LIMIT;
 
   return (
     <div className="billing-screen">
-      <button className="billing-back" onClick={() => navigate('/dashboard')}>
+      <button className="billing-back" onClick={() => navigate('/dashboard')} aria-label="Back to dashboard">
         <ArrowLeft size={18} />
       </button>
       <AppTabBar />
@@ -94,11 +97,11 @@ export function BillingScreen() {
                   : "You've reached the free AI limit"}
             </DrawnTitle>
             <p className="limit-reached-text">
-              Nothing is locked — every room and sketch stays open. Upgrade to Team when you're ready for more room to think.
+              Nothing is locked — every room and sketch stays open. The Team plan will lift these limits when it ships.
             </p>
           </div>
-          <a className="btn btn-primary limit-reached-cta" href="/#faq" aria-label="See how to upgrade on the FAQ">
-            How to upgrade
+          <a className="btn btn-primary limit-reached-cta" href="/#faq" aria-label="See the Team plan FAQ">
+            Team plan FAQ
           </a>
         </div>
       )}
@@ -132,22 +135,18 @@ export function BillingScreen() {
         </div>
 
         <div className="plan-card plan-team">
-          <span className="plan-recommended">Recommended</span>
+          <span className="plan-recommended">Coming soon</span>
           <h2 className="plan-name">Team</h2>
-          <p className="plan-price">$8<span className="plan-period">/mo per seat</span></p>
+          <p className="plan-price plan-price-soon">Unlimited<span className="plan-period">when it ships</span></p>
           <ul className="plan-features">
             {TEAM_FEATURES.map((f) => (
               <li key={f}><Check size={15} />{f}</li>
             ))}
           </ul>
-          <a
-            className="btn btn-primary plan-upgrade"
-            href="/#faq"
-            aria-label="Find out how to upgrade on the FAQ"
-          >
-            <Sparkles size={15} />
-            How to upgrade
-          </a>
+          <p className="plan-coming-soon">
+            The Team plan is on its way. Until then, every feature — including
+            version history and export — is available on the free plan.
+          </p>
         </div>
       </div>
 
@@ -179,12 +178,12 @@ export function BillingScreen() {
             </tr>
             <tr>
               <th scope="row">Version history</th>
-              <td>—</td>
+              <td>Included ✓</td>
               <td>Included ✓</td>
             </tr>
             <tr>
-              <th scope="row">PNG / PDF export</th>
-              <td>—</td>
+              <th scope="row">PNG / PDF / SVG export</th>
+              <td>Included ✓</td>
               <td>Included ✓</td>
             </tr>
             <tr>
@@ -217,7 +216,7 @@ export function BillingScreen() {
           })}
         </div>
         <a className="billing-upgrade-link" href="/#faq">
-          See the full FAQ
+          Team plan FAQ
           <ArrowRight size={14} />
         </a>
       </section>

@@ -169,11 +169,10 @@ test("getRooms attaches a member avatar summary to each card", async () => {
   const bobT = t.withIdentity({ ...alice, subject: "user_bob", name: "Bob", email: "bob@example.com" });
   const carolT = t.withIdentity({ ...alice, subject: "user_carol", name: "Carol", email: "carol@example.com" });
   const daveT = t.withIdentity({ ...alice, subject: "user_dave", name: "Dave", email: "dave@example.com" });
-  const eveT = t.withIdentity({ ...alice, subject: "user_eve", name: "Eve", email: "eve@example.com" });
 
   const { token } = await aliceT.mutation(api.invites.createInviteLink, { roomId, role: "editor" });
   await bobT.mutation(api.invites.acceptInvite, { token });
-  for (const viewer of [carolT, daveT, eveT]) {
+  for (const viewer of [carolT, daveT]) {
     const link = await aliceT.mutation(api.invites.createInviteLink, { roomId, role: "viewer" });
     await viewer.mutation(api.invites.acceptInvite, { token: link.token });
   }
@@ -181,9 +180,10 @@ test("getRooms attaches a member avatar summary to each card", async () => {
   const rooms = await aliceT.query(api.rooms.getRooms, { workspaceId });
   expect(rooms).toHaveLength(1);
   const card = rooms[0];
-  // 5 members total (alice + 4 invitees) => 3 avatars + overflow chip of 2
+  // 4 members total (alice + 3 invitees — the free plan's owner + 3
+  // collaborator cap) => 3 avatars + overflow chip of 1
   expect(card.members.avatars.length).toBe(3);
-  expect(card.members.plusCount).toBe(2);
+  expect(card.members.plusCount).toBe(1);
   expect(card.userRole).toBe("owner");
 });
 
@@ -197,4 +197,16 @@ test("updateRoomName records the server-derived last editor", async () => {
   const room = await aliceT.query(api.rooms.getRoom, { roomId });
   expect(room?.name).toBe("Design v2");
   expect(room?.lastEditedBy).toEqual({ id: "user_alice", name: "Alice" });
+});
+
+test("updateRoomThumbnail rejects an oversized base64 thumbnail", async () => {
+  const { aliceT, workspaceId } = await setup();
+  const { id: roomId } = await aliceT.mutation(api.rooms.createRoom, {
+    workspaceId,
+    name: "Design",
+  });
+  const huge = "data:image/png;base64," + "A".repeat(910 * 1024);
+  await expect(
+    aliceT.mutation(api.rooms.updateRoomThumbnail, { roomId, thumbnailData: huge })
+  ).rejects.toThrow("too large");
 });

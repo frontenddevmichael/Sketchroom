@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { auth } from "./lib";
+import { auth, MAX_CANVAS_BYTES } from "./lib";
 import { rateLimiter } from "./rateLimiter";
 
 // Canvas state is persisted as a canonical map { [recordId]: TLRecord } of
@@ -110,9 +110,16 @@ export const applyCanvasChanges = mutation({
       delete canonical[id];
     }
 
+    const newCanvasData = JSON.stringify(canonical);
+    if (newCanvasData.length > MAX_CANVAS_BYTES) {
+      throw new Error(
+        "This room's canvas is at its size limit — remove a few blocks and try again."
+      );
+    }
+
     const newVersion = room.canvasVersion + 1;
     await ctx.db.patch(args.roomId, {
-      canvasData: JSON.stringify(canonical),
+      canvasData: newCanvasData,
       canvasVersion: newVersion,
       updatedAt: Date.now(),
       lastEditedBy: { id: identity.subject, name: member.name || identity.email || "Unknown" },

@@ -1,6 +1,6 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-import { auth } from "./lib";
+import { auth, MAX_THUMBNAIL_CHARS } from "./lib";
 import { internal } from "./_generated/api";
 import { countRoomMemberships, FREE_PLAN, planLimitError } from "./usage";
 
@@ -194,8 +194,12 @@ export const updateRoomThumbnail = mutation({
     if (!member || (member.role !== "owner" && member.role !== "editor")) {
       throw new Error("Insufficient permissions");
     }
+    const thumbnail = args.thumbnailData ?? "";
+    if (thumbnail.length > MAX_THUMBNAIL_CHARS) {
+      throw new Error("That thumbnail is too large to store.");
+    }
     await ctx.db.patch(args.roomId, {
-      thumbnailData: args.thumbnailData ?? "",
+      thumbnailData: thumbnail,
       updatedAt: Date.now(),
       lastEditedBy: { id: identity.subject, name: member.name || identity.email || "Unknown" },
     });

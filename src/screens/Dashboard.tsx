@@ -16,6 +16,8 @@ import {
   CreditCard,
   FilePlus2,
   X,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { useTheme } from '../lib/useTheme';
 import { TEMPLATES, buildTemplateSeed } from '../lib/templates';
@@ -30,6 +32,7 @@ import { Spinner } from '../components/Spinner';
 import { ErrorIllo } from '../components/illustrations';
 import { useModalFocus } from '../lib/useModalFocus';
 import { usePageTitle } from '../lib/usePageTitle';
+import { FREE_ROOM_LIMIT, FREE_AI_LIMIT } from '../lib/plans';
 import '../components/shared.css';
 import '../components/skeletons.css';
 import './Dashboard.css';
@@ -56,6 +59,8 @@ export function Dashboard() {
   const [creatingTemplate, setCreatingTemplate] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<Id<'rooms'> | null>(null);
   const [dismissedLimitNote, setDismissedLimitNote] = useState(false);
+  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState('');
   // Never a dead end: if the workspace query can't resolve within a
   // reasonable window, surface a calm error with a retry instead of an
   // infinite skeleton.
@@ -128,6 +133,36 @@ export function Dashboard() {
     return () => document.removeEventListener('pointerdown', onDown);
   }, [kebabFor]);
 
+  // Same for the workspace switcher: clicking outside closes it.
+  useEffect(() => {
+    if (!workspaceMenuOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if ((e.target as HTMLElement | null)?.closest?.('.sidebar-workspace-switch')) return;
+      setWorkspaceMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setWorkspaceMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [workspaceMenuOpen]);
+
+  const handleCreateWorkspace = async () => {
+    const name = newWorkspaceName.trim() || 'Untitled workspace';
+    try {
+      const w = await createWorkspace({ name });
+      setNewWorkspaceName('');
+      setWorkspaceId(w.id as Id<'workspaces'>);
+      setWorkspaceMenuOpen(false);
+    } catch {
+      // Keep the menu open and the input intact so the user can retry.
+    }
+  };
+
   if (!workspaces) return <DashboardLoadingShell failed={loadFailed} />;
 
   // The workspace query resolved but auto-creation failed: every create path
@@ -168,8 +203,6 @@ export function Dashboard() {
 
   // Free-plan cap awareness: once the room limit is reached, surface a quiet,
   // dismissible nudge toward Billing instead of letting the cap fail silently.
-  const FREE_ROOM_LIMIT = 3;
-  const FREE_AI_LIMIT = 40;
   const atRoomLimit = !!usage && usage.rooms >= FREE_ROOM_LIMIT;
   const showLimitNote = atRoomLimit && !dismissedLimitNote;
   const roomPct = Math.min(100, ((usage?.rooms ?? 0) / FREE_ROOM_LIMIT) * 100);
@@ -228,14 +261,71 @@ export function Dashboard() {
     <div className="dashboard">
       <aside className="sidebar">
         <div className="sidebar-top">
-          <div className="sidebar-workspace" title={workspaceName}>
-            <span className="sidebar-workspace-avatar" aria-hidden="true">
-              {workspaceName.charAt(0).toUpperCase()}
-            </span>
-            <span className="sidebar-workspace-meta">
-              <span className="sidebar-workspace-name">{workspaceName}</span>
-              <span className="sidebar-workspace-plan">Free plan</span>
-            </span>
+          <div className="sidebar-workspace-switch">
+            <button
+              className="sidebar-workspace"
+              title={workspaceName}
+              aria-haspopup="menu"
+              aria-expanded={workspaceMenuOpen}
+              onClick={() => setWorkspaceMenuOpen((o) => !o)}
+            >
+              <span className="sidebar-workspace-avatar" aria-hidden="true">
+                {workspaceName.charAt(0).toUpperCase()}
+              </span>
+              <span className="sidebar-workspace-meta">
+                <span className="sidebar-workspace-name">{workspaceName}</span>
+                <span className="sidebar-workspace-plan">Free plan</span>
+              </span>
+              <ChevronDown
+                size={14}
+                className={`sidebar-workspace-caret${workspaceMenuOpen ? ' open' : ''}`}
+                aria-hidden="true"
+              />
+            </button>
+
+            {workspaceMenuOpen && (
+              <div className="sidebar-workspace-menu glass" role="menu" aria-label="Switch workspace">
+                <p className="sidebar-workspace-menu-label">Workspaces</p>
+                {workspaces.map((w) => (
+                  <button
+                    key={w._id}
+                    role="menuitem"
+                    className={`sidebar-workspace-menu-item${w._id === activeWorkspaceId ? ' active' : ''}`}
+                    onClick={() => {
+                      setWorkspaceId(w._id);
+                      setWorkspaceMenuOpen(false);
+                    }}
+                  >
+                    <span className="sidebar-workspace-menu-avatar" aria-hidden="true">
+                      {w.name.charAt(0).toUpperCase()}
+                    </span>
+                    <span className="sidebar-workspace-menu-name">{w.name}</span>
+                    {w._id === activeWorkspaceId && <Check size={14} className="sidebar-workspace-menu-check" aria-hidden="true" />}
+                  </button>
+                ))}
+                <div className="sidebar-workspace-menu-sep" aria-hidden="true" />
+                <div className="sidebar-workspace-create">
+                  <input
+                    className="input sidebar-workspace-create-input"
+                    placeholder="New workspace name"
+                    value={newWorkspaceName}
+                    onChange={(e) => setNewWorkspaceName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') void handleCreateWorkspace();
+                    }}
+                    aria-label="New workspace name"
+                  />
+                  <button
+                    className="sidebar-workspace-create-btn"
+                    title="Create workspace"
+                    aria-label="Create workspace"
+                    onClick={() => void handleCreateWorkspace()}
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <button
             className="sidebar-new-room"
@@ -304,7 +394,7 @@ export function Dashboard() {
         {showLimitNote && (
           <div className="limit-note" role="note">
             <span className="limit-note-text">
-              You've used all {FREE_ROOM_LIMIT} rooms on the free plan — rooms stay open, but new ones need the Team plan.
+              You've used all {FREE_ROOM_LIMIT} rooms on the free plan — rooms stay open. The Team plan will lift this cap when it ships.
             </span>
             <button className="limit-note-link" onClick={() => navigate('/billing')}>
               See plans
@@ -329,7 +419,7 @@ export function Dashboard() {
                 <span style={{ width: `${roomPct}%` }} />
               </div>
               <button className="stat-link" onClick={() => navigate('/billing')}>
-                {atRoomLimit ? 'Unlock unlimited rooms' : 'View plans'} →
+                {atRoomLimit ? 'Team plan coming' : 'View plans'} →
               </button>
             </div>
             <div className="stat-tile">
@@ -344,7 +434,7 @@ export function Dashboard() {
               <span className="stat-value">Free</span>
               <span className="stat-label">Current plan</span>
               <button className="stat-link" onClick={() => navigate('/billing')}>
-                Upgrade to Team →
+                Team — coming soon →
               </button>
             </div>
           </section>

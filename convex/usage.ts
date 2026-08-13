@@ -68,15 +68,15 @@ export function planLimitError(kind: "rooms" | "collaborators" | "ai", limit: nu
   switch (kind) {
     case "rooms":
       return new Error(
-        `You've used all ${limit} rooms on the free plan. Rooms stay open — new ones need the Team plan (see Billing).`
+        `You've used all ${limit} rooms on the free plan. Rooms stay open — the Team plan (see Billing) will lift this cap when it ships.`
       );
     case "collaborators":
       return new Error(
-        `This room already has the free plan's ${limit} collaborators. Remove a member or upgrade in Billing to add more.`
+        `This room already has the free plan's ${limit} collaborators. Remove a member, or the Team plan will lift this cap when it ships.`
       );
     case "ai":
       return new Error(
-        `You've used all ${limit} AI suggestions this month on the free plan. They reset next month — or upgrade in Billing for unlimited.`
+        `You've used all ${limit} AI suggestions this month on the free plan. They reset next month — or the Team plan will make them unlimited when it ships.`
       );
   }
 }
