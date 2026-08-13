@@ -21,6 +21,10 @@ const random: RandomReader = {
 
 const ALPHABET = "0123456789";
 const CODE_LENGTH = 8;
+// The code TTL Convex Auth actually enforces (the Resend provider defaults to
+// 24h). The emails say "expires in 10 minutes" — this keeps the copy honest
+// and the window tight. Seconds, per Auth.js provider.maxAge.
+const CODE_TTL_SECONDS = 10 * 60;
 
 const FROM = process.env.AUTH_EMAIL_FROM ?? "Sketchroom <onboarding@resend.dev>";
 
@@ -79,17 +83,24 @@ function otpConfig(kind: EmailKind) {
   };
 }
 
+// The @auth/core Resend provider hardcodes a 24h maxAge and ignores config,
+// so the enforced code TTL must be overridden on the returned provider object
+// to match the "expires in 10 minutes" copy in the emails.
+function withCodeTtl<T extends object>(provider: T): T {
+  return { ...provider, maxAge: CODE_TTL_SECONDS };
+}
+
 /** Email verification (sign-up / sign-in). */
-export const ResendOTP = Resend({
+export const ResendOTP = withCodeTtl(Resend({
   id: "resend-otp",
   ...otpConfig("verify"),
-});
+}));
 
 /** Password reset (code delivery). */
-export const ResendOTPPasswordReset = Resend({
+export const ResendOTPPasswordReset = withCodeTtl(Resend({
   id: "resend-otp-reset",
   ...otpConfig("reset"),
-});
+}));
 
 // ── Room-invite emails ────────────────────────────────────────────────────
 

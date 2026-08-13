@@ -58,6 +58,9 @@ export function Dashboard() {
   const [kebabFor, setKebabFor] = useState<Id<'rooms'> | null>(null);
   const [creatingTemplate, setCreatingTemplate] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<Id<'rooms'> | null>(null);
+  // A failed create (plan cap, network) must surface in the modal instead of
+  // dying as an unhandled rejection that leaves the screen silently stuck.
+  const [createError, setCreateError] = useState<string | null>(null);
   const [dismissedLimitNote, setDismissedLimitNote] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
@@ -211,15 +214,23 @@ export function Dashboard() {
   const handleCreateRoom = async () => {
     if (!activeWorkspaceId) return;
     const name = roomName.trim() || 'Untitled room';
-    const room = await createRoom({ workspaceId: activeWorkspaceId, name });
-    setRoomName('');
-    setModal(null);
-    navigate(`/room/${room.id}`);
+    setCreateError(null);
+    try {
+      const room = await createRoom({ workspaceId: activeWorkspaceId, name });
+      setRoomName('');
+      setModal(null);
+      navigate(`/room/${room.id}`);
+    } catch (err) {
+      setCreateError(
+        err instanceof Error ? err.message : 'Couldn\'t create the room — try again.'
+      );
+    }
   };
 
   const handleTemplate = async (templateId: string, templateName: string) => {
     if (!activeWorkspaceId) return;
     setCreatingTemplate(templateId);
+    setCreateError(null);
     try {
       const room = await createRoom({
         workspaceId: activeWorkspaceId,
@@ -227,6 +238,10 @@ export function Dashboard() {
         seed: buildTemplateSeed(templateId),
       });
       navigate(`/room/${room.id}`);
+    } catch (err) {
+      setCreateError(
+        err instanceof Error ? err.message : 'Couldn\'t create the room — try again.'
+      );
     } finally {
       setCreatingTemplate(null);
     }
@@ -329,7 +344,7 @@ export function Dashboard() {
           </div>
           <button
             className="sidebar-new-room"
-            onClick={() => { setRoomName(''); setModal({ kind: 'create' }); }}
+            onClick={() => { setRoomName(''); setCreateError(null); setModal({ kind: 'create' }); }}
           >
             <Plus size={16} />
             New room
@@ -384,7 +399,7 @@ export function Dashboard() {
             <div className="dashboard-header-avatar">
               <UserMenu />
             </div>
-            <button className="btn btn-primary" onClick={() => { setRoomName(''); setModal({ kind: 'create' }); }}>
+            <button className="btn btn-primary" onClick={() => { setRoomName(''); setCreateError(null); setModal({ kind: 'create' }); }}>
               <Plus size={16} />
               New room
             </button>
@@ -445,8 +460,13 @@ export function Dashboard() {
             <h2 className="section-title">Start from a template</h2>
             <p className="section-hint">Pre-sketched canvases you can make your own.</p>
           </div>
+          {createError && !modal && (
+            <p className="new-room-error templates-error" role="alert">
+              {createError}
+            </p>
+          )}
           <div className="templates-grid">
-            <button className="template-card template-card-blank" onClick={() => { setRoomName(''); setModal({ kind: 'create' }); }}>
+            <button className="template-card template-card-blank" onClick={() => { setRoomName(''); setCreateError(null); setModal({ kind: 'create' }); }}>
               <span className="template-preview">
                 <FilePlus2 size={26} />
               </span>
@@ -528,7 +548,7 @@ export function Dashboard() {
                   : 'Create your first room, or start from a template above — the canvas is yours.'}
               </p>
               {!query && (
-                <button className="btn btn-primary" onClick={() => { setRoomName(''); setModal({ kind: 'create' }); }}>
+                <button className="btn btn-primary" onClick={() => { setRoomName(''); setCreateError(null); setModal({ kind: 'create' }); }}>
                   <Plus size={16} />
                   New room
                 </button>
@@ -691,7 +711,10 @@ export function Dashboard() {
               className="input"
               placeholder="e.g. Payment flow architecture"
               value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
+              onChange={(e) => {
+                setRoomName(e.target.value);
+                setCreateError(null);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   if (modal.kind === 'rename') void handleRename();
@@ -699,7 +722,13 @@ export function Dashboard() {
                 }
                 if (e.key === 'Escape') setModal(null);
               }}
+              aria-invalid={createError ? true : undefined}
             />
+            {createError && (
+              <p className="new-room-error" role="alert">
+                {createError}
+              </p>
+            )}
             <div className="new-room-actions">
               <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancel</button>
               <button

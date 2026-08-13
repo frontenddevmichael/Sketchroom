@@ -407,7 +407,11 @@ export function RoomScreen() {
   const flushRef = useRef<() => Promise<void>>(async () => undefined);
   const flush = useCallback(async () => {
     if (!roomIdArg) return;
-    if (room?.userRole === 'viewer') return;
+    // The viewer check alone is not enough: `room` is null once the user is
+    // no longer a member, so `room?.userRole` is `undefined` (not "viewer")
+    // and the guard would pass, sending writes that the server rejects with
+    // "Not a member" forever. A missing room means no write permission.
+    if (!room || room.userRole === 'viewer') return;
     const diff = pendingDiff.current;
     if (Object.keys(diff.put).length === 0 && diff.remove.size === 0) return;
     const sent = {
@@ -437,7 +441,7 @@ export function RoomScreen() {
       setIsConnected(false);
       setSaveStatus('offline');
     }
-  }, [roomIdArg, room?.userRole, applyCanvasChanges]);
+  }, [roomIdArg, room, applyCanvasChanges]);
   useEffect(() => {
     flushRef.current = flush;
   }, [flush]);
@@ -449,7 +453,7 @@ export function RoomScreen() {
     if (!roomIdArg) return;
     const unlisten = store.listen(
       (entry) => {
-        if (room?.userRole === 'viewer') return;
+        if (!room || room.userRole === 'viewer') return;
         // First local edit: seed the room's structural baseline (document +
         // page records) into the push so the canonical state carries the page
         // structure for anyone who joins later.
@@ -485,7 +489,7 @@ export function RoomScreen() {
       unlisten();
       if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
     };
-  }, [store, roomIdArg, room?.userRole, flush]);
+  }, [store, roomIdArg, room, flush]);
 
   // Retry pending changes when the network comes back.
   useEffect(() => {
@@ -559,7 +563,7 @@ export function RoomScreen() {
   useEffect(() => {
     if (!roomIdArg) return;
     const tick = async () => {
-      if (room?.userRole === 'viewer') return;
+      if (!room || room.userRole === 'viewer') return;
       if (snapInFlight.current || !dirtySinceSnapshot.current) return;
       const editor = editorRef.current;
       if (!editor) return;
@@ -590,7 +594,7 @@ export function RoomScreen() {
       window.clearInterval(interval);
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
-  }, [roomIdArg, saveSnapshot, store, room?.userRole, captureThumbnail, flush]);
+  }, [roomIdArg, saveSnapshot, store, room, captureThumbnail, flush]);
 
   // Presence: ship cursor + camera + selection on pointer move and on an
   // interval, and periodically sweep stale cursors left by closed tabs.
@@ -868,7 +872,10 @@ export function RoomScreen() {
       if (isMod) {
         if (e.key.toLowerCase() === 's') {
           e.preventDefault();
-          if (isReadOnly) return;
+          // Guard on room presence too: once the user is no longer a member,
+          // `room` is null and `isReadOnly` is false, so this would otherwise
+          // keep saving into a room the server rejects.
+          if (!room || isReadOnly) return;
           const editor = editorRef.current;
           if (editor && roomIdArg) {
             try {
@@ -929,7 +936,7 @@ export function RoomScreen() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [saveSnapshot, roomIdArg, store, setTool, isReadOnly, captureThumbnail, flush, closeAiFeed, openAi, dismissWalkthrough]);
+  }, [saveSnapshot, roomIdArg, store, setTool, room, isReadOnly, captureThumbnail, flush, closeAiFeed, openAi, dismissWalkthrough]);
 
   // Focus mode is only meaningful while something is selected: the dim hides
   // the moment the selection empties (derived, not an effect), and quietly
@@ -1217,6 +1224,7 @@ export function RoomScreen() {
             )}
             <Tldraw
               store={store}
+              licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
               components={{
                 Toolbar: null,
                 ZoomMenu: null,

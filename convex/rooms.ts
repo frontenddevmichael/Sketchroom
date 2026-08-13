@@ -2,7 +2,7 @@ import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { auth, MAX_THUMBNAIL_CHARS } from "./lib";
 import { internal } from "./_generated/api";
-import { countRoomMemberships, FREE_PLAN, planLimitError } from "./usage";
+import { countRoomMemberships, countAiSuggestions, FREE_PLAN, planLimitError } from "./usage";
 
 export const getWorkspaces = query({
   args: {},
@@ -21,25 +21,11 @@ export const getUsage = query({
   handler: async (ctx) => {
     const identity = await auth.getIdentity(ctx);
     if (!identity) return { rooms: 0, aiMessages: 0, aiSuggestions: 0 };
-    const membership = await ctx.db
-      .query("roomMembers")
-      .withIndex("by_user", (q) => q.eq("userId", identity.subject))
-      .collect();
-    const roomIds = membership.map((m) => m.roomId);
-    let aiSuggestions = 0;
-    for (const roomId of roomIds) {
-      const rows = await ctx.db
-        .query("aiMessages")
-        .withIndex("by_room", (q) => q.eq("roomId", roomId))
-        .filter((q) => q.eq(q.field("status"), "completed"))
-        .take(1000);
-      aiSuggestions += rows.length;
-    }
-    return {
-      rooms: roomIds.length,
-      aiMessages: aiSuggestions,
-      aiSuggestions,
-    };
+    // AI is a monthly meter ("this month" on both the dashboard and billing
+    // meters) — the rooms count is a hard cap and is intentionally all-time.
+    const rooms = await countRoomMemberships(ctx, identity.subject);
+    const aiSuggestions = await countAiSuggestions(ctx, identity.subject);
+    return { rooms, aiMessages: aiSuggestions, aiSuggestions };
   },
 });
 

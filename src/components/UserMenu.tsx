@@ -95,7 +95,12 @@ export function UserMenu({ placement = 'down', size = 'sm', align = 'right' }: U
 
   const handleSignOut = () => {
     setOpen(false);
-    void signOutAction().then(() => navigate('/'));
+    // Never an unhandled rejection: on failure just stay signed in (the menu
+    // is already closed) rather than swallowing the error silently.
+    void signOutAction().then(
+      () => navigate('/'),
+      () => {}
+    );
   };
 
   const initial = user?.name?.trim()?.charAt(0)?.toUpperCase() || '?';

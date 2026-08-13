@@ -37,6 +37,7 @@ export function SettingsScreen() {
   const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const [savedDisplayName, setSavedDisplayName] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
 
   const workspaces = useQuery(api.rooms.getWorkspaces);
   const usage = useQuery(api.rooms.getUsage);
@@ -100,7 +101,11 @@ export function SettingsScreen() {
   };
 
   const handleSignOut = () => {
-    void signOut().then(() => navigate('/'));
+    signOut()
+      .then(() => navigate('/'))
+      // A failed sign-out must not be an unhandled rejection: keep the user
+      // in the app with a clear message instead of a silent no-op.
+      .catch(() => setSignOutError('Could not sign out — check your connection and try again.'));
   };
 
   return (
@@ -267,6 +272,9 @@ export function SettingsScreen() {
                 <LogOut size={16} />
                 Sign out
               </button>
+              {signOutError && (
+                <p className="settings-error" role="alert">{signOutError}</p>
+              )}
             </div>
           </>
         )}

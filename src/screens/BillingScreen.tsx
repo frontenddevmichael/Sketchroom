@@ -100,7 +100,7 @@ export function BillingScreen() {
               Nothing is locked — every room and sketch stays open. The Team plan will lift these limits when it ships.
             </p>
           </div>
-          <a className="btn btn-primary limit-reached-cta" href="/#faq" aria-label="See the Team plan FAQ">
+          <a className="btn btn-primary limit-reached-cta" href="#faq" aria-label="See the Team plan FAQ">
             Team plan FAQ
           </a>
         </div>
@@ -195,7 +195,7 @@ export function BillingScreen() {
         </table>
       </section>
 
-      <section className="billing-faq" aria-label="Frequently asked questions">
+      <section className="billing-faq" id="faq" aria-label="Frequently asked questions">
         <h2 className="billing-section-title">Billing questions</h2>
         <div className="billing-faq-list">
           {FAQS.map((faq, i) => {
@@ -215,7 +215,7 @@ export function BillingScreen() {
             );
           })}
         </div>
-        <a className="billing-upgrade-link" href="/#faq">
+        <a className="billing-upgrade-link" href="#faq">
           Team plan FAQ
           <ArrowRight size={14} />
         </a>
