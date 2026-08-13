@@ -1,86 +1,132 @@
-.landing-nav {
+/* Shell: fixed positioning, gives the pill room to float with margin on
+   every side instead of spanning edge-to-edge. */
+.landing-nav-shell {
   position: fixed;
-  top: 0;
+  top: var(--space-4);
   left: 0;
   right: 0;
   z-index: 900;
-  transition: background var(--duration-base) var(--ease-spring),
-    box-shadow var(--duration-base) var(--ease-spring),
-    border-color var(--duration-base) var(--ease-spring);
-  border-bottom: 1px solid transparent;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-4);
+  pointer-events: none;
 }
 
-.landing-nav-scrolled {
+.landing-nav-shell > * {
+  pointer-events: auto;
+}
+
+/* The pill itself. Detached, rounded, translucent by default — gains more
+   blur/shadow/contrast once scrolled, rather than appearing from nothing. */
+.landing-nav-pill {
+  position: relative;
+  width: 100%;
+  max-width: 920px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: 10px var(--space-3) 10px var(--space-4);
+  border-radius: var(--radius-full);
   background: var(--surface-translucency-light);
+  backdrop-filter: blur(calc(var(--surface-blur) * 0.6));
+  -webkit-backdrop-filter: blur(calc(var(--surface-blur) * 0.6));
+  border: 1px solid var(--neutral-100);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: max-width var(--duration-base) var(--ease-spring),
+    padding var(--duration-base) var(--ease-spring),
+    background var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-base) var(--ease-spring),
+    border-color var(--duration-base) var(--ease-spring),
+    backdrop-filter var(--duration-base) var(--ease-spring);
+}
+
+[data-theme='dark'] .landing-nav-pill {
+  background: var(--surface-translucency-dark);
+  border-color: var(--dark-hairline);
+}
+
+/* Docked state: narrower, denser, more contrast — the pill "settles" once
+   there's content behind it to separate from. */
+.landing-nav-pill.is-docked {
+  max-width: 780px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  background: var(--color-bg-surface);
   backdrop-filter: blur(var(--surface-blur));
   -webkit-backdrop-filter: blur(var(--surface-blur));
-  border-bottom-color: var(--neutral-100);
+  border-color: var(--neutral-150);
   box-shadow: var(--shadow-card-rest);
 }
 
-[data-theme='dark'] .landing-nav-scrolled {
-  background: var(--surface-translucency-dark);
-  border-bottom-color: var(--dark-hairline);
-}
-
-.landing-nav-inner {
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: var(--space-4) var(--space-6);
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-  transition: padding var(--duration-base) var(--ease-spring);
-}
-
-/* Apple-style compaction: once the page is scrolled the bar tightens — the
-   glass backdrop appears and the chrome gets denser, so the nav recedes and
-   the content owns the screen. */
-.landing-nav-scrolled .landing-nav-inner {
-  padding-top: var(--space-2);
-  padding-bottom: var(--space-2);
+[data-theme='dark'] .landing-nav-pill.is-docked {
+  border-color: var(--dark-hairline);
 }
 
 .landing-logo {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+/* A quiet idle breathe on the mark — the one bit of "always alive" motion in
+   an otherwise still nav. Pauses on hover so it doesn't fight the click
+   affordance. */
+.landing-logo-mark {
+  animation: landing-logo-breathe 4.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.landing-logo:hover .landing-logo-mark {
+  animation-play-state: paused;
+}
+
+@keyframes landing-logo-breathe {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.08) rotate(6deg); }
 }
 
 .landing-nav-links {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-6);
-  margin-left: var(--space-4);
+  gap: var(--space-1);
 }
 
-/* The scroll-spy indicator: one green bar that glides between links with the
-   product's spring easing, instead of each link re-drawing its own underline
-   from the left. The nav reads as a live map of the page. */
-.landing-nav-indicator {
+/* Sliding capsule instead of an underline — sits behind the active label,
+   filled with the same neutral used for selected UI elsewhere in the app. */
+.landing-nav-highlight {
   position: absolute;
-  bottom: -6px;
-  left: 0;
-  height: 2px;
+  top: 50%;
+  height: 30px;
+  transform: translateY(-50%);
   border-radius: var(--radius-full);
-  background: var(--green-500);
+  background: var(--color-selected-bg);
   pointer-events: none;
   transition: left calc(var(--duration-base) * 1.2) var(--ease-spring),
     width calc(var(--duration-base) * 1.2) var(--ease-spring);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-nav-indicator {
+  .landing-nav-highlight,
+  .landing-logo-mark {
     transition: none;
+    animation: none;
   }
 }
 
 .landing-nav-link {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
   font-size: 14px;
   font-weight: 500;
   color: var(--color-text-secondary);
@@ -91,13 +137,27 @@
   color: var(--color-text-primary);
 }
 
-/* Scroll-spy: the current section's link sits at full emphasis; the green
-   bar beneath it is the gliding indicator above. */
 .landing-nav-link.active {
   color: var(--color-text-primary);
 }
 
-/* Keyboard focus: a visible ring so tabbing through the nav never guesses. */
+/* Same "live" green dot used in the positioning copilot chip and the feature
+   eyebrow — here it marks the section currently in view, tying the nav into
+   that same visual vocabulary instead of inventing a new one. */
+.landing-nav-live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green-500);
+  animation: landing-nav-pulse 2.2s ease-out infinite;
+}
+
+@keyframes landing-nav-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45); }
+  70% { box-shadow: 0 0 0 5px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
 .landing-nav-link:focus-visible,
 .landing-nav-menu-btn:focus-visible,
 .landing-nav-theme:focus-visible {
@@ -107,8 +167,7 @@
 }
 
 .landing-nav-link.landing-nav-signin {
-  padding: 8px 14px;
-  border-radius: var(--radius-full);
+  padding: 7px 14px;
 }
 
 .landing-nav-link.landing-nav-signin:hover {
@@ -116,30 +175,40 @@
   color: var(--color-text-primary);
 }
 
+.landing-nav-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--neutral-150);
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .landing-nav-divider {
+  background: var(--dark-hairline);
+}
+
 .landing-nav-cta {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 .landing-nav-cta-btn {
-  font-size: 14px;
-  padding: 9px 20px;
+  font-size: 13px;
+  padding: 8px 18px;
   border-radius: var(--radius-full);
 }
 
-/* Hamburger + mobile dropdown menu. Hidden on desktop; the header's route
-   CTAs stay visible even on the smallest screens. */
 .landing-nav-menu-btn {
   display: none;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
   align-items: center;
   justify-content: center;
   color: var(--color-text-primary);
-  margin-left: var(--space-1);
+  flex-shrink: 0;
   transition: background var(--duration-fast) var(--ease-spring);
 }
 
@@ -147,11 +216,13 @@
   background: var(--color-selected-bg);
 }
 
+/* Mobile menu: still a detached floating card, matching the pill above it
+   rather than a full-width sheet glued to the viewport edges. */
 .landing-nav-menu {
   position: absolute;
   top: calc(100% + 8px);
-  left: var(--space-4);
-  right: var(--space-4);
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   padding: var(--space-3);
@@ -171,8 +242,6 @@
   background: var(--color-selected-bg);
 }
 
-/* The current section is marked in the mobile menu too — the menu mirrors
-   the desktop scroll-spy instead of ignoring it. */
 .landing-nav-menu-link.active {
   color: var(--green-600);
   background: var(--color-selected-bg);
@@ -188,7 +257,7 @@
   margin: var(--space-2) 0;
 }
 
-[data-theme="dark"] .landing-nav-menu-divider {
+[data-theme='dark'] .landing-nav-menu-divider {
   background: var(--dark-hairline);
 }
 
@@ -214,41 +283,9 @@
   background: var(--color-selected-bg);
 }
 
-@media (max-width: 680px) {
-  .landing-nav-links {
-    display: none;
-  }
-
-  .landing-nav-menu-btn {
-    display: inline-flex;
-  }
-
-  .landing-nav-inner {
-    padding: var(--space-3) var(--space-4);
-    gap: var(--space-3);
-  }
-
-  .landing-nav-scrolled .landing-nav-inner {
-    padding-top: var(--space-2);
-    padding-bottom: var(--space-2);
-  }
-
-  .landing-logo-name {
-    font-size: 15px;
-  }
-
-  .landing-nav-cta-btn {
-    padding: 8px 16px;
-  }
-
-  .landing-nav-signin {
-    display: none;
-  }
-}
-/* Theme toggle — the marketing site demonstrates the product's theming live. */
 .landing-nav-theme {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-full);
   display: inline-flex;
   align-items: center;
@@ -279,4 +316,34 @@
 .landing-nav-menu-theme:hover {
   color: var(--color-text-primary);
   background: var(--color-selected-bg);
+}
+
+@media (max-width: 680px) {
+  .landing-nav-shell {
+    top: var(--space-3);
+    padding: 0 var(--space-3);
+  }
+
+  .landing-nav-pill {
+    max-width: 100%;
+    padding: 8px var(--space-2) 8px var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .landing-nav-links,
+  .landing-nav-divider {
+    display: none;
+  }
+
+  .landing-nav-menu-btn {
+    display: inline-flex;
+  }
+
+  .landing-logo-name {
+    font-size: 14px;
+  }
+
+  .landing-nav-signin {
+    display: none;
+  }
 }

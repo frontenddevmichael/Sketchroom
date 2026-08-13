@@ -37,10 +37,11 @@
 }
 
 .positioning-card {
+  position: relative;
   padding: var(--space-8);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--neutral-100);
   background: var(--color-bg-surface);
+  transform: rotate(var(--tilt, 0deg));
   transition: border-color var(--duration-base) var(--ease-spring),
     transform var(--duration-base) var(--ease-spring),
     box-shadow var(--duration-base) var(--ease-spring);
@@ -48,8 +49,49 @@
 
 .positioning-card:hover {
   border-color: var(--neutral-400);
-  transform: translateY(-2px);
+  transform: rotate(0deg) translateY(-3px);
   box-shadow: var(--shadow-card-hover);
+}
+
+/* Icon draws itself in on hover — same stroke-dashoffset trick as the
+   section scribble, so the card feels like it's being sketched, not
+   just decorated. */
+.positioning-card-icon {
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin-bottom: var(--space-4);
+  color: var(--neutral-400);
+  transition: color var(--duration-base) var(--ease-spring);
+}
+
+.positioning-card-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.positioning-card-icon svg path,
+.positioning-card-icon svg rect {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  transition: stroke-dashoffset 0.6s var(--ease-spring);
+}
+
+.positioning-card:hover .positioning-card-icon {
+  color: var(--color-text-primary);
+}
+
+.positioning-card:hover .positioning-card-icon svg path,
+.positioning-card:hover .positioning-card-icon svg rect {
+  stroke-dashoffset: 0;
+}
+
+/* stagger the two-stroke icons slightly so they don't snap in unison */
+.positioning-card-icon svg > :nth-child(2) {
+  transition-delay: 0.08s;
+}
+.positioning-card-icon svg > :nth-child(3) {
+  transition-delay: 0.16s;
 }
 
 .positioning-card-title {
@@ -80,8 +122,6 @@
   text-wrap: balance;
 }
 
-/* Emphasis stays within the neutral scale — green is reserved for CTAs and AI
-   presence, never text on the canvas background. */
 .positioning-claim-accent {
   color: var(--color-text-primary);
   text-decoration: underline;
@@ -90,11 +130,49 @@
   text-decoration-thickness: 1.5px;
 }
 
+/* The one green moment in this section: a small "still connected" chip
+   that drifts in after the claim settles, reinforcing that the copilot
+   is a live presence, not a feature bullet. */
+.positioning-copilot-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: fit-content;
+  margin: var(--space-5) auto 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-200);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  letter-spacing: -0.01em;
+}
+
+.positioning-copilot-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green-500);
+  box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5);
+  animation: positioning-pulse 2.2s ease-out infinite;
+}
+
+@keyframes positioning-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45); }
+  70% { box-shadow: 0 0 0 6px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
 @media (max-width: 860px) {
   .positioning-cards {
     grid-template-columns: 1fr;
     max-width: 480px;
     margin: 0 auto;
+  }
+
+  .positioning-card {
+    transform: rotate(0deg);
   }
 
   .positioning-head {
@@ -106,7 +184,7 @@
     padding: 0 var(--space-4);
   }
 }
-/* The scribble draws itself in on scroll — the site's sketch-in moment. */
+
 .positioning-scribble path {
   stroke-dasharray: 400;
   stroke-dashoffset: 400;
@@ -117,7 +195,6 @@
   stroke-dashoffset: 0;
 }
 
-/* The green sparkle lands after the line completes, as a small accent. */
 .positioning-scribble .positioning-spark {
   opacity: 0;
   stroke-dashoffset: 400;
@@ -131,13 +208,20 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .positioning-scribble path {
+  .positioning-scribble path,
+  .positioning-card-icon svg path,
+  .positioning-card-icon svg rect,
+  .positioning-copilot-dot {
     transition: none;
+    animation: none;
     stroke-dashoffset: 0;
   }
   .positioning-scribble .positioning-spark {
     transition: none;
     opacity: 1;
     stroke-dashoffset: 0;
+  }
+  .positioning-card {
+    transform: none !important;
   }
 }

@@ -47,7 +47,7 @@ export function Faq() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="landing-section faq" id="faq">
+    <section className="landing-section-faq" id="faq">
       <Reveal>
         <div className="landing-section-head faq-head">
           <span className="landing-eyebrow">Before you ask</span>
@@ -58,22 +58,26 @@ export function Faq() {
       <div className="faq-list">
         {FAQS.map((item, i) => {
           const isOpen = open === i;
+          const questionId = `faq-question-${i}`;
+          const answerId = `faq-answer-${i}`;
           return (
             <Reveal key={item.q} delay={Math.min(i * 0.05, 0.2)}>
               <div className={`faq-item ${isOpen ? 'open' : ''}`}>
                 <button
+                  id={questionId}
                   className="faq-question"
                   onClick={() => setOpen(isOpen ? null : i)}
                   aria-expanded={isOpen}
-                  aria-controls={`faq-answer-${i}`}
+                  aria-controls={answerId}
                 >
                   <span>{item.q}</span>
                   <span className="faq-icon" aria-hidden="true" />
                 </button>
                 <div
-                  id={`faq-answer-${i}`}
+                  id={answerId}
                   className="faq-answer"
                   role="region"
+                  aria-labelledby={questionId}
                   style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
                 >
                   <div className="faq-answer-inner">

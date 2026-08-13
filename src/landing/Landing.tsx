@@ -6,7 +6,7 @@ import { Nav } from './sections/Nav';
 import { Hero } from './sections/Hero';
 import { Positioning } from './sections/Positioning';
 import { FeatureShowcase } from './sections/FeatureShowcase';
-import { Pricing } from './sections/Pricing';
+
 import { Faq } from './sections/Faq';
 import { Trust } from './sections/Trust';
 import { FinalCta } from './sections/FinalCta';
@@ -40,7 +40,6 @@ export function Landing() {
               <Walkthrough />
             </Suspense>
           </LazyMount>
-          <Pricing />
           <Faq />
           <Trust />
           <FinalCta />

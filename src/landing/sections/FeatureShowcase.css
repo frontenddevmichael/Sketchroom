@@ -32,11 +32,11 @@
 .fs-scene-wrap {
   position: relative;
   height: 210px;
-  border-bottom: 1px solid var(--neutral-100);
   background:
     radial-gradient(var(--neutral-100) 1px, transparent 1px) 0 0 / 22px 22px,
     var(--color-bg-surface);
   overflow: hidden;
+  transition: background-position var(--duration-base) var(--ease-spring);
 }
 
 [data-theme='dark'] .fs-scene-wrap {
@@ -45,15 +45,55 @@
     var(--color-bg-surface);
 }
 
+/* The scene "leans in" almost imperceptibly on hover — the dot grid drifts
+   a couple of px, like the canvas is responding to attention rather than
+   sitting inert behind glass. */
+.fs-card:hover .fs-scene-wrap {
+  background-position: 3px 3px, 0 0;
+}
+
 .fs-scene {
   position: absolute;
   inset: 0;
 }
 
+/* Hand-drawn divider replaces the old hard border between scene and copy —
+   reuses the same line language as the section-level scribble elsewhere on
+   the page, so the site reads as one sketching motion, not separate parts. */
+.fs-divider {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 12px;
+  overflow: visible;
+}
+
+.fs-divider path {
+  fill: none;
+  stroke: var(--neutral-200);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 320;
+  stroke-dashoffset: 320;
+  animation: fs-divider-draw 1s var(--ease-spring) forwards;
+  animation-delay: calc(var(--fs-delay, 0s) + 0.15s);
+}
+
+[data-theme='dark'] .fs-divider path {
+  stroke: var(--dark-hairline);
+}
+
+@keyframes fs-divider-draw {
+  to { stroke-dashoffset: 0; }
+}
+
 /* Desync the three cards' loops so they never animate in lockstep. */
 .fs-card:nth-of-type(2) .fs-scene .fs-block-a,
 .fs-card:nth-of-type(2) .fs-scene .fs-block-b,
-.fs-card:nth-of-type(2) .fs-scene .fs-bubble-top {
+.fs-card:nth-of-type(2) .fs-scene .fs-bubble-top,
+.fs-card:nth-of-type(2) .fs-scene .fs-spark {
   animation-delay: -0.87s;
 }
 
@@ -63,7 +103,8 @@
 
 .fs-card:nth-of-type(3) .fs-scene .fs-block-a,
 .fs-card:nth-of-type(3) .fs-scene .fs-block-b,
-.fs-card:nth-of-type(3) .fs-scene .fs-bubble-top {
+.fs-card:nth-of-type(3) .fs-scene .fs-bubble-top,
+.fs-card:nth-of-type(3) .fs-scene .fs-spark {
   animation-delay: -1.73s;
 }
 
@@ -140,6 +181,45 @@
   border-color: var(--dark-hairline);
 }
 
+/* A small green spark marks the exact moment the copilot lands an action —
+   same shape/grammar as the scribble's spark in the positioning section. */
+.fs-spark {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  z-index: 1;
+}
+
+.fs-spark path {
+  fill: var(--green-500);
+}
+
+.fs-spark {
+  animation: fs-spark-flash 2.6s var(--ease-spring) infinite;
+}
+
+.fs-spark-drop {
+  animation-name: fs-spark-flash-drop;
+  animation-duration: 2.6s;
+  animation-timing-function: var(--ease-spring);
+  animation-iteration-count: infinite;
+}
+
+@keyframes fs-spark-flash {
+  0%, 62% { opacity: 0; transform: scale(0.6); }
+  70% { opacity: 1; transform: scale(1.15); }
+  80% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 0; }
+}
+
+@keyframes fs-spark-flash-drop {
+  0%, 58% { opacity: 0; transform: scale(0.6); }
+  66% { opacity: 1; transform: scale(1.15); }
+  76% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 0; }
+}
+
 /* Scene 1: copilot iteration ------------------------------------------- */
 
 .fs-block-a {
@@ -197,10 +277,17 @@
   border: 1px solid var(--neutral-100);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-card-rest);
+  transition: transform var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-base) var(--ease-spring);
 }
 
 [data-theme='dark'] .fs-toolbar {
   border-color: var(--dark-hairline);
+}
+
+.fs-card:hover .fs-toolbar {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .fs-tool {
@@ -305,13 +392,36 @@
 }
 
 .fs-eyebrow {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: var(--space-2);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--green-600);
+}
+
+/* Dot rhythm matches the "copilot, still here" chip from the positioning
+   section — green marks AI-driven moments specifically, not features in
+   general, so it stays meaningful rather than decorative. */
+.fs-eyebrow-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--neutral-400);
+}
+
+.fs-eyebrow-dot--ai {
+  background: var(--green-500);
+  animation: positioning-pulse 2.2s ease-out infinite;
+}
+
+@keyframes positioning-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45); }
+  70% { box-shadow: 0 0 0 5px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
 }
 
 .fs-title {
@@ -335,11 +445,17 @@
   .fs-scene .fs-block,
   .fs-scene .fs-bubble,
   .fs-scene .fs-ghost-drop,
-  .fs-scene .fs-cursor {
+  .fs-scene .fs-cursor,
+  .fs-spark,
+  .fs-eyebrow-dot--ai {
     animation: none !important;
   }
 
-  /* Set elements that rely on keyframes to a visible steady state. */
+  .fs-divider path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
   .fs-scene .fs-block-b,
   .fs-scene .fs-bubble-top,
   .fs-scene .fs-ghost-drop {
@@ -351,6 +467,10 @@
   .fs-cursor:nth-child(2),
   .fs-cursor:nth-child(3) {
     transform: none;
+  }
+
+  .fs-card:hover .fs-scene-wrap {
+    background-position: 0 0;
   }
 }
 

@@ -9,7 +9,6 @@
   padding: var(--space-4);
 }
 
-/* Canvas dot grid, dark mode only — light mode stays pure white behind the card. */
 .auth-screen::before {
   content: '';
   position: absolute;
@@ -33,6 +32,194 @@
   transform: translate(-50%, -50%);
   background: radial-gradient(circle, rgba(37, 211, 102, 0.07), transparent 62%);
   pointer-events: none;
+  animation: auth-glow-drift 12s ease-in-out infinite;
+}
+
+@keyframes auth-glow-drift {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -52%) scale(1.06); }
+}
+
+/* ---- background canvas decor ------------------------------------------ */
+
+.auth-decor {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.auth-decor-item {
+  position: absolute;
+  opacity: 0.5;
+}
+
+.auth-decor-a {
+  left: 7%;
+  top: 16%;
+  animation: auth-decor-float 8s ease-in-out infinite;
+}
+
+.auth-decor-b {
+  right: 8%;
+  top: 22%;
+  animation: auth-decor-float 7s ease-in-out infinite;
+  animation-delay: -2.4s;
+}
+
+.auth-decor-c {
+  left: 10%;
+  bottom: 18%;
+  animation: auth-decor-float 9s ease-in-out infinite;
+  animation-delay: -4.1s;
+}
+
+@keyframes auth-decor-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.auth-decor-block {
+  position: relative;
+  display: inline-block;
+  padding: 9px 13px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  border: 1.5px solid var(--neutral-150);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: var(--shadow-card-rest);
+  white-space: nowrap;
+}
+
+.auth-decor-ghost {
+  border-style: dashed;
+  border-color: var(--green-500);
+  color: var(--green-700);
+  background: var(--green-50);
+}
+
+[data-theme='dark'] .auth-decor-ghost {
+  background: rgba(37, 211, 102, 0.12);
+  color: var(--green-400);
+}
+
+.auth-decor-bubble {
+  display: inline-block;
+  padding: 7px 13px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-150);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-card-rest);
+  white-space: nowrap;
+}
+
+.auth-decor-spark {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 12px;
+  height: 12px;
+  animation: auth-decor-twinkle 3.4s ease-in-out infinite;
+}
+
+.auth-decor-spark path {
+  fill: var(--green-500);
+}
+
+@keyframes auth-decor-twinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+  50% { transform: scale(1.3) rotate(14deg); opacity: 1; }
+}
+
+/* Hand-drawn scribbles, same line language as the rest of the site —
+   quiet, low-opacity marks that make the empty canvas feel sketched-on
+   rather than blank. */
+.auth-decor-scribble {
+  position: absolute;
+  opacity: 0.35;
+}
+
+.auth-decor-scribble path {
+  fill: none;
+  stroke: var(--neutral-400);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+[data-theme='dark'] .auth-decor-scribble path {
+  stroke: var(--neutral-600);
+}
+
+.auth-decor-scribble-a {
+  width: 160px;
+  height: 32px;
+  right: 6%;
+  bottom: 24%;
+}
+
+.auth-decor-scribble-b {
+  width: 140px;
+  height: 28px;
+  left: 4%;
+  top: 40%;
+  transform: rotate(-6deg);
+}
+
+.auth-decor-cursor {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--neutral-500);
+  opacity: 0.45;
+}
+
+.auth-decor-cursor-green {
+  background: var(--green-500);
+}
+
+.auth-decor-cursor-a {
+  right: 14%;
+  bottom: 30%;
+  animation: auth-decor-drift-a 6.5s ease-in-out infinite alternate;
+}
+
+.auth-decor-cursor-b {
+  left: 16%;
+  top: 30%;
+  animation: auth-decor-drift-b 5.5s ease-in-out infinite alternate;
+}
+
+@keyframes auth-decor-drift-a {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-14px, 16px); }
+}
+
+@keyframes auth-decor-drift-b {
+  from { transform: translate(0, 0); }
+  to { transform: translate(16px, -12px); }
+}
+
+/* Below ~900px there isn't real margin left for these to live in without
+   crowding the card — hide rather than cram. */
+@media (max-width: 900px) {
+  .auth-decor {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-decor-item,
+  .auth-decor-spark,
+  .auth-decor-cursor {
+    animation: none !important;
+  }
 }
 
 .auth-wordmark {
@@ -48,6 +235,20 @@
 
 .auth-wordmark svg {
   display: block;
+}
+
+.auth-logo-mark {
+  animation: auth-logo-breathe 4.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.auth-wordmark:hover .auth-logo-mark {
+  animation-play-state: paused;
+}
+
+@keyframes auth-logo-breathe {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.08) rotate(6deg); }
 }
 
 .auth-home-link {
@@ -75,7 +276,6 @@
   outline-offset: 2px;
 }
 
-/* ---- centered column ---- */
 .auth-main {
   position: relative;
   z-index: 1;
@@ -93,8 +293,8 @@
   align-items: center;
 }
 
-/* ---- auth card ---- */
 .auth-card {
+  position: relative;
   width: 100%;
   background: var(--color-bg-surface);
   border: 1px solid var(--neutral-100);
@@ -102,6 +302,7 @@
   box-shadow: var(--shadow-float);
   padding: var(--space-8);
   text-align: center;
+  overflow: hidden;
   animation: auth-card-in 0.55s var(--ease-spring) both;
   animation-delay: 0.06s;
 }
@@ -110,7 +311,6 @@
   border-color: var(--dark-hairline);
   box-shadow: var(--shadow-float), 0 1px 0 rgba(255, 255, 255, 0.04);
 }
-
 
 @keyframes auth-card-in {
   from {
@@ -199,7 +399,6 @@
   color: var(--color-text-secondary);
 }
 
-/* ---- quiet reassurance under the card ---- */
 .auth-note {
   display: flex;
   flex-direction: column;
@@ -217,7 +416,6 @@
   letter-spacing: 0.01em;
 }
 
-/* ---- footer ---- */
 .auth-footer {
   position: relative;
   z-index: 2;
@@ -240,7 +438,6 @@
   color: var(--color-text-primary);
 }
 
-/* ---- shared button primitives ---- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -280,7 +477,6 @@
   transform: translateY(0) scale(0.98);
 }
 
-/* ---- native auth forms ---- */
 .auth-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -379,6 +575,7 @@
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: color var(--duration-fast), background var(--duration-fast);
+  overflow: hidden;
 }
 
 .auth-password-toggle:hover {
@@ -393,6 +590,16 @@
 .auth-password-toggle:focus-visible {
   outline: 2px solid var(--green-500);
   outline-offset: 2px;
+}
+
+.auth-icon-pop {
+  display: inline-flex;
+  animation: auth-icon-pop-in 0.22s var(--ease-spring);
+}
+
+@keyframes auth-icon-pop-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .auth-input:focus {
@@ -489,7 +696,29 @@
   }
 }
 
-/* ---- small screens ---- */
+.auth-done-spark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--space-3);
+  border-radius: 50%;
+  background: var(--green-50);
+  color: var(--green-600);
+  animation: auth-done-pop 0.5s var(--ease-spring) both;
+}
+
+[data-theme='dark'] .auth-done-spark {
+  background: rgba(37, 211, 102, 0.14);
+  color: var(--green-400);
+}
+
+@keyframes auth-done-pop {
+  from { opacity: 0; transform: scale(0.6) rotate(-8deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
 @media (max-width: 480px) {
   .auth-card {
     padding: var(--space-6);
@@ -502,7 +731,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .auth-card,
-  .auth-note {
+  .auth-note,
+  .auth-logo-mark,
+  .auth-icon-pop,
+  .auth-done-spark,
+  .auth-screen::after {
     animation: none;
   }
 }
