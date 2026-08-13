@@ -6,13 +6,21 @@
   color: var(--color-text-primary);
   background: var(--color-bg-canvas);
   overflow: hidden;
-  padding: var(--space-4) ;
-
+  padding: var(--space-4);
 }
 
+/* Canvas dot grid, dark mode only — light mode stays pure white behind the card. */
+.auth-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: 24px 24px;
+  pointer-events: none;
+  z-index: 0;
+}
 
 [data-theme='dark'] .auth-screen::before {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+  background-image: radial-gradient(var(--dark-canvas-grid-dot) 1px, transparent 1px);
 }
 
 .auth-screen::after {
@@ -26,8 +34,6 @@
   background: radial-gradient(circle, rgba(37, 211, 102, 0.07), transparent 62%);
   pointer-events: none;
 }
-
-
 
 .auth-wordmark {
   display: inline-flex;
@@ -45,7 +51,7 @@
 }
 
 .auth-home-link {
-  align-self: flex-start;
+  align-self: center;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -53,8 +59,8 @@
   text-decoration: none;
   font-size: 14px;
   font-weight: 400;
-  padding: 8px 0;
-  margin-bottom: var(--space-2);
+  padding: 8px 12px;
+  margin-bottom: var(--space-3);
   border-radius: var(--radius-sm);
   transition: color var(--duration-fast), background var(--duration-fast);
 }
@@ -90,10 +96,19 @@
 /* ---- auth card ---- */
 .auth-card {
   width: 100%;
-  background: var(--color-bg-canvas);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
+  padding: var(--space-8);
   text-align: center;
   animation: auth-card-in 0.55s var(--ease-spring) both;
   animation-delay: 0.06s;
+}
+
+[data-theme='dark'] .auth-card {
+  border-color: var(--dark-hairline);
+  box-shadow: var(--shadow-float), 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 
@@ -112,8 +127,8 @@
   font-size: 24px;
   font-weight: 400;
   letter-spacing: -0.4px;
-  margin: 0 ;
-  color: var(--color-text-secondary);
+  margin: 0;
+  color: var(--color-text-primary);
 }
 
 .auth-card-sub {
@@ -177,7 +192,7 @@
   font-size: 12px;
   color: var(--color-text-secondary);
   line-height: 1.7;
-  margin-top: 2rem;
+  margin-top: var(--space-8);
 }
 
 .auth-card-small a {
@@ -205,7 +220,6 @@
 /* ---- footer ---- */
 .auth-footer {
   position: relative;
-
   z-index: 2;
   display: flex;
   align-items: center;
@@ -214,7 +228,6 @@
   padding: var(--space-6) var(--space-4) var(--space-7);
   font-size: 12px;
   color: var(--color-text-secondary);
-
 }
 
 .auth-footer a {
@@ -279,7 +292,7 @@
 }
 
 .auth-tab {
-  padding: 9px ;
+  padding: 9px;
   border: none;
   border-radius: var(--radius-full);
   background: transparent;
@@ -340,6 +353,46 @@
 
 .auth-input::placeholder {
   color: var(--color-text-tertiary);
+}
+
+.auth-password-wrap {
+  position: relative;
+}
+
+.auth-password {
+  padding-right: 44px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+
+.auth-password-toggle:hover {
+  color: var(--color-text-primary);
+  background: var(--neutral-100);
+}
+
+[data-theme='dark'] .auth-password-toggle:hover {
+  background: var(--dark-elevation-1);
+}
+
+.auth-password-toggle:focus-visible {
+  outline: 2px solid var(--green-500);
+  outline-offset: 2px;
 }
 
 .auth-input:focus {
@@ -421,10 +474,6 @@
   margin-top: var(--space-4);
 }
 
-[data-theme='dark'] .auth-back {
-  color: var(--color-text-secondary);
-}
-
 .auth-spinner {
   width: 16px;
   height: 16px;
@@ -443,7 +492,7 @@
 /* ---- small screens ---- */
 @media (max-width: 480px) {
   .auth-card {
-    padding: var(--space-8) var(--space-6);
+    padding: var(--space-6);
   }
 
   .auth-main {

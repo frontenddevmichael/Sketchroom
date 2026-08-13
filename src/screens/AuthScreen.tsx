@@ -1,10 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { useConvexAuth, useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { usePageTitle } from "../lib/usePageTitle";
-import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 import "../components/shared.css";
 import "./AuthScreen.css";
 
@@ -83,6 +83,8 @@ export function AuthScreen() {
   const [step, setStep] = useState<Step>({ kind: "signin" });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   if (isLoading) return <LoadingScreen />;
 
@@ -93,7 +95,17 @@ export function AuthScreen() {
     setSubmitting(true);
     setError(null);
     try {
-      const { signingIn } = await signIn(provider, params);
+      // External providers (Google) round-trip to their own domain and back,
+      // so Convex Auth needs the intended destination baked into the redirect
+      // (it stores `redirectTo` server-side and resumes there after the OAuth
+      // callback). Without this, a signed-out user trying to open a shared
+      // room would be dumped on the dashboard instead.
+      const next = new URLSearchParams(window.location.search).get("next");
+      const oauthParams =
+        provider !== "password" && next
+          ? { ...params, redirectTo: next }
+          : params;
+      const { signingIn } = await signIn(provider, oauthParams);
       // If sign-in didn't complete immediately (email verification), the
       // provider has already sent the code — surface the next step.
       if (!signingIn) {
@@ -170,6 +182,22 @@ export function AuthScreen() {
     setStep({ kind });
   };
 
+  const onFieldEdit = () => {
+    if (error) setError(null);
+  };
+
+  const onTabsKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const target = tabActive === "signin" ? "signup" : "signin";
+    switchMode(target);
+    requestAnimationFrame(() => {
+      document
+        .getElementById(target === "signin" ? "auth-tab-signin" : "auth-tab-signup")
+        ?.focus();
+    });
+  };
+
   const tabActive = step.kind === "signup" ? "signup" : "signin";
   const passwordTitle =
     step.kind === "signup" ? "Create your account" : "Welcome back";
@@ -178,11 +206,11 @@ export function AuthScreen() {
     <div className="auth-screen">
       <main className="auth-main">
         <div className="auth-wrap">
+          <a className="auth-home-link" href="/">
+            <ArrowLeft size={14} aria-hidden="true" />
+            Back to home
+          </a>
           <aside className="auth-card" aria-label="Account">
-            <a className="auth-home-link" href="/">
-              <ArrowLeft size={14} aria-hidden="true" />
-              Back to home
-            </a>
             <a className="auth-wordmark" href="/" aria-label="Sketchroom home">
               <LogoGlyph size={18} />
               Sketchroom
@@ -200,116 +228,152 @@ export function AuthScreen() {
                   className="auth-tabs"
                   role="tablist"
                   aria-label="Sign in or create an account"
+                  onKeyDown={onTabsKeyDown}
                 >
                   <button
+                    id="auth-tab-signin"
                     className={`auth-tab ${tabActive === "signin" ? "active" : ""}`}
                     role="tab"
                     aria-selected={tabActive === "signin"}
+                    aria-controls="auth-tabpanel"
+                    tabIndex={tabActive === "signin" ? 0 : -1}
                     onClick={() => switchMode("signin")}
                   >
                     Sign in
                   </button>
                   <button
+                    id="auth-tab-signup"
                     className={`auth-tab ${tabActive === "signup" ? "active" : ""}`}
                     role="tab"
                     aria-selected={tabActive === "signup"}
+                    aria-controls="auth-tabpanel"
+                    tabIndex={tabActive === "signup" ? 0 : -1}
                     onClick={() => switchMode("signup")}
                   >
                     Create account
                   </button>
                 </div>
 
-                {googleEnabled && (
-                  <>
-                    <button
-                      className="auth-google-btn"
-                      type="button"
-                      onClick={() => void run("google", {})}
-                      disabled={submitting}
-                    >
-                      <GoogleGlyph size={18} />
-                      Continue with Google
-                    </button>
-                    <div className="auth-card-divider" role="separator">
-                      <span>or use your email</span>
-                    </div>
-                  </>
-                )}
+                <div
+                  id="auth-tabpanel"
+                  role="tabpanel"
+                  aria-labelledby={`auth-tab-${tabActive}`}
+                >
+                  {googleEnabled && (
+                    <>
+                      <button
+                        className="auth-google-btn"
+                        type="button"
+                        onClick={() => void run("google", {})}
+                        disabled={submitting}
+                      >
+                        <GoogleGlyph size={18} />
+                        Continue with Google
+                      </button>
+                      <div className="auth-card-divider" role="separator">
+                        <span>or use your email</span>
+                      </div>
+                    </>
+                  )}
 
-                <form className="auth-form" onSubmit={onPassword}>
-                  {step.kind === "signup" && (
+                  <form className="auth-form" onSubmit={onPassword}>
+                    {step.kind === "signup" && (
+                      <label className="auth-field">
+                        <span className="auth-label">Name</span>
+                        <input
+                          className="input auth-input"
+                          name="name"
+                          type="text"
+                          autoComplete="name"
+                          placeholder="Ada Lovelace"
+                          maxLength={60}
+                          onChange={onFieldEdit}
+                        />
+                      </label>
+                    )}
                     <label className="auth-field">
-                      <span className="auth-label">Name</span>
+                      <span className="auth-label">Email</span>
                       <input
                         className="input auth-input"
-                        name="name"
-                        type="text"
-                        autoComplete="name"
-                        placeholder="Ada Lovelace"
-                        maxLength={60}
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        placeholder="you@studio.com"
+                        autoFocus
+                        aria-invalid={error ? true : undefined}
+                        aria-describedby={error ? "auth-error" : undefined}
+                        onChange={onFieldEdit}
                       />
                     </label>
-                  )}
-                  <label className="auth-field">
-                    <span className="auth-label">Email</span>
-                    <input
-                      className="input auth-input"
-                      name="email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      placeholder="you@studio.com"
-                    />
-                  </label>
-                  <label className="auth-field">
-                    <span className="auth-label">Password</span>
-                    <input
-                      className="input auth-input"
-                      name="password"
-                      type="password"
-                      required
-                      minLength={8}
-                      autoComplete={
-                        step.kind === "signup"
-                          ? "new-password"
-                          : "current-password"
-                      }
-                      placeholder="8+ characters"
-                    />
-                  </label>
-                  {step.kind === "signin" && emailEnabled && (
-                    <button
-                      type="button"
-                      className="auth-link-btn"
-                      onClick={() => {
-                        setError(null);
-                        setStep({ kind: "forgot" });
-                      }}
-                    >
-                      Forgot password?
-                    </button>
-                  )}
-                  {error && (
-                    <p className="auth-error" role="alert">
-                      {error}
-                    </p>
-                  )}
-                  <button
-                    className="btn btn-primary auth-submit"
-                    type="submit"
-                    disabled={submitting}
-                  >
-                    {submitting ? (
-                      <span className="auth-spinner" aria-hidden="true" />
-                    ) : step.kind === "signup" ? (
-                      <>
-                        Create account <ArrowRight size={16} />
-                      </>
-                    ) : (
-                      "Sign in"
+                    <label className="auth-field">
+                      <span className="auth-label">Password</span>
+                      <div className="auth-password-wrap">
+                        <input
+                          className="input auth-input auth-password"
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          required
+                          minLength={8}
+                          autoComplete={
+                            step.kind === "signup"
+                              ? "new-password"
+                              : "current-password"
+                          }
+                          placeholder="8+ characters"
+                          aria-invalid={error ? true : undefined}
+                          aria-describedby={error ? "auth-error" : undefined}
+                          onChange={onFieldEdit}
+                        />
+                        <button
+                          type="button"
+                          className="auth-password-toggle"
+                          onClick={() => setShowPassword((v) => !v)}
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          aria-pressed={showPassword}
+                        >
+                          {showPassword ? (
+                            <EyeOff size={16} aria-hidden="true" />
+                          ) : (
+                            <Eye size={16} aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
+                    </label>
+                    {step.kind === "signin" && emailEnabled && (
+                      <button
+                        type="button"
+                        className="auth-link-btn"
+                        onClick={() => {
+                          setError(null);
+                          setStep({ kind: "forgot" });
+                        }}
+                      >
+                        Forgot password?
+                      </button>
                     )}
-                  </button>
-                </form>
+                    {error && (
+                      <p className="auth-error" role="alert" id="auth-error">
+                        {error}
+                      </p>
+                    )}
+                    <button
+                      className="btn btn-primary auth-submit"
+                      type="submit"
+                      disabled={submitting}
+                    >
+                      {submitting ? (
+                        <span className="auth-spinner" aria-hidden="true" />
+                      ) : step.kind === "signup" ? (
+                        <>
+                          Create account <ArrowRight size={16} />
+                        </>
+                      ) : (
+                        "Sign in"
+                      )}
+                    </button>
+                  </form>
+                </div>
 
                 <p className="auth-card-small">
                   By continuing you agree to the <a href="/terms">Terms</a> and{" "}
@@ -339,12 +403,16 @@ export function AuthScreen() {
                       required
                       inputMode="numeric"
                       autoComplete="one-time-code"
+                      maxLength={8}
                       placeholder="00000000"
                       autoFocus
+                      aria-invalid={error ? true : undefined}
+                      aria-describedby={error ? "auth-error" : undefined}
+                      onChange={onFieldEdit}
                     />
                   </label>
                   {error && (
-                    <p className="auth-error" role="alert">
+                    <p className="auth-error" role="alert" id="auth-error">
                       {error}
                     </p>
                   )}
@@ -384,10 +452,14 @@ export function AuthScreen() {
                       required
                       autoComplete="email"
                       placeholder="you@studio.com"
+                      autoFocus
+                      aria-invalid={error ? true : undefined}
+                      aria-describedby={error ? "auth-error" : undefined}
+                      onChange={onFieldEdit}
                     />
                   </label>
                   {error && (
-                    <p className="auth-error" role="alert">
+                    <p className="auth-error" role="alert" id="auth-error">
                       {error}
                     </p>
                   )}
@@ -428,23 +500,48 @@ export function AuthScreen() {
                       required
                       inputMode="numeric"
                       autoComplete="one-time-code"
+                      maxLength={8}
                       placeholder="00000000"
+                      autoFocus
+                      aria-invalid={error ? true : undefined}
+                      aria-describedby={error ? "auth-error" : undefined}
+                      onChange={onFieldEdit}
                     />
                   </label>
                   <label className="auth-field">
                     <span className="auth-label">New password</span>
-                    <input
-                      className="input auth-input"
-                      name="newPassword"
-                      type="password"
-                      required
-                      minLength={8}
-                      autoComplete="new-password"
-                      placeholder="8+ characters"
-                    />
+                    <div className="auth-password-wrap">
+                      <input
+                        className="input auth-input auth-password"
+                        name="newPassword"
+                        type={showNewPassword ? "text" : "password"}
+                        required
+                        minLength={8}
+                        autoComplete="new-password"
+                        placeholder="8+ characters"
+                        aria-invalid={error ? true : undefined}
+                        aria-describedby={error ? "auth-error" : undefined}
+                        onChange={onFieldEdit}
+                      />
+                      <button
+                        type="button"
+                        className="auth-password-toggle"
+                        onClick={() => setShowNewPassword((v) => !v)}
+                        aria-label={
+                          showNewPassword ? "Hide password" : "Show password"
+                        }
+                        aria-pressed={showNewPassword}
+                      >
+                        {showNewPassword ? (
+                          <EyeOff size={16} aria-hidden="true" />
+                        ) : (
+                          <Eye size={16} aria-hidden="true" />
+                        )}
+                      </button>
+                    </div>
                   </label>
                   {error && (
-                    <p className="auth-error" role="alert">
+                    <p className="auth-error" role="alert" id="auth-error">
                       {error}
                     </p>
                   )}
