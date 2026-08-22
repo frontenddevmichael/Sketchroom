@@ -25,13 +25,13 @@ export function ShareModal({ roomId, onClose }: ShareModalProps) {
   // Two-step confirm: the first click arms removal, the second commits.
   const [confirmRemoveFor, setConfirmRemoveFor] = useState<string | null>(null);
 
-  const members = useQuery(api.invites.listMembers, { roomId });
-  const invites = useQuery(api.invites.getRoomInvites, { roomId });
-  const inviteMember = useMutation(api.invites.inviteMember);
-  const createInviteLink = useMutation(api.invites.createInviteLink);
-  const revokeInvite = useMutation(api.invites.revokeInvite);
-  const updateRole = useMutation(api.invites.updateMemberRole);
-  const removeMember = useMutation(api.invites.removeMember);
+  const members = useQuery(api.features.invites.listMembers, { roomId });
+  const invites = useQuery(api.features.invites.getRoomInvites, { roomId });
+  const inviteMember = useMutation(api.features.invites.inviteMember);
+  const createInviteLink = useMutation(api.features.invites.createInviteLink);
+  const revokeInvite = useMutation(api.features.invites.revokeInvite);
+  const updateRole = useMutation(api.features.invites.updateMemberRole);
+  const removeMember = useMutation(api.features.invites.removeMember);
 
   const handleCopy = async (text: string) => {
     try {

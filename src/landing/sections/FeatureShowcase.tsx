@@ -1,111 +1,242 @@
+import { useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Reveal } from '../components/Reveal';
 import './FeatureShowcase.css';
 
-function CopilotScene() {
-  return (
-    <div className="fs-scene" aria-hidden="true">
-      <div className="fs-block fs-block-a">Flow·v1</div>
-      <div className="fs-block fs-block-b fs-ghost">Flow·v2</div>
-      <svg className="fs-spark" viewBox="0 0 12 12" style={{ left: '48%', top: '30%' }}>
-        <path d="M6 0 l1.4 4.6 4.6 1.4 -4.6 1.4 -1.4 4.6 -1.4 -4.6 -4.6 -1.4 4.6 -1.4 z" />
-      </svg>
-      <div className="fs-cursor fs-cursor-green" style={{ left: '55%', top: '18%' }} />
-      <div className="fs-bubble fs-bubble-top">try a 2-step fallback</div>
-    </div>
-  );
-}
-
-function LibraryScene() {
-  return (
-    <div className="fs-scene" aria-hidden="true">
-      <div className="fs-toolbar">
-        <span className="fs-tool fs-tool-active">✦</span>
-        <span className="fs-tool">□</span>
-        <span className="fs-tool">◇</span>
-        <span className="fs-tool">✎</span>
-      </div>
-      <div className="fs-block fs-block-b fs-ghost fs-ghost-drop">Decision</div>
-      <svg className="fs-spark fs-spark-drop" viewBox="0 0 12 12" style={{ right: '14%', top: '30%' }}>
-        <path d="M6 0 l1.4 4.6 4.6 1.4 -4.6 1.4 -1.4 4.6 -1.4 -4.6 -4.6 -1.4 4.6 -1.4 z" />
-      </svg>
-    </div>
-  );
-}
-
-function PresenceScene() {
-  return (
-    <div className="fs-scene" aria-hidden="true">
-      <div className="fs-cursor" style={{ left: '20%', top: '30%' }} />
-      <div className="fs-cursor" style={{ left: '70%', top: '55%' }} />
-      <div className="fs-cursor fs-cursor-green" style={{ left: '42%', top: '72%' }} />
-      <div className="fs-history">
-        <span className="fs-history-chip is-past">2m ago</span>
-        <span className="fs-history-chip is-past">1m ago</span>
-        <span className="fs-history-chip is-now">now</span>
-      </div>
-    </div>
-  );
-}
-
-const FEATURES = [
+const AGENTS = [
   {
-    eyebrow: 'Copilot',
-    aiRelated: true,
-    title: 'The copilot drafts, not just annotates',
-    body: 'Tell it what to sketch and it lays out the first pass — blocks, flow, and labels — while your team keeps working.',
+    id: 'copilot',
+    eyebrow: 'Copilot Agent',
+    title: 'Design with an agent.',
+    body: 'A professional design agent, native to the canvas. It works directly on your sketch to generate and refine in place — with every change visible, editable, and under your control.',
+    cta: 'Explore the copilot',
     scene: <CopilotScene />,
   },
   {
-    eyebrow: 'Blocks',
-    aiRelated: false,
-    title: 'Shape ideas with a block library',
-    body: 'Drop decision blocks, sticky notes, and flow shapes in one click. The vocabulary of planning, not a blank whiteboard.',
-    scene: <LibraryScene />,
+    id: 'collab',
+    eyebrow: 'Collaboration Agent',
+    title: 'Plan together, live.',
+    body: 'See cursors, live history, and who-touched-what in real time. Remote planning feels like everyone is in the same room — no async handoffs needed.',
+    cta: 'See collaboration',
+    scene: <CollabScene />,
   },
   {
-    eyebrow: 'Presence',
-    aiRelated: false,
-    title: 'See the room thinking, live',
-    body: 'Cursors, live history, and who-touched-what — so remote planning feels like everyone is in the same room.',
-    scene: <PresenceScene />,
+    id: 'blocks',
+    eyebrow: 'Block Agent',
+    title: 'Shape ideas with structured blocks.',
+    body: 'Drop decision blocks, flow shapes, and personas in one click. The vocabulary of planning, not a blank whiteboard. Every block is data, not decoration.',
+    cta: 'Browse the library',
+    scene: <BlocksScene />,
+  },
+  {
+    id: 'history',
+    eyebrow: 'History Agent',
+    title: 'Your thinking, always preserved.',
+    body: 'Automatic snapshots, version history, and restore — your team\'s thinking is never lost. Review changes, compare states, and roll back with confidence.',
+    cta: 'View version history',
+    scene: <HistoryScene />,
   },
 ];
 
+const ease = [0.22, 1, 0.36, 1] as const;
+
+function AgentSection({ agent, index }: { agent: typeof AGENTS[number]; index: number }) {
+  const reduce = useReducedMotion();
+  const sectionRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setInView(true); } },
+      { threshold: 0.2 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <section
+      ref={sectionRef}
+      className={`agent-section ${inView ? 'agent-section--visible' : ''}`}
+      id={index === 0 ? 'agents' : undefined}
+    >
+      <div className="agent-inner">
+        <div className="agent-copy">
+          <motion.span
+            className="agent-eyebrow"
+            initial={reduce ? false : { opacity: 0, y: 16 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0, ease }}
+          >
+            {agent.eyebrow}
+          </motion.span>
+
+          <motion.h3
+            className="agent-title"
+            initial={reduce ? false : { opacity: 0, y: 24 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.1, ease }}
+          >
+            {agent.title}
+          </motion.h3>
+
+          <motion.p
+            className="agent-body"
+            initial={reduce ? false : { opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.2, ease }}
+          >
+            {agent.body}
+          </motion.p>
+
+          <motion.a
+            href="#cta"
+            className="agent-cta"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.3, ease }}
+          >
+            {agent.cta}
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M2.5 7h9M7.5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </motion.a>
+        </div>
+
+        <motion.div
+          className="agent-scene"
+          initial={reduce ? false : { opacity: 0, y: 40, scale: 0.97 }}
+          animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+          transition={{ duration: 0.8, delay: 0.15, ease }}
+        >
+          {agent.scene}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 export function FeatureShowcase() {
   return (
-    <section className="landing-section fs" id="features">
+    <div className="agents">
       <Reveal>
-        <div className="landing-section-head">
-          <span className="landing-eyebrow">Inside the room</span>
-          <h2 className="landing-section-title">A canvas that works like a planning session</h2>
-          <p className="landing-section-sub">
-            Three moments from a real Sketchroom session — each one does exactly one thing, well.
+        <div className="agents-header">
+          <span className="agents-eyebrow">
+            <span className="agents-eyebrow-dot" aria-hidden="true" />
+            Inside Sketchroom
+          </span>
+          <h2 className="agents-title">A canvas that works like a planning session</h2>
+          <p className="agents-sub">
+            Four agents, each doing exactly one thing well — together they turn a blank canvas into a plan your team can act on.
           </p>
         </div>
       </Reveal>
 
-      <div className="fs-grid">
-        {FEATURES.map((f, i) => (
-          <Reveal key={f.title} delay={i * 0.08}>
-            <article className="fs-card" style={{ '--fs-delay': `${i * 0.08}s` } as React.CSSProperties}>
-              <div className="fs-scene-wrap">
-                {f.scene}
-                <svg className="fs-divider" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true">
-                  <path d="M0 6 C 60 -1, 110 13, 170 5 S 250 1, 300 7" />
-                </svg>
-              </div>
-              <div className="fs-card-body">
-                <span className="fs-eyebrow">
-                  <span className={`fs-eyebrow-dot${f.aiRelated ? ' fs-eyebrow-dot--ai' : ''}`} />
-                  {f.eyebrow}
-                </span>
-                <h3 className="fs-title">{f.title}</h3>
-                <p className="fs-body">{f.body}</p>
-              </div>
-            </article>
-          </Reveal>
-        ))}
+      {AGENTS.map((agent, i) => (
+        <AgentSection key={agent.id} agent={agent} index={i} />
+      ))}
+    </div>
+  );
+}
+
+/* ── Scene components — embedded "fake-real" product UI ───────────────── */
+
+function CopilotScene() {
+  return (
+    <div className="scene" aria-hidden="true">
+      {/* Exploration panel — like Framer's layout variants panel */}
+      <div className="scene-panel">
+        <div className="scene-panel-header">
+          <span className="scene-panel-title">Exploration</span>
+          <span className="scene-panel-count">4 variants</span>
+        </div>
+        <div className="scene-panel-list">
+          <div className="scene-panel-item scene-panel-item--active">
+            <span className="scene-panel-icon">✦</span>
+            <div>
+              <span className="scene-panel-name">Big Intro</span>
+              <span className="scene-panel-meta">Hero + 3 feature rows</span>
+            </div>
+          </div>
+          <div className="scene-panel-item">
+            <span className="scene-panel-icon">◇</span>
+            <div>
+              <span className="scene-panel-name">Side Nav</span>
+              <span className="scene-panel-meta">Split layout + sidebar</span>
+            </div>
+          </div>
+          <div className="scene-panel-item">
+            <span className="scene-panel-icon">□</span>
+            <div>
+              <span className="scene-panel-name">Card Grid</span>
+              <span className="scene-panel-meta">4-card showcase</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+      {/* Canvas area */}
+      <div className="scene-canvas">
+        <div className="scene-block scene-block--primary">Hero·v2</div>
+        <div className="scene-block scene-block--ghost">Hero·v3</div>
+        <svg className="scene-spark" viewBox="0 0 12 12" style={{ left: '48%', top: '25%' }}>
+          <path d="M6 0 l1.4 4.6 4.6 1.4 -4.6 1.4 -1.4 4.6 -1.4 -4.6 -4.6 -1.4 4.6 -1.4 z" />
+        </svg>
+        <div className="scene-cursor scene-cursor--green" style={{ left: '60%', top: '20%' }} />
+        <div className="scene-bubble">try a 2-step fallback</div>
+      </div>
+    </div>
+  );
+}
+
+function CollabScene() {
+  return (
+    <div className="scene" aria-hidden="true">
+      <div className="scene-canvas">
+        <div className="scene-cursor" style={{ left: '18%', top: '28%' }} />
+        <div className="scene-cursor" style={{ left: '68%', top: '52%' }} />
+        <div className="scene-cursor scene-cursor--green" style={{ left: '40%', top: '70%' }} />
+        <div className="scene-block" style={{ left: '12%', top: '48%' }}>Auth·v2</div>
+        <div className="scene-block" style={{ left: '52%', top: '22%' }}>API·v1</div>
+        <div className="scene-label" style={{ left: '20%', top: '16%' }}>Maya</div>
+        <div className="scene-label scene-label--green" style={{ left: '58%', top: '64%' }}>Alex</div>
+      </div>
+    </div>
+  );
+}
+
+function BlocksScene() {
+  return (
+    <div className="scene" aria-hidden="true">
+      <div className="scene-canvas">
+        <div className="scene-toolbar">
+          <span className="scene-tool scene-tool--active">✦</span>
+          <span className="scene-tool">□</span>
+          <span className="scene-tool">◇</span>
+          <span className="scene-tool">✎</span>
+        </div>
+        <div className="scene-block scene-block--ghost scene-block--drop">Decision</div>
+        <div className="scene-block" style={{ left: '25%', top: '55%' }}>Auth·v2</div>
+        <div className="scene-block" style={{ left: '55%', top: '30%' }}>API·v1</div>
+      </div>
+    </div>
+  );
+}
+
+function HistoryScene() {
+  return (
+    <div className="scene" aria-hidden="true">
+      <div className="scene-canvas">
+        <div className="scene-history">
+          <span className="scene-history-chip">2m ago</span>
+          <span className="scene-history-chip">1m ago</span>
+          <span className="scene-history-chip scene-history-chip--now">now</span>
+        </div>
+        <div className="scene-cursor" style={{ left: '22%', top: '32%' }} />
+        <div className="scene-cursor scene-cursor--green" style={{ left: '62%', top: '58%' }} />
+        <div className="scene-block" style={{ left: '28%', top: '48%' }}>Sprint·plan</div>
+      </div>
+    </div>
   );
 }

@@ -104,47 +104,47 @@ function makeSnapshots(): SnapshotRow[] {
 }
 
 function registerMutations() {
-  __setMutationHandler(api.rooms.createRoom, (args) => {
+  __setMutationHandler(api.features.rooms.createRoom, (args) => {
     const { name, seed } = (args ?? {}) as { name?: string; seed?: string };
     const row = roomRow(`room_created_${rooms.length + 1}`, name?.trim() || 'Untitled room', 0);
     row.canvasData = seed ?? '';
     rooms = [row, ...rooms];
     currentRoom = row;
-    __setQueryResult(api.rooms.getRooms, rooms);
-    __setQueryResult(api.rooms.getRoom, currentRoom);
+    __setQueryResult(api.features.rooms.getRooms, rooms);
+    __setQueryResult(api.features.rooms.getRoom, currentRoom);
     return { id: row._id, ...row };
   });
 
-  __setMutationHandler(api.rooms.createWorkspace, () => ({ id: 'ws_demo' }));
+  __setMutationHandler(api.features.rooms.createWorkspace, () => ({ id: 'ws_demo' }));
 
-  __setMutationHandler(api.rooms.updateRoomName, (args) => {
+  __setMutationHandler(api.features.rooms.updateRoomName, (args) => {
     const { name } = (args ?? {}) as { name?: string };
     currentRoom = { ...currentRoom, name: name ?? currentRoom.name, updatedAt: Date.now() };
     rooms = rooms.map((r) => (r._id === currentRoom._id ? currentRoom : r));
-    __setQueryResult(api.rooms.getRoom, currentRoom);
-    __setQueryResult(api.rooms.getRooms, rooms);
+    __setQueryResult(api.features.rooms.getRoom, currentRoom);
+    __setQueryResult(api.features.rooms.getRooms, rooms);
     return { ...currentRoom };
   });
 
-  __setMutationHandler(api.rooms.deleteRoom, (args) => {
+  __setMutationHandler(api.features.rooms.deleteRoom, (args) => {
     const { roomId } = (args ?? {}) as { roomId?: string };
     rooms = rooms.filter((r) => r._id !== roomId);
-    __setQueryResult(api.rooms.getRooms, rooms);
+    __setQueryResult(api.features.rooms.getRooms, rooms);
     return true;
   });
 
-  __setMutationHandler(api.rooms.deleteWorkspace, () => true);
-  __setMutationHandler(api.rooms.updateRoomThumbnail, () => true);
+  __setMutationHandler(api.features.rooms.deleteWorkspace, () => true);
+  __setMutationHandler(api.features.rooms.updateRoomThumbnail, () => true);
 
-  __setMutationHandler(api.canvas.applyCanvasChanges, () => ({
+  __setMutationHandler(api.features.canvas.applyCanvasChanges, () => ({
     version: (currentRoom.canvasVersion ?? 0) + 1,
   }));
 
-  __setMutationHandler(api.presence.upsertPresence, () => true);
-  __setMutationHandler(api.presence.removePresence, () => true);
-  __setMutationHandler(api.presence.prunePresence, () => 0);
+  __setMutationHandler(api.features.presence.upsertPresence, () => true);
+  __setMutationHandler(api.features.presence.removePresence, () => true);
+  __setMutationHandler(api.features.presence.prunePresence, () => 0);
 
-  __setMutationHandler(api.snapshots.saveSnapshot, (args) => {
+  __setMutationHandler(api.features.snapshots.saveSnapshot, (args) => {
     const { description } = (args ?? {}) as { description?: string };
     const snap: SnapshotRow = {
       _id: `snap_${Date.now()}`,
@@ -156,19 +156,19 @@ function registerMutations() {
       description,
     };
     snapshots = [snap, ...snapshots];
-    __setQueryResult(api.snapshots.listSnapshots, snapshots);
+    __setQueryResult(api.features.snapshots.listSnapshots, snapshots);
     return { snapshotId: snap._id, version: snap.version };
   });
 
-  __setMutationHandler(api.snapshots.restoreSnapshot, () => ({ version: 99, canvasData: '{}' }));
+  __setMutationHandler(api.features.snapshots.restoreSnapshot, () => ({ version: 99, canvasData: '{}' }));
 
-  __setMutationHandler(api.ai.dismissAiSuggestion, () => true);
-  __setMutationHandler(api.invites.inviteMember, () => ({ inviteId: 'inv_1', token: 'tok_demo' }));
-  __setMutationHandler(api.invites.createInviteLink, () => ({ token: 'tok_demo' }));
-  __setMutationHandler(api.invites.revokeInvite, () => true);
-  __setMutationHandler(api.invites.updateMemberRole, () => true);
-  __setMutationHandler(api.invites.removeMember, () => true);
-  __setMutationHandler(api.errors.reportError, () => true);
+  __setMutationHandler(api.features.ai.dismissAiSuggestion, () => true);
+  __setMutationHandler(api.features.invites.inviteMember, () => ({ inviteId: 'inv_1', token: 'tok_demo' }));
+  __setMutationHandler(api.features.invites.createInviteLink, () => ({ token: 'tok_demo' }));
+  __setMutationHandler(api.features.invites.revokeInvite, () => true);
+  __setMutationHandler(api.features.invites.updateMemberRole, () => true);
+  __setMutationHandler(api.features.invites.removeMember, () => true);
+  __setMutationHandler(api.core.errors.reportError, () => true);
 }
 
 export function seedAppStubs(opts: { snapshots?: boolean } = {}) {
@@ -177,25 +177,25 @@ export function seedAppStubs(opts: { snapshots?: boolean } = {}) {
   snapshots = opts.snapshots ? makeSnapshots() : [];
   __clearCalls();
 
-  __setQueryResult(api.rooms.getWorkspaces, [SEED_WORKSPACE]);
-  __setQueryResult(api.rooms.getUsage, SEED_USAGE);
-  __setQueryResult(api.rooms.getRooms, rooms);
-  __setQueryResult(api.rooms.getRoom, currentRoom);
-  __setQueryResult(api.canvas.loadCanvas, { canvasData: '', canvasVersion: 0, compactedVersion: 0 });
-  __setQueryResult(api.presence.getPresence, []);
-  __setQueryResult(api.ai.getAiMessages, []);
-  __setQueryResult(api.snapshots.listSnapshots, snapshots);
-  __setQueryResult(api.invites.listMembers, []);
-  __setQueryResult(api.invites.getRoomInvites, []);
-  __setQueryResult(api.users.me, {
+  __setQueryResult(api.features.rooms.getWorkspaces, [SEED_WORKSPACE]);
+  __setQueryResult(api.features.rooms.getUsage, SEED_USAGE);
+  __setQueryResult(api.features.rooms.getRooms, rooms);
+  __setQueryResult(api.features.rooms.getRoom, currentRoom);
+  __setQueryResult(api.features.canvas.loadCanvas, { canvasData: '', canvasVersion: 0, compactedVersion: 0 });
+  __setQueryResult(api.features.presence.getPresence, []);
+  __setQueryResult(api.features.ai.getAiMessages, []);
+  __setQueryResult(api.features.snapshots.listSnapshots, snapshots);
+  __setQueryResult(api.features.invites.listMembers, []);
+  __setQueryResult(api.features.invites.getRoomInvites, []);
+  __setQueryResult(api.core.users.me, {
     id: 'u_harness',
     name: 'Ada Lovelace',
     email: 'ada@example.com',
     imageUrl: null,
     emailVerified: true,
   });
-  __setQueryResult(api.users.authConfig, { emailEnabled: false, googleEnabled: false });
-  __setMutationHandler(api.users.updateProfile, () => true);
+  __setQueryResult(api.core.users.authConfig, { emailEnabled: false, googleEnabled: false });
+  __setMutationHandler(api.core.users.updateProfile, () => true);
 
   registerMutations();
 }

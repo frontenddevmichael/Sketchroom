@@ -1,90 +1,119 @@
+import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { DemoCanvas } from '../demo/DemoCanvas';
 import './Hero.css';
 
-const copyEase = [0.22, 1, 0.36, 1] as const;
+const ease = [0.22, 1, 0.36, 1] as const;
+
+/* Live-updating counter — mimics Framer's token ticker */
+function useCounter(target: number, duration = 2000) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / duration, 1);
+      setCount(Math.floor(t * target));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [target, duration]);
+  return count;
+}
 
 export function Hero() {
   const reduce = useReducedMotion();
+  const demoRef = useRef<HTMLDivElement>(null);
+  const [demoVisible, setDemoVisible] = useState(false);
 
-  const stagger = (i: number) => ({
-    initial: reduce ? false : { opacity: 0, y: 22 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.7, delay: 0.08 * i, ease: copyEase },
-  });
+  const tokenCount = useCounter(12847, 2200);
+
+  useEffect(() => {
+    const el = demoRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setDemoVisible(true); obs.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   return (
     <section className="hero" id="top">
-      <div className="hero-bg-rings" aria-hidden="true">
+      {/* Background rings — Framer's signature concentric circles */}
+      <div className="hero-rings" aria-hidden="true">
         <motion.span
           className="hero-ring hero-ring-1"
           initial={reduce ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.1, delay: 0.2, ease: copyEase }}
+          transition={{ duration: 1.1, delay: 0.2, ease }}
         />
         <motion.span
           className="hero-ring hero-ring-2"
           initial={reduce ? false : { opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.3, delay: 0.35, ease: copyEase }}
+          transition={{ duration: 1.3, delay: 0.35, ease }}
         />
       </div>
 
       <div className="hero-content">
-        <div className="hero-copy">
-          <motion.div {...stagger(0)}>
-            <span className="landing-eyebrow">
-              <span className="landing-eyebrow-dot" aria-hidden="true" />
-              Real-time planning canvas
-            </span>
-          </motion.div>
+        {/* Headline — the opening breath */}
+        <motion.h1
+          className="hero-title"
+          initial={reduce ? false : { opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1, ease }}
+        >
+          The design agent for every step from idea to launch.
+        </motion.h1>
 
-          <motion.h1 {...stagger(1)} className="landing-display hero-title">
-            <span className="hero-title-line">Plan it together, live.</span>
-            <span className="hero-title-line hero-title-line-muted">An AI copilot</span>
-            <span className="hero-title-line hero-title-accent">
-              in the room.
-              <svg className="hero-underline" viewBox="0 0 200 12" fill="none" preserveAspectRatio="none" aria-hidden="true">
-                <motion.path
-                  d="M4 8 C 40 3, 90 10, 196 6"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  initial={reduce ? { pathLength: 1 } : { pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.7, delay: 0.85, ease: 'easeInOut' }}
-                />
-              </svg>
-            </span>
-          </motion.h1>
+        {/* Subtitle */}
+        <motion.p
+          className="hero-sub"
+          initial={reduce ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.25, ease }}
+        >
+          Send ideas to your copilot. It sketches the first pass.
+          Your team refines it live. You leave with something you can act on.
+        </motion.p>
 
-          <motion.div {...stagger(2)}>
-            <p className="landing-lead hero-lead">
-              Sketch architecture, wireframes, and features with your team — while the
-              copilot drafts alongside you. Same canvas, same page, in real time.
-            </p>
-          </motion.div>
-
-          <motion.div {...stagger(3)} className="hero-cta">
-            <Link to="/auth" className="btn btn-primary hero-cta-primary">
-              Start sketching — free
-            </Link>
-            <a href="#workflow" className="btn btn-secondary">
-              See it in a session
-            </a>
-          </motion.div>
-
-          <motion.p {...stagger(4)} className="hero-note">
-            No credit card · Free to start · Works in your browser
-          </motion.p>
-        </div>
-
+        {/* CTAs */}
         <motion.div
-          className="hero-demo"
-          initial={reduce ? false : { opacity: 0, y: 32, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.55, ease: copyEase }}
+          className="hero-actions"
+          initial={reduce ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4, ease }}
+        >
+          <Link to="/auth" className="btn btn-primary hero-primary">
+            Get started free
+          </Link>
+          <Link to="/auth" className="btn btn-secondary hero-secondary">
+            Download app
+          </Link>
+        </motion.div>
+
+        {/* Live token counter badge — Framer-style kinetic detail */}
+        <motion.div
+          className="hero-badge"
+          initial={reduce ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.55, ease }}
+        >
+          <span className="hero-badge-dot" />
+          <span className="hero-badge-text">
+            <strong>{tokenCount.toLocaleString()}</strong> AI tokens generated this week
+          </span>
+        </motion.div>
+
+        {/* Demo canvas — the product reveal */}
+        <motion.div
+          ref={demoRef}
+          className={`hero-demo ${demoVisible ? 'hero-demo--visible' : ''}`}
+          initial={reduce ? false : { opacity: 0, y: 48, scale: 0.97 }}
+          animate={demoVisible ? { opacity: 1, y: 0, scale: 1 } : {}}
+          transition={{ duration: 1, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
           <DemoCanvas />
         </motion.div>

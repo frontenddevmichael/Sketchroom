@@ -11,6 +11,10 @@
   color: var(--color-text-primary);
 }
 
+[data-theme="dark"] .legal-screen {
+  background: #000;
+}
+
 /* The shared canvas dot-grid, faint, so the page reads as the product's own
    surface rather than a generic document. */
 .legal-grid-bg {
@@ -37,6 +41,7 @@
 }
 
 [data-theme="dark"] .legal-topbar {
+  background: #000;
   border-bottom-color: var(--dark-hairline);
 }
 
@@ -152,6 +157,7 @@
 }
 
 [data-theme="dark"] .legal-footer {
+  background: #000;
   border-top-color: var(--dark-hairline);
 }
 

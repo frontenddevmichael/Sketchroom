@@ -49,7 +49,7 @@ const FAQS: Array<{ q: string; a: string }> = [
 export function BillingScreen() {
   usePageTitle('Billing — Sketchroom');
   const navigate = useNavigate();
-  const usage = useQuery(api.rooms.getUsage);
+  const usage = useQuery(api.features.rooms.getUsage);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   if (!usage) {

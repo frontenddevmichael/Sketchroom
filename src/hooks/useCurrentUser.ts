@@ -21,7 +21,7 @@ export function useCurrentUser(): {
   isLoading: boolean;
 } {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const me = useQuery(api.users.me);
+  const me = useQuery(api.core.users.me);
   return {
     user: (me as CurrentUser | null | undefined) ?? null,
     isAuthenticated,

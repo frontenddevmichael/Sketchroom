@@ -91,7 +91,7 @@ function parseDiagram(messageId: string | null, messages: { _id: string; status:
 export function GhostBlocks({ editor, roomId, focus, onFocus, visible = true }: GhostBlocksProps) {
   const [camera, setCamera] = useState<CameraState>({ x: 0, y: 0, z: 1 });
   const messages = useQuery(
-    api.ai.getAiMessages,
+    api.features.ai.getAiMessages,
     roomId ? { roomId } : 'skip'
   ) as unknown as
     | { _id: string; status: string; ghostBlocks?: string | null }[]

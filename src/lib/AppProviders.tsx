@@ -5,7 +5,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import App from '../App';
 
 function ReportingErrorBoundary() {
-  const reportError = useMutation(api.errors.reportError);
+  const reportError = useMutation(api.core.errors.reportError);
   return (
     <ErrorBoundary
       onReport={(error, info) => {

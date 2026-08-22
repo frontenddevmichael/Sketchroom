@@ -47,6 +47,7 @@
   --space-14: 56px;
   --space-20: 80px;
 
+  --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
@@ -68,8 +69,8 @@
   --glass-bg: rgba(255, 255, 255, 0.6);
   --glass-bg-dense: rgba(255, 255, 255, 0.88);
   --glass-bg-fallback: rgba(255, 255, 255, 0.92);
-  --glass-blur: 18px;
-  --glass-saturation: 1.7;
+  --glass-blur: 20px;
+  --glass-saturation: 1.4;
   --glass-border: rgba(255, 255, 255, 0.5);
   --glass-highlight: rgba(255, 255, 255, 0.6);
   --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
@@ -80,8 +81,16 @@
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.26);
   --scrollbar-track: transparent;
 
-  --font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Urbanist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --fs-display: clamp(34px, 5.2vw, 64px);
+  --fs-title: clamp(28px, 3.6vw, 44px);
+  --fs-h3: clamp(20px, 2.4vw, 26px);
+  --fs-body: 16px;
+  --fs-sm: 14px;
+  --fs-xs: 13px;
 
   /* Room chrome geometry — the canvas fills the stage and every floating
      surface anchors to the stage edges or the left tool rail. */

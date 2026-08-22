@@ -54,6 +54,10 @@
   z-index: 1;
 }
 
+[data-theme="dark"] .loading-screen {
+  background: #000;
+}
+
 [data-theme='dark'] .loading-screen::before {
   /* The shared 0.26 opacity would bury white@0.08 to ~2% on true black.
      Brighten the dots so the effective value lands near the canvas grid's
@@ -341,12 +345,20 @@
   background: #fdf1f0;
 }
 
+[data-theme="dark"] .error-screen {
+  background: #000;
+}
+
 [data-theme="dark"] .error-grid-bg {
   background-image: radial-gradient(var(--dark-canvas-grid-dot) 1px, transparent 1px);
 }
 
 [data-theme="dark"] .btn-outline {
   border-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .btn-ghost:hover {
+  background: var(--dark-elevation-3);
 }
 
 [data-theme="dark"] .btn-danger {
@@ -356,6 +368,24 @@
 
 [data-theme="dark"] .btn-danger:hover {
   background: rgba(255, 99, 71, 0.12);
+}
+
+[data-theme="dark"] .user-menu-avatar {
+  background: var(--dark-elevation-1);
+  border-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .user-menu-avatar:hover {
+  border-color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .user-menu-item:hover {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .user-menu-item-danger:hover {
+  background: rgba(255, 99, 71, 0.12);
+  color: #ff8a7a;
 }/* ── Phone bottom tab bar ──────────────────────────────────────────────────
    Shared by Dashboard, Billing, and Settings: below 720px the desktop side
    rails step aside and this fixed bar carries the four destinations with
@@ -399,6 +429,7 @@
 
 [data-theme='dark'] .app-tabbar {
   border-top-color: var(--dark-hairline);
+  background: #000;
 }
 
 /* --- UserMenu (account avatar + hover/click account modal) --- */

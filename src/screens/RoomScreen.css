@@ -1522,3 +1522,124 @@ kbd.room-shortcuts-key,
     display: block;
   }
 }
+
+/* ── Kuda dark overrides ────────────────────────────────────────────────
+   Pure-black backgrounds, dark-elevation surfaces, green accents on active
+   elements — consistent with Dashboard, Settings, Billing, and Legal. */
+[data-theme="dark"] .room-screen {
+  background: #000;
+}
+
+[data-theme="dark"] .room-topbar {
+  background: #000;
+}
+
+[data-theme="dark"] .room-name-input:hover {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .room-name-input:focus {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .room-back-btn:hover {
+  background: var(--dark-elevation-3);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .room-icon-btn:hover:not(:disabled) {
+  background: var(--dark-elevation-3);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .room-icon-btn.active {
+  background: var(--dark-elevation-3);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .room-controls-btn:hover:not(:disabled) {
+  background: var(--dark-elevation-3);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .room-controls-pct:hover,
+[data-theme="dark"] .room-controls-pct[aria-expanded='true'] {
+  background: var(--dark-elevation-3);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .room-controls-depth {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .room-presence-avatar {
+  border-color: var(--dark-elevation-0);
+  background: var(--dark-elevation-2);
+}
+
+[data-theme="dark"] .room-presence-avatar:hover {
+  border-color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .room-presence-more {
+  background: var(--dark-elevation-2);
+}
+
+[data-theme="dark"] .room-rail-indicator {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .room-more-menu button:hover {
+  background: var(--dark-elevation-3);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .room-zoom-menu button:hover {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .room-coachmark {
+  background: var(--dark-elevation-2);
+  border: 1px solid var(--dark-hairline);
+}
+
+[data-theme="dark"] .room-coachmark-next {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .room-coachmark-next:hover {
+  background: var(--dark-elevation-4);
+}
+
+[data-theme="dark"] .room-coachmark-done:hover {
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .room-coachmark-x:hover {
+  background: var(--dark-elevation-3);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .room-canvas-loading {
+  background: #000;
+}
+
+[data-theme="dark"] .room-shortcuts-card {
+  background: var(--dark-elevation-1);
+  border: 1px solid var(--dark-hairline);
+}
+
+[data-theme="dark"] .room-shortcuts-close:hover {
+  background: var(--dark-elevation-3);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] kbd.room-shortcuts-key,
+[data-theme="dark"] .room-shortcuts-keys kbd {
+  background: var(--dark-elevation-2);
+}
+
+[data-theme="dark"] .room-status-neutral {
+  background: var(--dark-elevation-3);
+  color: var(--color-text-secondary);
+}
