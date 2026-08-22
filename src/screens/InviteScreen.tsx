@@ -10,7 +10,7 @@ export function InviteScreen() {
   usePageTitle('Joining a room — Sketchroom');
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const acceptInvite = useMutation(api.invites.acceptInvite);
+  const acceptInvite = useMutation(api.features.invites.acceptInvite);
   const [error, setError] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
 

@@ -74,8 +74,8 @@ export function Dashboard() {
   const [workspaceCreateFailed, setWorkspaceCreateFailed] = useState(false);
   const [workspaceRetryNonce, setWorkspaceRetryNonce] = useState(0);
 
-  const workspaces = useQuery(api.rooms.getWorkspaces);
-  const usage = useQuery(api.rooms.getUsage);
+  const workspaces = useQuery(api.features.rooms.getWorkspaces);
+  const usage = useQuery(api.features.rooms.getUsage);
 
   // Never a dead end: if the workspace query can't resolve within a
   // reasonable window, surface a calm error with a retry instead of an
@@ -87,16 +87,16 @@ export function Dashboard() {
   }, [workspaces]);
   const activeWorkspaceId = workspaceId ?? workspaces?.[0]?._id ?? null;
   const roomsQuery = useQuery(
-    api.rooms.getRooms,
+    api.features.rooms.getRooms,
     activeWorkspaceId ? { workspaceId: activeWorkspaceId } : 'skip'
   );
   // Stale-while-revalidate: switching workspaces (or any refresh that blanks
   // the query) keeps the previous grid on screen instead of re-skeletoning.
   const { data: rooms } = useStaleData(roomsQuery);
-  const createWorkspace = useMutation(api.rooms.createWorkspace);
-  const createRoom = useMutation(api.rooms.createRoom);
-  const deleteRoom = useMutation(api.rooms.deleteRoom);
-  const updateRoomName = useMutation(api.rooms.updateRoomName);
+  const createWorkspace = useMutation(api.features.rooms.createWorkspace);
+  const createRoom = useMutation(api.features.rooms.createRoom);
+  const deleteRoom = useMutation(api.features.rooms.deleteRoom);
+  const updateRoomName = useMutation(api.features.rooms.updateRoomName);
   const creatingWorkspace = useRef(false);
 
   useEffect(() => {

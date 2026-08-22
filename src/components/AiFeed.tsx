@@ -21,7 +21,7 @@ import {
 import { kindIcon } from '../lib/blockKinds';
 import { emitPlacementPulse } from './placementPulse';
 import './AiFeed.css';
-
+ 
 // After an AI insert lands, flash a green spring ring around the new blocks
 // (green is the AI's reserved color) — a placement moment, not a teleport.
 function pulseAiPlacement(editor: Editor) {
@@ -62,9 +62,9 @@ export function AiFeed({
   unviewed = false,
 }: AiFeedProps) {
   const { user } = useCurrentUser();
-  const messages = useQuery(api.ai.getAiMessages, { roomId });
-  const dismissAi = useMutation(api.ai.dismissAiSuggestion);
-  const requestAi = useAction(api.ai.requestAiSuggestion);
+  const messages = useQuery(api.features.ai.getAiMessages, { roomId });
+  const dismissAi = useMutation(api.features.ai.dismissAiSuggestion);
+  const requestAi = useAction(api.features.ai.requestAiSuggestion);
   const [error, setError] = useState<string | null>(null);
   // First-use vs. after-use empty copy: the moment you ask once, the empty
   // state stops being "discover me" and becomes "ready for more".

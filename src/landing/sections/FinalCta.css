@@ -1,10 +1,9 @@
+/* ── Framer-style closing CTA with prompt input ───────────────────────── */
+
 .final-cta {
   position: relative;
   overflow: hidden;
-}
-
-[data-theme='dark'] .final-cta {
-  border-color: var(--dark-hairline);
+  padding: 120px 32px;
 }
 
 .final-cta::before {
@@ -12,371 +11,171 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(closest-side, rgba(37, 211, 101, 0.164), transparent 70%);
-  transform: scale(1.4);
+  background: radial-gradient(closest-side, rgba(37, 211, 101, 0.05), transparent 70%);
 }
-
-/* Canvas texture, layered under the glow so the room fragments read as
-   sitting "on the canvas," not floating on a gradient. */
-.final-cta::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(var(--neutral-100) 1px, transparent 1px) 0 0 / 26px 26px;
-  opacity: 0.6;
-  mask-image: radial-gradient(closest-side, black, transparent 75%);
-}
-
-[data-theme='dark'] .final-cta::after {
-  background: radial-gradient(var(--dark-canvas-grid-dot) 1px, transparent 1px) 0 0 / 26px 26px;
-}
-
-.final-cta-canvas {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Two faint fragments of an actual Sketchroom session, bleeding in from
-   opposite corners. Kept low-opacity and slow — background texture, not a
-   competing focal point. */
-.cta-room {
-  position: absolute;
-  opacity: 0.55;
-  animation: cta-room-float 7s ease-in-out infinite alternate;
-}
-
-.cta-room-a {
-  left: 6%;
-  top: 14%;
-  animation-duration: 8s;
-}
-
-.cta-room-b {
-  right: 7%;
-  bottom: 12%;
-  animation-duration: 6.5s;
-  animation-delay: -2s;
-}
-
-@keyframes cta-room-float {
-  from { transform: translateY(0); }
-  to { transform: translateY(-10px); }
-}
-
-.cta-block {
-  position: relative;
-  display: inline-block;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-surface);
-  border: 1.5px solid var(--neutral-150);
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: var(--shadow-card-rest);
-  margin-right: 46px;
-}
-
-.cta-block-ghost {
-  position: absolute;
-  left: 100%;
-  top: 26px;
-  margin: 0 0 0 -20px;
-  border-style: dashed;
-  border-color: var(--green-500);
-  color: var(--green-700);
-  background: var(--green-50);
-  white-space: nowrap;
-}
-
-[data-theme='dark'] .cta-block-ghost {
-  background: rgba(37, 211, 102, 0.12);
-  color: var(--green-400);
-}
-
-.cta-bubble {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: var(--radius-full);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--neutral-150);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  box-shadow: var(--shadow-card-rest);
-  white-space: nowrap;
-}
-
-.cta-cursor {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--neutral-500);
-  bottom: -14px;
-  left: 24px;
-}
-
-.cta-room-b .cta-cursor {
-  top: -14px;
-  left: auto;
-  right: 10px;
-}
-
-.cta-cursor-green {
-  background: var(--green-500);
-}
-
-/* Inner content ----------------------------------------------------------- */
 
 .final-cta-inner {
   position: relative;
   z-index: 1;
-  max-width: 760px;
+  max-width: 640px;
   margin: 0 auto;
-  padding: var(--space-20) var(--space-6);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
 
-.final-cta-title {
-  position: relative;
-  font-size: clamp(32px, 5vw, 56px);
-  line-height: 1.06;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  color: var(--color-text-primary);
-  margin: 0 0 var(--space-8);
-  text-wrap: balance;
-}
-
-.cta-title-line {
-  display: inline-block;
-}
-
-/* Each word rises in on its own beat once the section is in view — the
-   headline "sketches itself in" word by word rather than fading as one
-   block, matching the site's draw-in vocabulary at typographic scale. */
-.cta-word {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(14px);
-}
-
-.in-view .cta-word {
-  animation: cta-word-in 0.6s var(--ease-spring) forwards;
-  animation-delay: calc(var(--i, 0) * 0.06s);
-}
-
-.cta-word:not(:last-child) {
-  margin-right: 0.28em;
-}
-
-@keyframes cta-word-in {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.cta-spark {
-  width: 16px;
-  height: 16px;
-  opacity: 0;
-  position: absolute;
-}
-
-.cta-spark path {
-  fill: var(--green-500);
-}
-
-.in-view .cta-spark-title-1 {
-  top: -6px;
-  right: 8%;
-  animation: cta-spark-in 0.5s var(--ease-spring) forwards, cta-twinkle 3s ease-in-out infinite;
-  animation-delay: 0.55s, 1.1s;
-}
-
-.in-view .cta-spark-title-2 {
-  width: 10px;
-  height: 10px;
-  bottom: 4%;
-  left: 6%;
-  animation: cta-spark-in 0.5s var(--ease-spring) forwards, cta-twinkle 2.4s ease-in-out infinite;
-  animation-delay: 0.7s, 1.3s;
-}
-
-@keyframes cta-spark-in {
-  to { opacity: 1; }
-}
-
-@keyframes cta-twinkle {
-  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.85; }
-  50% { transform: scale(1.3) rotate(14deg); opacity: 1; }
-}
-
-/* Actions ------------------------------------------------------------------ */
-
-.final-cta-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-6);
-}
-
-.cta-bracket-wrap {
-  position: relative;
+.final-cta-eyebrow {
   display: inline-flex;
-}
-
-/* Hand-drawn bracket sketches itself around the primary button — the
-   sketch marking its own most important element. */
-.cta-bracket {
-  position: absolute;
-  inset: -10px -14px;
-  width: calc(100% + 28px);
-  height: calc(100% + 20px);
-  overflow: visible;
-  pointer-events: none;
-}
-
-.cta-bracket path {
-  fill: none;
-  stroke: var(--neutral-400);
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-dasharray: 170;
-  stroke-dashoffset: 170;
-}
-
-.in-view .cta-bracket path {
-  animation: cta-bracket-draw 1s var(--ease-spring) forwards;
-  animation-delay: 0.9s;
-}
-
-[data-theme='dark'] .cta-bracket path {
-  stroke: var(--neutral-600);
-}
-
-@keyframes cta-bracket-draw {
-  to { stroke-dashoffset: 0; }
-}
-
-.final-cta-primary {
-  position: relative;
-  font-size: 16px;
-  padding: 14px 28px;
-  animation: cta-ring-pulse 2.4s ease-out infinite;
-  animation-delay: 1.4s;
-}
-
-@keyframes cta-ring-pulse {
-  0%, 60% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); }
-  80% { box-shadow: 0 0 0 8px rgba(37, 211, 102, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
-}
-
-.final-cta-primary:hover {
-  animation-play-state: paused;
-  transform: translateY(-1px);
-}
-
-/* Feature list ------------------------------------------------------------- */
-
-.final-cta-features {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-5);
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--green-600);
+  margin-bottom: 20px;
+}
+
+.final-cta-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green-500);
+}
+
+.final-cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: var(--color-text-primary);
+  margin: 0 0 20px;
+}
+
+.final-cta-lead {
+  font-size: 18px;
+  line-height: 1.6;
   color: var(--color-text-secondary);
-  opacity: 0;
-  transform: translateY(6px);
+  max-width: 520px;
+  margin: 0 0 40px;
+  text-wrap: pretty;
 }
 
-.in-view .final-cta-features {
-  animation: cta-features-in 0.6s var(--ease-spring) forwards;
-  animation-delay: 1.05s;
-}
+/* ── Prompt input ─────────────────────────────────────────────────────── */
 
-@keyframes cta-features-in {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.final-cta-features li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cta-check {
-  width: 14px;
-  height: 14px;
-  color: var(--green-500);
-  flex-shrink: 0;
-}
-
-/* Seam into the footer — same line language as the rest of the page, so the
-   handoff to whatever sits below doesn't read as a hard section break. */
-.final-cta-seam {
-  position: relative;
-  z-index: 1;
-  display: block;
+.final-cta-input-wrap {
   width: 100%;
-  height: 24px;
-  margin-top: calc(var(--space-10) * -1);
+  max-width: 520px;
+  margin-bottom: 24px;
 }
 
-.final-cta-seam path {
-  fill: none;
-  stroke: var(--neutral-150);
-  stroke-width: 1.4;
+.final-cta-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-150);
+  background: var(--color-bg-surface);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-[data-theme='dark'] .final-cta-seam path {
-  stroke: var(--dark-hairline);
+.final-cta-input:focus-within {
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.12);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cta-word,
-  .cta-spark,
-  .cta-bracket path,
-  .final-cta-primary,
-  .final-cta-features,
-  .cta-room {
-    animation: none !important;
-    opacity: 1;
-    transform: none;
-  }
-  .cta-bracket path {
-    stroke-dashoffset: 0;
-  }
+[data-theme='dark'] .final-cta-input {
+  border-color: var(--dark-hairline);
 }
+
+[data-theme='dark'] .final-cta-input:focus-within {
+  border-color: var(--green-500);
+}
+
+.final-cta-input-icon {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+}
+
+.final-cta-field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: var(--color-text-primary);
+  outline: none;
+  min-width: 0;
+  padding: 10px 0;
+}
+
+.final-cta-field::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.final-cta-send {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--green-500);
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.final-cta-send:hover {
+  background: var(--green-600);
+  transform: scale(1.05);
+}
+
+/* ── Suggestion chips ─────────────────────────────────────────────────── */
+
+.final-cta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.final-cta-chip {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--neutral-150);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+[data-theme='dark'] .final-cta-chip {
+  border-color: var(--dark-hairline);
+}
+
+.final-cta-chip:hover {
+  border-color: var(--green-500);
+  color: var(--green-600);
+  background: rgba(37, 211, 102, 0.06);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
 
 @media (max-width: 520px) {
-  .final-cta-actions {
-    width: 100%;
-    flex-direction: column;
+  .final-cta-chips {
+    gap: 6px;
   }
 
-  .cta-bracket-wrap,
-  .final-cta-primary,
-  .final-cta-actions .btn-secondary {
-    width: 100%;
-  }
-
-  .cta-room {
-    display: none;
-  }
-
-  .final-cta-features {
-    gap: var(--space-3) var(--space-5);
+  .final-cta-chip {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 }

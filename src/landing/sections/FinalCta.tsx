@@ -1,117 +1,79 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Reveal } from '../components/Reveal';
 import './FinalCta.css';
 
-const TITLE_LINES = [
-  ['Your', 'next', 'plan', 'deserves'],
-  ['a', 'room.'],
+const SUGGESTIONS = [
+  'Create a personal portfolio',
+  'Build a startup landing page',
+  'Design a SaaS dashboard',
+  'Sketch a mobile app flow',
+  'Plan a product roadmap',
 ];
 
-function Spark({ className = '' }: { className?: string }) {
-  return (
-    <svg className={`cta-spark ${className}`} viewBox="0 0 12 12" aria-hidden="true">
-      <path d="M6 0 l1.4 4.6 4.6 1.4 -4.6 1.4 -1.4 4.6 -1.4 -4.6 -4.6 -1.4 4.6 -1.4 z" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg className="cta-check" viewBox="0 0 14 14" aria-hidden="true">
-      <path d="M2.5 7.2 L5.6 10.3 L11.5 3.7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </svg>
-  );
-}
-
 export function FinalCta() {
-  const innerRef = useRef<HTMLDivElement | null>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const el = innerRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setInView(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.35 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+  const [input, setInput] = useState('');
 
   return (
     <section className="final-cta" id="cta">
-      {/* Background layer: canvas texture + two ghost "room" fragments,
-          drifting slowly, tying this section back to FeatureShowcase's
-          scenes — the product itself is what's closing the sale. */}
-      <div className="final-cta-canvas" aria-hidden="true">
-        <div className="cta-room cta-room-a">
-          <span className="cta-block">Launch·v1</span>
-          <span className="cta-block cta-block-ghost">Launch·v2</span>
-          <span className="cta-cursor cta-cursor-green" />
-        </div>
-        <div className="cta-room cta-room-b">
-          <span className="cta-bubble">shipped 🎉</span>
-          <span className="cta-cursor" />
-        </div>
-      </div>
-
       <Reveal>
-        <div ref={innerRef} className={`final-cta-inner ${inView ? 'in-view' : ''}`}>
-          <span className="landing-eyebrow">
-            <span className="landing-eyebrow-dot" aria-hidden="true" />
-            Ready when you are
+        <div className="final-cta-inner">
+          <span className="final-cta-eyebrow">
+            <span className="final-cta-eyebrow-dot" aria-hidden="true" />
+            Get started in 30 seconds
           </span>
 
-          <h2 className="final-cta-title" aria-label="Your next plan deserves a room.">
-            {TITLE_LINES.map((line, li) => (
-              <span className="cta-title-line" key={li} aria-hidden="true">
-                {line.map((word, wi) => (
-                  <span
-                    className="cta-word"
-                    key={word}
-                    style={{ '--i': li * 4 + wi } as React.CSSProperties}
-                  >
-                    {word}
-                  </span>
-                ))}
-                {li === 0 ? <br /> : null}
-              </span>
-            ))}
-            <Spark className="cta-spark-title cta-spark-title-1" />
-            <Spark className="cta-spark-title cta-spark-title-2" />
+          <h2 className="final-cta-title">
+            What will you sketch first?
           </h2>
 
-          <div className="final-cta-actions">
-            <span className="cta-bracket-wrap">
-              <svg className="cta-bracket" viewBox="0 0 220 74" preserveAspectRatio="none" aria-hidden="true">
-                <path d="M10 8 C 4 8, 4 8, 4 16 L4 58 C 4 66, 4 66, 10 66 M210 8 C 216 8, 216 8, 216 16 L216 58 C 216 66, 216 66, 210 66" />
+          <p className="final-cta-lead">
+            Join thousands of teams who use Sketchroom to plan, sketch, and ship faster.
+            Free to start. No credit card.
+          </p>
+
+          {/* Prompt input — Framer-style */}
+          <div className="final-cta-input-wrap">
+            <div className="final-cta-input">
+              <svg className="final-cta-input-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path d="M9 1.5l2.1 6.5h6.8l-5.5 4 2.1 6.5L9 14.5 3.5 18.5l2.1-6.5L0.1 8h6.8z" fill="currentColor" opacity="0.15" />
+                <circle cx="9" cy="9" r="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
               </svg>
-              <Link to="/auth" className="btn btn-primary final-cta-primary">
-                Start sketching
+              <input
+                type="text"
+                className="final-cta-field"
+                placeholder="Describe what you want to build…"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                aria-label="Describe what you want to build"
+              />
+              <Link
+                to="/auth"
+                className="final-cta-send"
+                aria-label="Start building"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </Link>
-            </span>
-            <a href="#top" className="btn btn-secondary">
-              Back to the room
-            </a>
+            </div>
           </div>
 
-          <ul className="final-cta-features">
-            <li><CheckIcon />Free to start</li>
-            <li><CheckIcon />No credit card</li>
-            <li><CheckIcon />Your first room in 30 seconds</li>
-          </ul>
+          {/* Suggestion chips */}
+          <div className="final-cta-chips">
+            {SUGGESTIONS.map((s) => (
+              <Link
+                key={s}
+                to="/auth"
+                className="final-cta-chip"
+                onClick={() => setInput(s)}
+              >
+                {s}
+              </Link>
+            ))}
+          </div>
         </div>
       </Reveal>
-
-      <svg className="final-cta-seam" viewBox="0 0 1200 24" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 12 C 150 2, 300 22, 450 12 S 750 2, 900 12 S 1100 20, 1200 10" />
-      </svg>
     </section>
   );
 }

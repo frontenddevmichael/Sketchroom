@@ -1,0 +1,11 @@
+[
+  { "name": "landing", "url": "http://localhost:5199/harness.html?view=app&route=%2F", "waitFor": ".landing-page", "scrollThrough": true },
+  { "name": "dashboard", "url": "http://localhost:5199/harness.html?view=app&route=/dashboard", "waitFor": ".dashboard" },
+  { "name": "room", "url": "http://localhost:5199/harness.html?view=app&route=/room/room_a", "waitFor": ".room-screen" },
+  { "name": "settings", "url": "http://localhost:5199/harness.html?view=app&route=/settings", "waitFor": ".settings-screen" },
+  { "name": "billing", "url": "http://localhost:5199/harness.html?view=app&route=/billing", "waitFor": ".billing-screen" },
+  { "name": "invite", "url": "http://localhost:5199/harness.html?view=app&route=/invite/tok_demo", "waitFor": ".error-screen" },
+  { "name": "legal", "url": "http://localhost:5199/harness.html?view=app&route=/terms", "waitFor": ".legal-screen" },
+  { "name": "error", "url": "http://localhost:5199/harness.html?view=app&route=/error", "waitFor": ".error-screen" },
+  { "name": "auth", "url": "http://localhost:5173/auth", "waitFor": ".auth-screen" }
+]

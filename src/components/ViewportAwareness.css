@@ -15,7 +15,7 @@
   top: 0;
   left: 0;
   border: 1.5px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   transition: transform 140ms ease, width 140ms ease, height 140ms ease;
 }
 

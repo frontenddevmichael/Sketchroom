@@ -13,7 +13,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   border: 2px solid var(--neutral-400);
   opacity: 0;
   transform-origin: 50% 50%;

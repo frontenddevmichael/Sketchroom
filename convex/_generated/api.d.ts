@@ -8,22 +8,24 @@
  * @module
  */
 
-import type * as ai from "../ai.js";
-import type * as aiDiagram from "../aiDiagram.js";
-import type * as aiStore from "../aiStore.js";
 import type * as auth from "../auth.js";
-import type * as canvas from "../canvas.js";
-import type * as email from "../email.js";
-import type * as errors from "../errors.js";
+import type * as core_email from "../core/email.js";
+import type * as core_errors from "../core/errors.js";
+import type * as core_lib from "../core/lib.js";
+import type * as core_rateLimiter from "../core/rateLimiter.js";
+import type * as core_usage from "../core/usage.js";
+import type * as core_users from "../core/users.js";
+import type * as features_ai from "../features/ai.js";
+import type * as features_aiDiagram from "../features/aiDiagram.js";
+import type * as features_aiStore from "../features/aiStore.js";
+import type * as features_canvas from "../features/canvas.js";
+import type * as features_invites from "../features/invites.js";
+import type * as features_presence from "../features/presence.js";
+import type * as features_rooms from "../features/rooms.js";
+import type * as features_snapshots from "../features/snapshots.js";
 import type * as http from "../http.js";
-import type * as invites from "../invites.js";
-import type * as lib from "../lib.js";
-import type * as presence from "../presence.js";
-import type * as rateLimiter from "../rateLimiter.js";
-import type * as rooms from "../rooms.js";
-import type * as snapshots from "../snapshots.js";
-import type * as usage from "../usage.js";
-import type * as users from "../users.js";
+import type * as utils_model from "../utils/model.js";
+import type * as utils_types from "../utils/types.js";
 
 import type {
   ApiFromModules,
@@ -32,22 +34,24 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  ai: typeof ai;
-  aiDiagram: typeof aiDiagram;
-  aiStore: typeof aiStore;
   auth: typeof auth;
-  canvas: typeof canvas;
-  email: typeof email;
-  errors: typeof errors;
+  "core/email": typeof core_email;
+  "core/errors": typeof core_errors;
+  "core/lib": typeof core_lib;
+  "core/rateLimiter": typeof core_rateLimiter;
+  "core/usage": typeof core_usage;
+  "core/users": typeof core_users;
+  "features/ai": typeof features_ai;
+  "features/aiDiagram": typeof features_aiDiagram;
+  "features/aiStore": typeof features_aiStore;
+  "features/canvas": typeof features_canvas;
+  "features/invites": typeof features_invites;
+  "features/presence": typeof features_presence;
+  "features/rooms": typeof features_rooms;
+  "features/snapshots": typeof features_snapshots;
   http: typeof http;
-  invites: typeof invites;
-  lib: typeof lib;
-  presence: typeof presence;
-  rateLimiter: typeof rateLimiter;
-  rooms: typeof rooms;
-  snapshots: typeof snapshots;
-  usage: typeof usage;
-  users: typeof users;
+  "utils/model": typeof utils_model;
+  "utils/types": typeof utils_types;
 }>;
 
 /**

@@ -18,8 +18,8 @@ interface VersionHistoryProps {
 }
 
 export function VersionHistory({ roomId, onClose, editor = null }: VersionHistoryProps) {
-  const snapshots = useQuery(api.snapshots.listSnapshots, { roomId });
-  const restoreSnapshot = useMutation(api.snapshots.restoreSnapshot);
+  const snapshots = useQuery(api.features.snapshots.listSnapshots, { roomId });
+  const restoreSnapshot = useMutation(api.features.snapshots.restoreSnapshot);
   const [confirmId, setConfirmId] = useState<Id<'snapshots'> | null>(null);
   const [restoring, setRestoring] = useState(false);
   const rootRef = useRef<HTMLElement | null>(null);

@@ -37,8 +37,10 @@ const SHAPE_LABEL: Record<string, string> = {
 
 const BLOCK_W = 180;
 const BLOCK_H = 90;
-const DIAGRAM_GAP = 40;
-const DIAGRAM_COLS = 4;
+const DESC_GAP = 12;
+const BLOCK_GAP_X = 60;
+const BLOCK_GAP_Y = 50;
+const CELL_H = BLOCK_H + DESC_GAP + 24 + BLOCK_GAP_Y;
 
 export const AI_REFINE_SUGGESTIONS = [
   'Add a step to this flow',
@@ -46,18 +48,61 @@ export const AI_REFINE_SUGGESTIONS = [
   'Reorganize this diagram',
 ];
 
-function layoutDiagram(count: number, center: { x: number; y: number }) {
-  const cols = Math.min(count, DIAGRAM_COLS);
+interface Rect { x: number; y: number; w: number; h: number }
+
+function rectsOverlap(a: Rect, b: Rect): boolean {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function collectExistingRects(editor: Editor): Rect[] {
+  const shapes = editor.getCurrentPageShapes();
+  const rects: Rect[] = [];
+  for (const s of shapes) {
+    const b = editor.getShapePageBounds(s.id);
+    if (b) rects.push({ x: b.x, y: b.y, w: b.width, h: b.height });
+  }
+  return rects;
+}
+
+function resolvePosition(
+  proposed: Rect,
+  occupied: Rect[],
+): { x: number; y: number } {
+  let { x, y } = proposed;
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const candidate: Rect = { x, y, w: proposed.w, h: proposed.h };
+    if (!occupied.some((r) => rectsOverlap(candidate, r))) return { x, y };
+    x += BLOCK_W + BLOCK_GAP_X;
+    if (attempt % 3 === 2) {
+      x = proposed.x;
+      y += CELL_H;
+    }
+  }
+  return { x, y };
+}
+
+function layoutDiagram(count: number, center: { x: number; y: number }, existingBounds?: Rect) {
+  const cols = Math.min(count, 3);
   const rows = Math.ceil(count / cols);
-  const totalW = cols * BLOCK_W + (cols - 1) * DIAGRAM_GAP;
-  const totalH = rows * BLOCK_H + (rows - 1) * DIAGRAM_GAP;
-  const startX = center.x - totalW / 2;
-  const startY = center.y - totalH / 2;
+  const totalW = cols * BLOCK_W + (cols - 1) * BLOCK_GAP_X;
+  const totalH = rows * CELL_H - BLOCK_GAP_Y;
+
+  let startX = center.x - totalW / 2;
+  let startY = center.y - totalH / 2;
+
+  if (existingBounds) {
+    startX = existingBounds.x + existingBounds.w + BLOCK_GAP_X * 2;
+    startY = existingBounds.y;
+  }
+
   const positions: { x: number; y: number }[] = [];
   for (let i = 0; i < count; i++) {
     const col = i % cols;
     const row = Math.floor(i / cols);
-    positions.push({ x: startX + col * (BLOCK_W + DIAGRAM_GAP), y: startY + row * (BLOCK_H + DIAGRAM_GAP) });
+    positions.push({
+      x: startX + col * (BLOCK_W + BLOCK_GAP_X),
+      y: startY + row * CELL_H,
+    });
   }
   return positions;
 }
@@ -77,13 +122,14 @@ function insertGhost(editor: Editor, blocks: AiGhostBlock[], index: number, onIn
   const viewport = editor.getViewportScreenBounds();
   const center = editor.screenToPage({ x: viewport.midX, y: viewport.midY });
   const block = blocks[index];
-  const w = 180;
-  const h = 90;
-  const gap = 24;
   const row = Math.floor(index / 3);
   const col = index % 3;
-  const x = center.x + (col - 1) * (w + gap) - w / 2;
-  const y = center.y + 40 + row * (h + gap) - h / 2;
+  const rawX = center.x + (col - 1) * (BLOCK_W + BLOCK_GAP_X) - BLOCK_W / 2;
+  const rawY = center.y + 40 + row * CELL_H;
+
+  const occupied = collectExistingRects(editor);
+  const cell: Rect = { x: rawX, y: rawY, w: BLOCK_W, h: CELL_H };
+  const pos = resolvePosition(cell, occupied);
   const color = kindColor(block.kind);
   const ids = [createShapeId(), createShapeId()];
 
@@ -91,12 +137,12 @@ function insertGhost(editor: Editor, blocks: AiGhostBlock[], index: number, onIn
     {
       id: ids[0],
       type: 'geo',
-      x,
-      y,
+      x: pos.x,
+      y: pos.y,
       props: {
         geo: 'rectangle',
-        w,
-        h,
+        w: BLOCK_W,
+        h: BLOCK_H,
         color,
         fill: 'semi',
         richText: toRichText(block.label),
@@ -105,10 +151,12 @@ function insertGhost(editor: Editor, blocks: AiGhostBlock[], index: number, onIn
     {
       id: ids[1],
       type: 'text',
-      x,
-      y: y + h + 6,
+      x: pos.x,
+      y: pos.y + BLOCK_H + 12,
       props: {
         color: 'grey',
+        size: 's',
+        w: BLOCK_W,
         richText: toRichText(block.description ?? `${block.kind} component`),
       },
     },
@@ -120,11 +168,32 @@ function insertGhost(editor: Editor, blocks: AiGhostBlock[], index: number, onIn
   onInserted(block.label);
 }
 
+function geoShapeForKind(kind: string) {
+  switch (kind) {
+    case 'ellipse':
+    case 'cloud':
+      return 'ellipse' as const;
+    case 'diamond':
+      return 'diamond' as const;
+    default:
+      return 'rectangle' as const;
+  }
+}
+
 function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () => void) {
   if (diagram.blocks.length === 0) return;
   const viewport = editor.getViewportScreenBounds();
   const center = editor.screenToPage({ x: viewport.midX, y: viewport.midY });
-  const positions = layoutDiagram(diagram.blocks.length, center);
+  const existingBounds = editor.getCurrentPageBounds();
+  const rawPositions = layoutDiagram(diagram.blocks.length, center, existingBounds ? { x: existingBounds.x, y: existingBounds.y, w: existingBounds.width, h: existingBounds.height } : undefined);
+
+  const occupied = collectExistingRects(editor);
+  const positions = rawPositions.map((pos) => {
+    const cell: Rect = { x: pos.x, y: pos.y, w: BLOCK_W, h: CELL_H };
+    return resolvePosition(cell, occupied);
+  });
+
+  positions.forEach((p) => occupied.push({ x: p.x, y: p.y, w: BLOCK_W, h: CELL_H }));
   const shapes: Parameters<typeof editor.createShapes>[0] = [];
   const shapeIds: TLShapeId[] = [];
   const bindings: {
@@ -138,27 +207,36 @@ function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () =
     const pos = positions[i];
     const id = createShapeId();
     shapeIds.push(id);
+    const color = kindColor(block.kind);
+    const geo = geoShapeForKind(block.kind);
     shapes.push({
       id,
       type: 'geo',
       x: pos.x,
       y: pos.y,
       props: {
-        geo: 'rectangle',
+        geo,
         w: BLOCK_W,
         h: BLOCK_H,
-        color: kindColor(block.kind),
+        color,
         fill: 'semi',
         richText: toRichText(block.label),
       },
     });
     if (block.description) {
+      const descId = createShapeId();
+      shapeIds.push(descId);
       shapes.push({
-        id: createShapeId(),
+        id: descId,
         type: 'text',
         x: pos.x,
-        y: pos.y + BLOCK_H + 6,
-        props: { color: 'grey', richText: toRichText(block.description) },
+        y: pos.y + BLOCK_H + 12,
+        props: {
+          color: 'grey',
+          size: 's',
+          w: BLOCK_W,
+          richText: toRichText(block.description),
+        },
       });
     }
   });
@@ -168,11 +246,13 @@ function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () =
     const b = positions[edge.to];
     if (!a || !b) return;
     const arrowId = createShapeId();
+    const arrowX = a.x + BLOCK_W;
+    const arrowY = a.y + BLOCK_H / 2;
     shapes.push({
       id: arrowId,
       type: 'arrow',
-      x: a.x + BLOCK_W / 2,
-      y: a.y + BLOCK_H / 2,
+      x: arrowX,
+      y: arrowY,
       props: { color: 'grey', arrowheadEnd: 'arrow' },
     });
     bindings.push(
@@ -180,22 +260,27 @@ function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () =
         type: 'arrow',
         fromId: arrowId,
         toId: shapeIds[edge.from],
-        props: { terminal: 'start', normalizedAnchor: { x: 0.5, y: 0.5 }, isExact: false },
+        props: { terminal: 'start', normalizedAnchor: { x: 1, y: 0.5 }, isExact: true },
       },
       {
         type: 'arrow',
         fromId: arrowId,
         toId: shapeIds[edge.to],
-        props: { terminal: 'end', normalizedAnchor: { x: 0.5, y: 0.5 }, isExact: false },
+        props: { terminal: 'end', normalizedAnchor: { x: 0, y: 0.5 }, isExact: true },
       }
     );
     if (edge.label) {
+      const labelX = (a.x + b.x) / 2 + BLOCK_W / 2;
+      const labelY = (a.y + b.y) / 2 + BLOCK_H / 2 - 16;
+      const labelCell: Rect = { x: labelX, y: labelY, w: 140, h: 20 };
+      const labelPos = resolvePosition(labelCell, occupied);
+      occupied.push({ x: labelPos.x, y: labelPos.y, w: 140, h: 20 });
       shapes.push({
         id: createShapeId(),
         type: 'text',
-        x: (a.x + b.x) / 2 + BLOCK_W / 2 - 20,
-        y: (a.y + b.y) / 2 + BLOCK_H / 2 - 12,
-        props: { color: 'grey', richText: toRichText(edge.label) },
+        x: labelPos.x,
+        y: labelPos.y,
+        props: { color: 'grey', size: 's', richText: toRichText(edge.label) },
       });
     }
   });
@@ -235,7 +320,7 @@ export function useAiCopilot(opts: {
   const [selectedCount, setSelectedCount] = useState(0);
   const [feedOpen, setFeedOpen] = useState(false);
 
-  const requestAi = useAction(api.ai.requestAiSuggestion);
+  const requestAi = useAction(api.features.ai.requestAiSuggestion);
 
   useEffect(() => {
     if (!editor) return;
@@ -250,11 +335,19 @@ export function useAiCopilot(opts: {
 
   const buildContext = useCallback(() => {
     if (!editor) return undefined;
-    const shapes = editor.getSelectedShapes().slice(0, 30);
-    if (shapes.length === 0) return undefined;
-    return shapes.map((s) => {
+    const allShapes = editor.getCurrentPageShapes().slice(0, 60);
+    if (allShapes.length === 0) return undefined;
+    const selectedIds = new Set(editor.getSelectedShapeIds());
+    return allShapes.map((s) => {
       const text = editor.getShapeUtil(s).getText(s)?.trim();
-      return { label: text || SHAPE_LABEL[s.type] || s.type, kind: s.type };
+      const bounds = editor.getShapePageBounds(s.id);
+      return {
+        label: text || SHAPE_LABEL[s.type] || s.type,
+        kind: s.type,
+        x: bounds?.x ?? 0,
+        y: bounds?.y ?? 0,
+        selected: selectedIds.has(s.id),
+      };
     });
   }, [editor]);
 

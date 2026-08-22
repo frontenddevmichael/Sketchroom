@@ -39,11 +39,11 @@ export function SettingsScreen() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
 
-  const workspaces = useQuery(api.rooms.getWorkspaces);
-  const usage = useQuery(api.rooms.getUsage);
-  const updateWorkspaceName = useMutation(api.rooms.updateWorkspaceName);
-  const deleteWorkspace = useMutation(api.rooms.deleteWorkspace);
-  const updateProfile = useMutation(api.users.updateProfile);
+  const workspaces = useQuery(api.features.rooms.getWorkspaces);
+  const usage = useQuery(api.features.rooms.getUsage);
+  const updateWorkspaceName = useMutation(api.features.rooms.updateWorkspaceName);
+  const deleteWorkspace = useMutation(api.features.rooms.deleteWorkspace);
+  const updateProfile = useMutation(api.core.users.updateProfile);
 
   const confirmRef = useModalFocus<HTMLDivElement>(() => setConfirmDeleteOpen(false), confirmDeleteOpen);
 

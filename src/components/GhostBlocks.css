@@ -12,14 +12,14 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: 1.5px dashed var(--green-500-45);
   background: rgba(13, 24, 18, 0.82);
   color: #e5f6ec;
-  font-size: 13px;
+  font-size: var(--fs-sm, 14px);
   font-weight: 600;
   letter-spacing: 0.02em;
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(var(--glass-blur, 20px));
   box-sizing: border-box;
   white-space: nowrap;
   overflow: hidden;
@@ -68,6 +68,23 @@
 .ghost-block.ghost-focused.ghost-tone-teal { border-color: #2cc7be; box-shadow: 0 0 0 3px rgba(44, 199, 190, 0.25), 0 8px 24px rgba(44, 199, 190, 0.28); }
 .ghost-block.ghost-focused.ghost-tone-yellow { border-color: #ffcd42; box-shadow: 0 0 0 3px rgba(255, 205, 66, 0.25), 0 8px 24px rgba(255, 205, 66, 0.28); }
 .ghost-block.ghost-focused.ghost-tone-gray { border-color: #a0a0aa; box-shadow: 0 0 0 3px rgba(160, 160, 170, 0.25), 0 8px 24px rgba(160, 160, 170, 0.28); }
+
+/* Dark-mode ghost blocks — these float over the canvas, so the base
+   already uses a dark semi-transparent background. In light mode the
+   tones above are fine; in dark mode we brighten the text slightly
+   so contrast stays above 4.5:1 against the dark background. */
+[data-theme='dark'] .ghost-block {
+  background: rgba(13, 24, 18, 0.7);
+  border-color: var(--green-500-50);
+}
+
+[data-theme='dark'] .ghost-tone-blue { color: #b3ccff; }
+[data-theme='dark'] .ghost-tone-purple { color: #d4b8ff; }
+[data-theme='dark'] .ghost-tone-green { color: #b3ffcc; }
+[data-theme='dark'] .ghost-tone-orange { color: #ffd4a8; }
+[data-theme='dark'] .ghost-tone-teal { color: #b3fffa; }
+[data-theme='dark'] .ghost-tone-yellow { color: #ffe8a8; }
+[data-theme='dark'] .ghost-tone-gray { color: #d0d0d4; }
 
 .ghost-edges {
   position: absolute;

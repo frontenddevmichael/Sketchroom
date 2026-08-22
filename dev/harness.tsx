@@ -256,17 +256,17 @@ declare global {
 }
 
 const MUTATION_BY_NAME: Record<string, unknown> = {
-  createRoom: api.rooms.createRoom,
-  createWorkspace: api.rooms.createWorkspace,
-  updateRoomName: api.rooms.updateRoomName,
-  deleteRoom: api.rooms.deleteRoom,
-  deleteWorkspace: api.rooms.deleteWorkspace,
-  applyCanvasChanges: api.canvas.applyCanvasChanges,
-  saveSnapshot: api.snapshots.saveSnapshot,
-  restoreSnapshot: api.snapshots.restoreSnapshot,
-  upsertPresence: api.presence.upsertPresence,
-  inviteMember: api.invites.inviteMember,
-  createInviteLink: api.invites.createInviteLink,
+  createRoom: api.features.rooms.createRoom,
+  createWorkspace: api.features.rooms.createWorkspace,
+  updateRoomName: api.features.rooms.updateRoomName,
+  deleteRoom: api.features.rooms.deleteRoom,
+  deleteWorkspace: api.features.rooms.deleteWorkspace,
+  applyCanvasChanges: api.features.canvas.applyCanvasChanges,
+  saveSnapshot: api.features.snapshots.saveSnapshot,
+  restoreSnapshot: api.features.snapshots.restoreSnapshot,
+  upsertPresence: api.features.presence.upsertPresence,
+  inviteMember: api.features.invites.inviteMember,
+  createInviteLink: api.features.invites.createInviteLink,
 };
 
 function AppView() {
@@ -282,7 +282,7 @@ function AppView() {
   useEffect(() => {
     window.__sketchroomHarness = {
       getMutationCalls: (name) => __getMutationCalls(MUTATION_BY_NAME[name]),
-      setSnapshots: (snapshots) => __setQueryResult(api.snapshots.listSnapshots, snapshots),
+      setSnapshots: (snapshots) => __setQueryResult(api.features.snapshots.listSnapshots, snapshots),
     };
     return () => {
       delete window.__sketchroomHarness;

@@ -51,7 +51,7 @@ export function UserMenu({ placement = 'down', size = 'sm', align = 'right' }: U
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const hoverTimer = useRef<number | null>(null);
-  const usage = useQuery(api.rooms.getUsage);
+  const usage = useQuery(api.features.rooms.getUsage);
 
   const clearHoverTimer = () => {
     if (hoverTimer.current !== null) {

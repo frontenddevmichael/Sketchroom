@@ -342,12 +342,30 @@
   }
 }
 
-[data-theme='dark'] .plan-usage-fill-ai {
-  background: var(--green-400);
+[data-theme="dark"] .billing-screen {
+  background: #000;
+}
+
+[data-theme="dark"] .billing-back:hover {
+  background: var(--dark-elevation-3);
 }
 
 [data-theme="dark"] .plan-card {
   background: var(--dark-elevation-1);
+  border-color: var(--dark-hairline);
+  transition: border-color var(--duration-fast) var(--ease-spring);
+}
+
+[data-theme="dark"] .plan-card:hover {
+  border-color: rgba(37, 211, 102, 0.18);
+}
+
+[data-theme="dark"] .plan-recommended {
+  box-shadow: 0 2px 12px rgba(37, 211, 102, 0.25);
+}
+
+[data-theme="dark"] .plan-current {
+  background: var(--dark-elevation-2);
   border-color: var(--dark-hairline);
 }
 
@@ -357,6 +375,47 @@
 
 [data-theme="dark"] .plan-usage-fill {
   background: var(--green-400);
+}
+
+[data-theme="dark"] .plan-usage-fill-ai {
+  background: var(--green-400);
+}
+
+[data-theme="dark"] .billing-compare-table {
+  background: var(--dark-elevation-1);
+  border-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .billing-compare-table th,
+[data-theme="dark"] .billing-compare-table td {
+  border-bottom-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .billing-compare-table thead th {
+  background: var(--dark-elevation-2);
+}
+
+[data-theme="dark"] .billing-faq-item {
+  background: var(--dark-elevation-1);
+  border-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .billing-faq-question:hover {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .billing-section-title {
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .limit-reached {
+  background: var(--dark-elevation-1);
+  border: 1px solid var(--dark-hairline);
+}
+
+[data-theme="dark"] .skel-billing-title,
+[data-theme="dark"] .skel-billing-sub {
+  background: var(--dark-elevation-2);
 }
 /* ── Loading skeletons ─────────────────────────────────────────────────── */
 .skel-billing-title {
@@ -381,11 +440,6 @@
   border-radius: var(--radius-lg);
   background: var(--color-bg-surface);
   
-}
-
-[data-theme='dark'] .limit-reached {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
 }
 
 .limit-reached-illo {

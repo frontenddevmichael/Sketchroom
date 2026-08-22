@@ -213,7 +213,7 @@ export function RoomScreen() {
   const lastPrune = useRef(0);
 
   const roomIdArg = roomId ? (roomId as Id<'rooms'>) : undefined;
-  const room = useQuery(api.rooms.getRoom, roomIdArg ? { roomId: roomIdArg } : 'skip');
+  const room = useQuery(api.features.rooms.getRoom, roomIdArg ? { roomId: roomIdArg } : 'skip');
 
   // The walkthrough is active until every guided step is done (or dismissed);
   // wtStep is the first uncompleted step in order, 3 = everything done.
@@ -238,9 +238,9 @@ export function RoomScreen() {
   }, []);
 
   usePageTitle(room?.name ? `${room.name} — Sketchroom` : 'Room — Sketchroom');
-  const canvas = useQuery(api.canvas.loadCanvas, roomIdArg ? { roomId: roomIdArg } : 'skip');
-  const presence = useQuery(api.presence.getPresence, roomIdArg ? { roomId: roomIdArg } : 'skip');
-  const aiMessages = useQuery(api.ai.getAiMessages, roomIdArg ? { roomId: roomIdArg } : 'skip');
+  const canvas = useQuery(api.features.canvas.loadCanvas, roomIdArg ? { roomId: roomIdArg } : 'skip');
+  const presence = useQuery(api.features.presence.getPresence, roomIdArg ? { roomId: roomIdArg } : 'skip');
+  const aiMessages = useQuery(api.features.ai.getAiMessages, roomIdArg ? { roomId: roomIdArg } : 'skip');
 
   const isReadOnly = room?.userRole === 'viewer';
 
@@ -307,13 +307,13 @@ export function RoomScreen() {
     const t = window.setTimeout(() => setSeenAiId(lastAiId), 0);
     return () => window.clearTimeout(t);
   }, [aiPanelOpen, lastAiId, seenAiId]);
-  const applyCanvasChanges = useMutation(api.canvas.applyCanvasChanges);
-  const upsertPresence = useMutation(api.presence.upsertPresence);
-  const removePresence = useMutation(api.presence.removePresence);
-  const prunePresence = useMutation(api.presence.prunePresence);
-  const updateRoomName = useMutation(api.rooms.updateRoomName);
-  const saveSnapshot = useMutation(api.snapshots.saveSnapshot);
-  const updateRoomThumbnail = useMutation(api.rooms.updateRoomThumbnail);
+  const applyCanvasChanges = useMutation(api.features.canvas.applyCanvasChanges);
+  const upsertPresence = useMutation(api.features.presence.upsertPresence);
+  const removePresence = useMutation(api.features.presence.removePresence);
+  const prunePresence = useMutation(api.features.presence.prunePresence);
+  const updateRoomName = useMutation(api.features.rooms.updateRoomName);
+  const saveSnapshot = useMutation(api.features.snapshots.saveSnapshot);
+  const updateRoomThumbnail = useMutation(api.features.rooms.updateRoomThumbnail);
 
   const captureThumbnail = useCallback(async () => {
     if (!roomIdArg || isReadOnly) return;
@@ -1273,7 +1273,8 @@ export function RoomScreen() {
             <FocusHint active={effectiveFocus} />
 
             {!isReadOnly && activePanel === 'blocks' && (
-              <BlockLibrary editor={editorState} onClose={() => setActivePanel(null)} anchorRef={blockBtnRef} />
+            <BlockLibrary editor={editorState} onClose={() => setActivePanel(null)} anchorRef={blockBtnRef} />
+            
             )}
 
             {activePanel === 'history' && (
@@ -1311,6 +1312,7 @@ export function RoomScreen() {
             barRef={aiBarRef}
             unviewed={hasUnviewed}
           />
+          
         </div>
 
         <nav

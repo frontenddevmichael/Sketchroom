@@ -134,6 +134,41 @@ test.describe('settings', () => {
   });
 });
 
+test.describe('landing nav', () => {
+  test('at narrow widths the hamburger stays inside the viewport and the CTA collapses', async ({ page }) => {
+    for (const w of [320, 375, 430, 480]) {
+      await page.setViewportSize({ width: w, height: 812 });
+      await page.goto(appUrl('/'));
+      await expect(page.locator('.landing-page')).toBeVisible();
+
+      // Hamburger fully visible and clickable — never pushed off-screen.
+      const menu = page.locator('.landing-nav-menu-btn');
+      await expect(menu).toBeVisible();
+      const box = await menu.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.x + box!.width).toBeLessThanOrEqual(w);
+
+      // The CTA button is collapsed away below 480 (it lives in the menu);
+      // nothing may overflow the viewport horizontally.
+      await expect(page.locator('.landing-nav-cta-btn')).toBeHidden();
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBeLessThanOrEqual(0);
+    }
+  });
+
+  test('the CTA button stays visible from 481px up', async ({ page }) => {
+    await page.setViewportSize({ width: 600, height: 800 });
+    await page.goto(appUrl('/'));
+    await expect(page.locator('.landing-page')).toBeVisible();
+    await expect(page.locator('.landing-nav-cta-btn')).toBeVisible();
+    const box = await page.locator('.landing-nav-menu-btn').boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(600);
+  });
+});
+
 test.describe('room chrome harness', () => {
   test('default harness still boots the room chrome', async ({ page }) => {
     await page.goto('/harness.html');

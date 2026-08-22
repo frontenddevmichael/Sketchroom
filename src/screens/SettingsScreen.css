@@ -477,6 +477,78 @@
 [data-theme="dark"] .settings-confirm-title {
   color: #ff8a7a;
 }
+
+[data-theme="dark"] .settings-screen {
+  background: #000;
+}
+
+[data-theme="dark"] .settings-sidebar {
+  background: #000;
+  border-right-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .settings-nav-item.active {
+  background: var(--green-500-10);
+  color: var(--green-400);
+}
+
+[data-theme="dark"] .settings-nav-item:hover {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .settings-back:hover {
+  background: var(--dark-elevation-3);
+}
+
+[data-theme="dark"] .settings-member {
+  background: var(--dark-elevation-1);
+  border-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .settings-usage {
+  background: var(--dark-elevation-1);
+  border-color: var(--dark-hairline);
+}
+
+[data-theme="dark"] .settings-usage-bar {
+  background: var(--dark-elevation-4);
+}
+
+[data-theme="dark"] .settings-theme-seg {
+  background: var(--dark-elevation-2);
+}
+
+[data-theme="dark"] .settings-theme-opt.active {
+  background: var(--dark-elevation-3);
+  color: #fff;
+}
+
+[data-theme="dark"] .settings-save {
+  box-shadow: 0 2px 12px rgba(37, 211, 102, 0.25);
+}
+
+[data-theme="dark"] .settings-save:hover {
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.3);
+}
+
+[data-theme="dark"] .settings-confirm-backdrop {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+[data-theme="dark"] .settings-confirm-card {
+  background: var(--dark-elevation-2);
+  border: 1px solid var(--dark-hairline);
+}
+
+[data-theme="dark"] .settings-signout:hover {
+  background: rgba(255, 99, 71, 0.12);
+}
+
+[data-theme="dark"] .skel-settings-back,
+[data-theme="dark"] .skel-settings-nav-item,
+[data-theme="dark"] .skel-settings-title {
+  background: var(--dark-elevation-2);
+}
 /* ── First-load shell skeletons ────────────────────────────────────────── */
 .skel-settings-back {
   width: 36px;
