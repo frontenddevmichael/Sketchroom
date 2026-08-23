@@ -1,0 +1,206 @@
+/* Comment pins overlay */
+.comment-pin {
+  position: absolute;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.comment-pin-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green-500);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  position: relative;
+}
+
+.comment-pin-dot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px var(--green-500-25);
+}
+
+.comment-pin-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--surface-2, #1a1a2e);
+  color: var(--green-500);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--green-500);
+}
+
+/* Thread panel */
+.comment-thread {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  width: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: var(--radius-md);
+  padding: 0;
+  z-index: 20;
+}
+
+.comment-thread-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.comment-thread-title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.comment-thread-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+.comment-thread-close:hover { color: var(--text-primary); }
+
+/* Comment items */
+.comment-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-reply {
+  padding-left: 24px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.comment-item-body {
+  font-size: var(--fs-sm, 13px);
+  color: var(--text-primary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.comment-action-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 120ms;
+}
+.comment-item:hover .comment-action-btn { opacity: 1; }
+.comment-action-btn:hover { color: var(--red-400, #f87171); }
+
+/* Reply button */
+.comment-reply-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm, 13px);
+  cursor: pointer;
+  text-align: left;
+}
+.comment-reply-btn:hover {
+  color: var(--green-500);
+  background: rgba(37, 211, 102, 0.05);
+}
+
+/* Resolve button */
+.comment-resolve-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm, 13px);
+  cursor: pointer;
+}
+.comment-resolve-btn:hover {
+  color: var(--green-500);
+  background: rgba(37, 211, 102, 0.05);
+}
+
+/* Input */
+.comment-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--surface-1, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: var(--fs-sm, 13px);
+  font-family: inherit;
+  resize: none;
+  outline: none;
+}
+.comment-input:focus {
+  border-color: var(--green-500);
+}
+.comment-input-sm {
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.comment-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* Pending comment form */
+.comment-pin-form {
+  position: absolute;
+  width: 260px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  z-index: 25;
+}
+
+/* Comment mode overlay */
+.comment-click-overlay {
+  background: transparent;
+}

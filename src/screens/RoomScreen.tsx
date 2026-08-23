@@ -10,7 +10,7 @@ import { createTLStore, setUserPreferences } from 'tldraw';
 import { Tldraw } from 'tldraw';
 import type { Editor, TLRecord, TLStore } from 'tldraw';
 import 'tldraw/tldraw.css';
-import { Blocks, History, Download, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, HelpCircle, X, ArrowLeft, Pencil, User, MoreHorizontal } from 'lucide-react';
+import { Blocks, History, Download, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, HelpCircle, X, ArrowLeft, Pencil, User, MoreHorizontal, MessageSquare } from 'lucide-react';
 import { useLongLoad } from '../hooks/useLongLoad';
 import { useModalFocus } from '../lib/useModalFocus';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -32,6 +32,7 @@ import { SelectionAwareness } from '../components/SelectionAwareness';
 import { ViewportAwareness } from '../components/ViewportAwareness';
 import { PlacementPulses } from '../components/PlacementPulses';
 import { FocusDim, FocusHint } from '../components/FocusDim';
+import { CommentPins } from '../components/CommentPins';
 import { useAnnouncer } from '../components/LiveRegion';
 import '../components/shared.css';
 import './RoomScreen.css';
@@ -43,6 +44,7 @@ import '../components/PresenceCursors.css';
 import '../components/ViewportAwareness.css';
 import '../components/PlacementPulses.css';
 import '../components/FocusDim.css';
+import '../components/CommentPins.css';
 
 const PRESENCE_COLORS = ['#25D366', '#4A90D9', '#D9664A', '#9B59B6', '#E67E22', '#16A085'];
 
@@ -190,6 +192,7 @@ export function RoomScreen() {
   const [walkthrough, setWalkthrough] = useState<{ pencil: boolean; note: boolean; connector: boolean } | null>(null);
   const [wtClosing, setWtClosing] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [commentMode, setCommentMode] = useState(false);
   // Shared between the quick strip and the options rail so a pick in either
   // respects the same "Selection vs New shapes" mode.
   const [styleMode, setStyleMode] = useState<ToolStyleMode>('next');
@@ -1341,6 +1344,12 @@ setSaveStatus('saved');
             <PlacementPulses editor={editorState} />
             <FocusDim editor={editorState} active={effectiveFocus} />
             <FocusHint active={effectiveFocus} />
+            <CommentPins
+              editor={editorState}
+              roomId={roomIdArg as Id<'rooms'> | undefined}
+              commentMode={commentMode}
+              onExitCommentMode={() => setCommentMode(false)}
+            />
 
             {!isReadOnly && activePanel === 'blocks' && (
             <BlockLibrary editor={editorState} onClose={() => setActivePanel(null)} anchorRef={blockBtnRef} />
@@ -1385,6 +1394,12 @@ setSaveStatus('saved');
           
         </div>
 
+        {isReadOnly && (
+          <div role="status" className="sr-only" style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+            View only — editing is disabled
+          </div>
+        )}
+
         <nav
           className="room-tool-rail glass"
           ref={toolRailRef}
@@ -1410,6 +1425,7 @@ setSaveStatus('saved');
                 onClick={() => setTool(id)}
                 data-hint={toolTitle(cfg)}
                 aria-label={toolTitle(cfg)}
+                aria-pressed={activeTool === id}
                 disabled={isReadOnly}
               >
                 <Icon size={18} />
@@ -1428,6 +1444,19 @@ setSaveStatus('saved');
             disabled={isReadOnly}
           >
             <Blocks size={18} />
+          </button>
+          <button
+            className={`room-rail-tool ${commentMode ? 'active' : ''}`}
+            onClick={() => {
+              setCommentMode(!commentMode);
+              if (commentMode) setTool('select');
+            }}
+            data-hint="Comment"
+            aria-label="Comment pin"
+            aria-pressed={commentMode}
+            disabled={isReadOnly}
+          >
+            <MessageSquare size={18} />
           </button>
         </nav>
 
@@ -1551,6 +1580,7 @@ setSaveStatus('saved');
                     className={`room-tool-bar-btn ${activeTool === id ? 'active' : ''}`}
                     onClick={() => setTool(id)}
                     aria-label={toolTitle(cfg)}
+                    aria-pressed={activeTool === id}
                     disabled={isReadOnly}
                   >
                     <Icon size={18} />
@@ -1569,6 +1599,7 @@ setSaveStatus('saved');
                     className={`room-tool-bar-btn ${activeTool === id ? 'active' : ''}`}
                     onClick={() => setTool(id)}
                     aria-label={toolTitle(cfg)}
+                    aria-pressed={activeTool === id}
                     disabled={isReadOnly}
                   >
                     <Icon size={18} />
@@ -1866,6 +1897,7 @@ function CoachmarkPill({
       className="room-coachmark glass"
       role="note"
       aria-label="Getting started"
+      aria-live="polite"
       style={pos ? { left: pos.left, top: pos.top } : undefined}
     >
       <p className="room-coachmark-text">{text}</p>

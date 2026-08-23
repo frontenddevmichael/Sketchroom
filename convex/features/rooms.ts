@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { auth, MAX_THUMBNAIL_CHARS } from "../core/lib";
 import { internal } from "../_generated/api";
 import { countRoomMemberships, countAiSuggestions, FREE_PLAN, planLimitError } from "../core/usage";
+import { rateLimiter } from "../core/rateLimiter";
 
 export const getWorkspaces = query({
   args: {},
@@ -179,6 +180,14 @@ export const updateRoomThumbnail = mutation({
       .first();
     if (!member || (member.role !== "owner" && member.role !== "editor")) {
       throw new Error("Insufficient permissions");
+    }
+    // Rate-limit thumbnail updates to prevent storage abuse
+    const { ok, retryAfter } = await rateLimiter.limit(ctx, "canvasApply", {
+      key: `thumbnail:${identity.subject}`,
+      throws: true,
+    });
+    if (!ok) {
+      throw new Error(`Rate limit hit — try again in ~${Math.ceil((retryAfter ?? 1000) / 1000)}s`);
     }
     const thumbnail = args.thumbnailData ?? "";
     if (thumbnail.length > MAX_THUMBNAIL_CHARS) {

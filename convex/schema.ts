@@ -112,4 +112,17 @@ export default defineSchema({
     url: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_created", ["createdAt"]),
+
+  comments: defineTable({
+    roomId: v.id("rooms"),
+    userId: v.string(), // who posted
+    x: v.number(), // canvas x coordinate
+    y: v.number(), // canvas y coordinate
+    body: v.string(), // comment text
+    resolved: v.boolean(), // resolve/reopen state
+    parentId: v.optional(v.id("comments")), // null = top-level pin, set = reply in thread
+    createdAt: v.number(),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_room_unresolved", ["roomId", "resolved"]),
 });

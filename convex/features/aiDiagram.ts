@@ -41,6 +41,15 @@ export function fallbackBlocks(prompt: string): AiBlock[] {
   return blocks.slice(0, MAX_BLOCKS);
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 function sanitizeBlock(raw: unknown): AiBlock | null {
   if (typeof raw !== "object" || raw === null) return null;
   const b = raw as Record<string, unknown>;
@@ -49,9 +58,9 @@ function sanitizeBlock(raw: unknown): AiBlock | null {
   const kind = typeof b.kind === "string" && ALLOWED_KINDS.has(b.kind) ? b.kind : "service";
   const description = typeof b.description === "string" ? b.description.trim() : "";
   return {
-    label: label.slice(0, MAX_LABEL),
+    label: escapeHtml(label.slice(0, MAX_LABEL)),
     kind,
-    description: description ? description.slice(0, 200) : undefined,
+    description: description ? escapeHtml(description.slice(0, 200)) : undefined,
   };
 }
 
@@ -87,7 +96,7 @@ export function sanitizeEdges(raw: unknown, count: number): AiEdge[] {
     out.push({
       from: f,
       to: t,
-      label: trimmed ? trimmed.slice(0, MAX_LABEL) : undefined,
+      label: trimmed ? escapeHtml(trimmed.slice(0, MAX_LABEL)) : undefined,
     });
     if (out.length >= MAX_EDGES) break;
   }

@@ -335,10 +335,34 @@ export function useAiCopilot(opts: {
 
   const buildContext = useCallback(() => {
     if (!editor) return undefined;
-    const allShapes = editor.getCurrentPageShapes().slice(0, 60);
+    const allShapes = editor.getCurrentPageShapes();
     if (allShapes.length === 0) return undefined;
     const selectedIds = new Set(editor.getSelectedShapeIds());
-    return allShapes.map((s) => {
+    const viewport = editor.getViewportPageBounds();
+    const viewCx = viewport.x + viewport.width / 2;
+    const viewCy = viewport.y + viewport.height / 2;
+
+    // Score shapes: selected > in viewport > near viewport > distant
+    const scored = allShapes.map((s) => {
+      const bounds = editor.getShapePageBounds(s.id);
+      const isSelected = selectedIds.has(s.id);
+      if (!bounds) return { shape: s, score: isSelected ? -2 : 9999, isSelected };
+      const cx = bounds.x + bounds.width / 2;
+      const cy = bounds.y + bounds.height / 2;
+      const inView = cx >= viewport.x && cx <= viewport.x + viewport.width &&
+                     cy >= viewport.y && cy <= viewport.y + viewport.height;
+      const dist = Math.hypot(cx - viewCx, cy - viewCy);
+      // Selected shapes get priority (-2), in-viewport shapes get their distance,
+      // out-of-viewport shapes get distance + large penalty
+      const score = isSelected ? -2 : inView ? dist : dist + 10000;
+      return { shape: s, score, isSelected };
+    });
+
+    // Sort by score (selected first, then by proximity to viewport center)
+    scored.sort((a, b) => a.score - b.score);
+    const top60 = scored.slice(0, 60);
+
+    return top60.map(({ shape: s }) => {
       const text = editor.getShapeUtil(s).getText(s)?.trim();
       const bounds = editor.getShapePageBounds(s.id);
       return {

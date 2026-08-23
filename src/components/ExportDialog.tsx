@@ -14,6 +14,42 @@ interface ExportDialogProps {
 type Format = 'png' | 'pdf' | 'svg';
 type Scope = 'whole' | 'selection';
 
+/**
+ * Clean exported SVG by removing tldraw-internal attributes and elements
+ * that would be meaningless in Figma or other design tools.
+ */
+function cleanSvgForExport(rawSvg: string): string {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(rawSvg, 'image/svg+xml');
+  const svg = doc.querySelector('svg');
+  if (!svg) return rawSvg;
+
+  // Remove tldraw session/style attributes from all elements
+  svg.querySelectorAll('*').forEach((el) => {
+    const attrs = el.attributes;
+    for (let i = attrs.length - 1; i >= 0; i--) {
+      const name = attrs[i].name;
+      // Remove tldraw-internal attributes (data-tldraw, style overrides, etc.)
+      if (name.startsWith('data-tl-') || name === 'id') {
+        el.removeAttribute(name);
+      }
+    }
+  });
+
+  // Remove hidden elements (tldraw session records rendered as hidden groups)
+  svg.querySelectorAll('[display="none"], [visibility="hidden"]').forEach((el) => {
+    if (el.tagName === 'g') el.remove();
+  });
+
+  // Ensure proper XML namespace
+  if (!svg.getAttribute('xmlns')) {
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  }
+
+  const serializer = new XMLSerializer();
+  return serializer.serializeToString(svg);
+}
+
 export function ExportDialog({ onClose, editor }: ExportDialogProps) {
   const modalRef = useModalFocus<HTMLDivElement>(onClose);
   const [format, setFormat] = useState<Format>('png');
@@ -38,8 +74,9 @@ export function ExportDialog({ onClose, editor }: ExportDialogProps) {
       if (format === 'svg') {
         const svgString = await ed.getSvgString(exportIds, { background: true });
         if (!svgString) throw new Error('Could not render SVG');
+        const cleaned = cleanSvgForExport(svgString.svg);
         downloadBlob(
-          new Blob([svgString.svg], { type: 'image/svg+xml' }),
+          new Blob([cleaned], { type: 'image/svg+xml' }),
           `sketchroom-${Date.now()}.svg`
         );
       } else if (format === 'png') {

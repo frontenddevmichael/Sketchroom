@@ -166,6 +166,12 @@ export const dismissAiSuggestion = mutation({
     if (!identity) throw new Error("Not authenticated");
     const msg = await ctx.db.get(args.messageId);
     if (!msg || msg.userId !== identity.subject) throw new Error("Not found");
+    // Verify the user is still a member of the room
+    const member = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_room_user", (q) => q.eq("roomId", msg.roomId).eq("userId", identity.subject))
+      .first();
+    if (!member) throw new Error("Not a member of this room");
     await ctx.db.delete(args.messageId);
     return true;
   },

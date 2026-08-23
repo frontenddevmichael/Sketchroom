@@ -3,7 +3,7 @@ import type { RefObject } from 'react';
 import { useQuery, useMutation, useAction } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
-import { X, Sparkles, RefreshCw, Plus, LayoutGrid, Send } from 'lucide-react';
+import { X, Sparkles, RefreshCw, Plus, LayoutGrid, Send, Trash2 } from 'lucide-react';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import type { Editor } from 'tldraw';
 import type { AiCopilot } from '../lib/useAiCopilot';
@@ -197,17 +197,29 @@ export function AiFeed({
                                 <span className="ai-ghost-label">{block.label}</span>
                                 <span className="ai-ghost-actions">
                                   {!readOnly && editor && (
-                                    <button
-                                      className="ai-text-link"
-                                      title="Place on canvas"
-                                      onClick={() => {
-                                        insertGhostBlock(editor, blocks, i, (label) => copilot.setInserted(label));
-                                        pulseAiPlacement(editor);
-                                      }}
-                                    >
-                                      <Plus size={12} />
-                                      {copilot.inserted === block.label ? 'Added' : 'Insert'}
-                                    </button>
+                                    <>
+                                      <button
+                                        className="ai-text-link"
+                                        title="Place on canvas"
+                                        onClick={() => {
+                                          insertGhostBlock(editor, blocks, i, (label) => copilot.setInserted(label));
+                                          pulseAiPlacement(editor);
+                                        }}
+                                      >
+                                        <Plus size={12} />
+                                        {copilot.inserted === block.label ? 'Added' : 'Insert'}
+                                      </button>
+                                      <button
+                                        className="ai-text-link ai-ghost-discard"
+                                        title="Discard this suggestion"
+                                        onClick={() => {
+                                          dismissAi({ messageId: msg._id }).catch(() => setError('Could not dismiss.'));
+                                        }}
+                                      >
+                                        <Trash2 size={12} />
+                                        Discard
+                                      </button>
+                                    </>
                                   )}
                                 </span>
                               </div>
