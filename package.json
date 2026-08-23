@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx convex dev --once && tsc -b && vite build",
+    "build": "tsc -b && vite build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:smoke": "playwright test -c dev/playwright.config.ts",
