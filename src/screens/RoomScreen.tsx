@@ -1044,7 +1044,7 @@ setSaveStatus('saved');
       const user = presenceList.find((p) => p.userId === id);
       if (user) announce(`${user.name} joined the room`);
     });
-    left.forEach((id) => {
+    left.forEach(() => {
       // We don't have the name for left users in current list, so use generic
       announce('A collaborator left the room');
     });

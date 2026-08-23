@@ -11,7 +11,7 @@ export function LiveRegion() {
   // Expose announce via ref for parent components
   useEffect(() => {
     if (politeRef.current && assertiveRef.current) {
-      (window as Record<string, unknown>).__sketchroomAnnounce = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+      (window as unknown as Record<string, unknown>).__sketchroomAnnounce = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
         const ref = priority === 'assertive' ? assertiveRef : politeRef;
         if (ref.current) {
           ref.current.textContent = '';
@@ -21,7 +21,7 @@ export function LiveRegion() {
       };
     }
     return () => {
-      delete (window as Record<string, unknown>).__sketchroomAnnounce;
+      delete (window as unknown as Record<string, unknown>).__sketchroomAnnounce;
     };
   }, []);
 
