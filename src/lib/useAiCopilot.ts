@@ -4,7 +4,7 @@ import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import type { Editor, TLShapeId } from 'tldraw';
 import { toRichText, createShapeId } from 'tldraw';
-import { kindColor, BLOCK_W, BLOCK_H } from './blockKinds';
+import { kindColor, BLOCK_H } from './blockKinds';
 
 export interface AiGhostBlock {
   label: string;
