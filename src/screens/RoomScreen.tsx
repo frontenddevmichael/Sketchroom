@@ -185,7 +185,6 @@ export function RoomScreen() {
   const [canvasTouched, setCanvasTouched] = useState(false);
   const [showRoomFlourish, setShowRoomFlourish] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingShown, setOnboardingShown] = useState(false);
   // Guided walkthrough: which of the three real actions (a pencil stroke, a
   // sticky note, a connector) the user has completed. Null = not active.
   const [walkthrough, setWalkthrough] = useState<{ pencil: boolean; note: boolean; connector: boolean } | null>(null);
@@ -563,7 +562,6 @@ setSaveStatus('saved');
   useEffect(() => {
     if (!roomIdArg || showOnboarding || isReadOnly || !room || !canvas || canvas.canvasData) return;
     if (room.onboardingCompleted) return;
-    setOnboardingShown(true);
     const t = window.setTimeout(() => setShowOnboarding(true), 2450);
     return () => window.clearTimeout(t);
   }, [roomIdArg, room, canvas, isReadOnly, showOnboarding]);
@@ -1047,7 +1045,6 @@ setSaveStatus('saved');
       if (user) announce(`${user.name} joined the room`);
     });
     left.forEach((id) => {
-      const user = previousPresenceRef.current.find((uid) => uid === id);
       // We don't have the name for left users in current list, so use generic
       announce('A collaborator left the room');
     });

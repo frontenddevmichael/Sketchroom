@@ -1,7 +1,6 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import imagetools from 'vite-imagetools'
-import sentry from '@sentry/vite-plugin'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 
 /**
  * SEO plugin. All of the site-URL-dependent bits (canonical, og:url, the
@@ -56,7 +55,7 @@ function seoPlugin(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), seoPlugin(), imagetools(), sentry({
+  plugins: [react(), seoPlugin(), sentryVitePlugin({
     org: process.env.SENTRY_ORG,
     project: process.env.SENTRY_PROJECT,
     authToken: process.env.SENTRY_AUTH_TOKEN,

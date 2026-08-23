@@ -8,15 +8,22 @@ export function LiveRegion() {
   const politeRef = useRef<HTMLDivElement | null>(null);
   const assertiveRef = useRef<HTMLDivElement | null>(null);
 
-  const announce = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    const ref = priority === 'assertive' ? assertiveRef : politeRef;
-    if (ref.current) {
-      ref.current.textContent = '';
-      // Force a reflow to ensure the announcement is read
-      void ref.current.offsetWidth;
-      ref.current.textContent = message;
+  // Expose announce via ref for parent components
+  useEffect(() => {
+    if (politeRef.current && assertiveRef.current) {
+      (window as Record<string, unknown>).__sketchroomAnnounce = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+        const ref = priority === 'assertive' ? assertiveRef : politeRef;
+        if (ref.current) {
+          ref.current.textContent = '';
+          void ref.current.offsetWidth;
+          ref.current.textContent = message;
+        }
+      };
     }
-  };
+    return () => {
+      delete (window as Record<string, unknown>).__sketchroomAnnounce;
+    };
+  }, []);
 
   return (
     <>

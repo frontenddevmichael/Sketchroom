@@ -271,7 +271,7 @@ test.describe('invites', () => {
     await expect(page.locator('.share-link-row input.input')).toHaveValue(/\/invite\/.*/);
   });
 
-  test('changing a member role calls updateMemberRole', async ({ page }) => {
+  test('changing a member role calls updateMemberRole', async () => {
     // Need a room with members - use the appSeed which has empty members
     // This test requires the stub to have members; skip for now as it needs seed update
     test.skip();
