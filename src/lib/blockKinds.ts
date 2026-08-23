@@ -16,6 +16,10 @@ import {
 } from 'lucide-react';
 import type { TLDefaultColorStyle } from 'tldraw';
 
+// ── Shared canvas constants ──────────────────────────────────────────────
+export const BLOCK_W = 180;
+export const BLOCK_H = 90;
+
 export interface BlockKind {
   icon: LucideIcon;
   /** tldraw color name — used when the block is inserted onto the canvas. */

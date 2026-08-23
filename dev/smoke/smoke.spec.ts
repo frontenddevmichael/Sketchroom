@@ -178,3 +178,192 @@ test.describe('room chrome harness', () => {
     await expect(page.locator('.ai-bar')).toBeVisible();
   });
 });
+
+test.describe('AI copilot', () => {
+  test('asking the AI shows a pending state then a completed suggestion with insert options', async ({ page }) => {
+    await page.goto(appUrl('/room/room_a'));
+    await expect(page.locator('.room-screen')).toBeVisible();
+
+    // Open AI feed and ask a question
+    await page.locator('.ai-bar-input').fill('Draw a login flow');
+    await page.locator('.ai-bar-send').click();
+
+    // Should show pending state
+    await expect(page.locator('.ai-message-thinking')).toBeVisible({ timeout: 5000 });
+
+    // Should eventually show completed response with blocks
+    await expect(page.locator('.ai-message-response')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.ai-ghost-block')).toHaveCount(3); // 3 blocks from seed
+    await expect(page.getByRole('button', { name: /insert all/i })).toBeVisible();
+
+    // Verify the AI mutation was called
+    const calls = await mutationCalls(page, 'requestAiSuggestion');
+    expect(calls.length).toBeGreaterThanOrEqual(1);
+    expect((calls[0][0] as { prompt?: string }).prompt).toBe('Draw a login flow');
+  });
+
+  test('inserting a ghost block adds it to the canvas', async ({ page }) => {
+    await page.goto(appUrl('/room/room_a'));
+    await expect(page.locator('.room-screen')).toBeVisible();
+
+    // Ask AI and wait for completion
+    await page.locator('.ai-bar-input').fill('Draw a login flow');
+    await page.locator('.ai-bar-send').click();
+    await expect(page.locator('.ai-message-response')).toBeVisible({ timeout: 10000 });
+
+    // Insert the first block
+    await page.locator('.ai-ghost-block').first().getByRole('button', { name: /insert/i }).click();
+
+    // The insert action should have triggered applyCanvasChanges
+    const calls = await mutationCalls(page, 'applyCanvasChanges');
+    expect(calls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('AI error shows retry and dismiss options', async ({ page }) => {
+    await page.goto(appUrl('/room/room_a'));
+    await expect(page.locator('.room-screen')).toBeVisible();
+
+    // Trigger an AI error by using the harness debug to set failed state
+    await page.goto('/harness.html?view=app&route=/room/room_a');
+    await page.locator('[data-testid="msg-failed"]').click();
+    await page.goto(appUrl('/room/room_a'));
+    await expect(page.locator('.room-screen')).toBeVisible();
+
+    // Should show error with retry and dismiss
+    await expect(page.locator('.ai-message-error')).toBeVisible();
+    await expect(page.getByRole('button', { name: /try again/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /dismiss/i })).toBeVisible();
+  });
+});
+
+test.describe('invites', () => {
+  test('inviting a member by email calls inviteMember mutation', async ({ page }) => {
+    await page.goto(appUrl('/room/room_a'));
+    await expect(page.locator('.room-screen')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Share', exact: true }).click();
+    await expect(page.locator('.share-modal')).toBeVisible();
+
+    // Invite by email
+    await page.locator('.share-invite-row input.input').fill('newuser@example.com');
+    await page.locator('.share-invite-row .btn-primary').click();
+
+    const calls = await mutationCalls(page, 'inviteMember');
+    expect(calls.length).toBeGreaterThanOrEqual(1);
+    expect((calls[0][0] as { email?: string }).email).toBe('newuser@example.com');
+  });
+
+  test('creating an invite link calls createInviteLink and shows copyable link', async ({ page }) => {
+    await page.goto(appUrl('/room/room_a'));
+    await expect(page.locator('.room-screen')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Share', exact: true }).click();
+    await expect(page.locator('.share-modal')).toBeVisible();
+
+    await page.locator('.share-link-row .share-role-select').selectOption('viewer');
+    await page.locator('.share-link-row .btn-outline').click();
+
+    const calls = await mutationCalls(page, 'createInviteLink');
+    expect(calls.length).toBeGreaterThanOrEqual(1);
+    expect((calls[0][0] as { role?: string }).role).toBe('viewer');
+
+    // Link should appear in the input
+    await expect(page.locator('.share-link-row input.input')).toHaveValue(/\/invite\/.*/);
+  });
+
+  test('changing a member role calls updateMemberRole', async () => {
+    // Need a room with members - use the appSeed which has empty members
+    // This test requires the stub to have members; skip for now as it needs seed update
+    test.skip();
+  });
+});
+
+test.describe('room creation with templates', () => {
+  test('creating from a template seeds the room and navigates to it', async ({ page }) => {
+    await page.goto(appUrl('/dashboard'));
+    await expect(page.locator('.dashboard')).toBeVisible();
+
+    // Click the Architecture System template
+    await page.getByRole('button', { name: /system architecture/i }).click();
+
+    // Should navigate to room screen
+    await expect(page.locator('.room-screen')).toBeVisible({ timeout: 5000 });
+
+    const calls = await mutationCalls(page, 'createRoom');
+    expect(calls.length).toBeGreaterThanOrEqual(1);
+    expect((calls[0][0] as { name?: string; seed?: string }).name).toBe('System Architecture');
+    expect((calls[0][0] as { seed?: string }).seed).toBeTruthy();
+  });
+
+  test('blank canvas creates empty room', async ({ page }) => {
+    await page.goto(appUrl('/dashboard'));
+    await expect(page.locator('.dashboard')).toBeVisible();
+
+    await page.locator('.template-card-blank').click();
+
+    const modal = page.locator('.new-room-modal');
+    await expect(modal).toBeVisible();
+
+    await page.locator('.new-room-modal input.input').fill('My Blank Room');
+    await page.keyboard.press('Enter');
+
+    await expect(page.locator('.room-screen')).toBeVisible();
+    await expect(page.locator('.room-name-input')).toHaveValue('My Blank Room');
+
+    const calls = await mutationCalls(page, 'createRoom');
+    expect(calls.length).toBeGreaterThanOrEqual(1);
+    expect((calls[0][0] as { name?: string }).name).toBe('My Blank Room');
+    expect((calls[0][0] as { seed?: string }).seed).toBeFalsy();
+  });
+});
+
+test.describe('export', () => {
+  test('export dialog opens and can export PNG', async ({ page }) => {
+    await page.goto(appUrl('/room/room_a'));
+    await expect(page.locator('.room-screen')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Export', exact: true }).click();
+    await expect(page.locator('.export-dialog')).toBeVisible();
+
+    // Select PNG and export
+    await page.getByRole('radio', { name: /png/i }).check({ force: true });
+    await page.getByRole('button', { name: /export/i }).click();
+
+    // Should trigger download (hard to assert in headless, but mutation should fire)
+    // The export is client-side via tldraw, so no mutation expected
+    await expect(page.locator('.export-dialog')).toBeHidden();
+  });
+});
+
+test.describe('auth flow', () => {
+  test('sign up form submits and shows verification step', async ({ page }) => {
+    await page.goto('/auth');
+    await expect(page.locator('.auth-screen')).toBeVisible();
+
+    // Switch to signup tab
+    await page.getByRole('tab', { name: /create account/i }).click();
+    await expect(page.locator('input[name="name"]')).toBeVisible();
+
+    await page.locator('input[name="name"]').fill('Test User');
+    await page.locator('input[name="email"]').fill('test@example.com');
+    await page.locator('input[name="password"]').fill('password123');
+    await page.locator('button.auth-submit').click();
+
+    // Should show verification step (email verification)
+    await expect(page.locator('.auth-form-wrap')).toBeVisible();
+    await expect(page.getByText(/check your inbox/i)).toBeVisible();
+  });
+
+  test('sign in form shows error on invalid credentials', async ({ page }) => {
+    await page.goto('/auth');
+    await expect(page.locator('.auth-screen')).toBeVisible();
+
+    await page.locator('input[name="email"]').fill('wrong@example.com');
+    await page.locator('input[name="password"]').fill('wrongpass');
+    await page.locator('button.auth-submit').click();
+
+    // Should show friendly error
+    await expect(page.locator('.auth-error')).toBeVisible();
+    await expect(page.locator('.auth-error')).toContainText(/don't match/i);
+  });
+});

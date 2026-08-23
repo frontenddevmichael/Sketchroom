@@ -10,7 +10,7 @@ import { createTLStore, setUserPreferences } from 'tldraw';
 import { Tldraw } from 'tldraw';
 import type { Editor, TLRecord, TLStore } from 'tldraw';
 import 'tldraw/tldraw.css';
-import { Blocks, History, Download, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, HelpCircle, X, ArrowLeft, Pencil, User, MoreHorizontal } from 'lucide-react';
+import { Blocks, History, Download, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, HelpCircle, X, ArrowLeft, Pencil, User, MoreHorizontal, MessageSquare } from 'lucide-react';
 import { useLongLoad } from '../hooks/useLongLoad';
 import { useModalFocus } from '../lib/useModalFocus';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -32,6 +32,8 @@ import { SelectionAwareness } from '../components/SelectionAwareness';
 import { ViewportAwareness } from '../components/ViewportAwareness';
 import { PlacementPulses } from '../components/PlacementPulses';
 import { FocusDim, FocusHint } from '../components/FocusDim';
+import { CommentPins } from '../components/CommentPins';
+import { useAnnouncer } from '../components/LiveRegion';
 import '../components/shared.css';
 import './RoomScreen.css';
 import '../components/AiFeed.css';
@@ -42,6 +44,7 @@ import '../components/PresenceCursors.css';
 import '../components/ViewportAwareness.css';
 import '../components/PlacementPulses.css';
 import '../components/FocusDim.css';
+import '../components/CommentPins.css';
 
 const PRESENCE_COLORS = ['#25D366', '#4A90D9', '#D9664A', '#9B59B6', '#E67E22', '#16A085'];
 
@@ -189,6 +192,7 @@ export function RoomScreen() {
   const [walkthrough, setWalkthrough] = useState<{ pencil: boolean; note: boolean; connector: boolean } | null>(null);
   const [wtClosing, setWtClosing] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [commentMode, setCommentMode] = useState(false);
   // Shared between the quick strip and the options rail so a pick in either
   // respects the same "Selection vs New shapes" mode.
   const [styleMode, setStyleMode] = useState<ToolStyleMode>('next');
@@ -211,6 +215,9 @@ export function RoomScreen() {
   const lastPresenceShip = useRef(0);
   const lastSelection = useRef('');
   const lastPrune = useRef(0);
+
+  // Screen reader announcer for dynamic updates
+  const announce = useAnnouncer();
 
   const roomIdArg = roomId ? (roomId as Id<'rooms'>) : undefined;
   const room = useQuery(api.features.rooms.getRoom, roomIdArg ? { roomId: roomIdArg } : 'skip');
@@ -297,6 +304,26 @@ export function RoomScreen() {
     }
   }, [aiPanelOpen]);
 
+  // Announce new AI suggestions
+  const lastAiMessageIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!aiMessages || aiMessages.length === 0) return;
+    const latest = aiMessages[0];
+    if (latest.status === 'completed' && latest._id !== lastAiMessageIdRef.current) {
+      lastAiMessageIdRef.current = latest._id;
+      if (latest.ghostBlocks) {
+        announce('AI suggestion ready');
+      }
+    }
+  }, [aiMessages, announce]);
+
+  // Manage body class for mobile panel scroll lock
+  useEffect(() => {
+    const hasOpenPanel = activePanel !== null || aiPanelOpen;
+    document.body.classList.toggle('has-open-panel', hasOpenPanel);
+    return () => document.body.classList.remove('has-open-panel');
+  }, [activePanel, aiPanelOpen]);
+
   useEffect(() => {
     if (!aiPanelOpen || !lastAiId || lastAiId === seenAiId) return;
     try {
@@ -314,6 +341,7 @@ export function RoomScreen() {
   const updateRoomName = useMutation(api.features.rooms.updateRoomName);
   const saveSnapshot = useMutation(api.features.snapshots.saveSnapshot);
   const updateRoomThumbnail = useMutation(api.features.rooms.updateRoomThumbnail);
+  const completeOnboarding = useMutation(api.features.rooms.completeOnboarding);
 
   const captureThumbnail = useCallback(async () => {
     if (!roomIdArg || isReadOnly) return;
@@ -432,8 +460,9 @@ export function RoomScreen() {
       }
       setIsConnected(true);
       savedAt.current = Date.now();
-      setSaveStatus('saved');
-      if (Object.keys(diff.put).length > 0 || diff.remove.size > 0) {
+setSaveStatus('saved');
+       announce('Canvas saved');
+       if (Object.keys(diff.put).length > 0 || diff.remove.size > 0) {
         if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
         saveTimer.current = window.setTimeout(() => void flushRef.current(), 300);
       }
@@ -532,15 +561,10 @@ export function RoomScreen() {
   // It waits for the flourish window to pass so the two moments sequence,
   // and is dismissed by the first real stroke (see the pointerdown listener
   // and the shape-count watcher below). Replaying it for the same room is
-  // suppressed forever via localStorage.
+  // suppressed forever via onboardingCompleted in the room document.
   useEffect(() => {
     if (!roomIdArg || showOnboarding || isReadOnly || !room || !canvas || canvas.canvasData) return;
-    try {
-      if (localStorage.getItem(`sketchroom.onboarding.v1.${roomIdArg}`)) return;
-      localStorage.setItem(`sketchroom.onboarding.v1.${roomIdArg}`, '1');
-    } catch {
-      // ignore
-    }
+    if (room.onboardingCompleted) return;
     const t = window.setTimeout(() => setShowOnboarding(true), 2450);
     return () => window.clearTimeout(t);
   }, [roomIdArg, room, canvas, isReadOnly, showOnboarding]);
@@ -645,13 +669,13 @@ export function RoomScreen() {
     };
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pagehide', onPageHide);
-    const heartbeat = window.setInterval(() => ship(false), 4000);
+    const heartbeat = window.setInterval(() => ship(false), 8000);
     const sweep = window.setInterval(() => {
-      if (Date.now() - lastPrune.current > 8000) {
+      if (Date.now() - lastPrune.current > 12000) {
         lastPrune.current = Date.now();
         void prunePresence({ roomId: roomIdArg }).catch(() => undefined);
       }
-    }, 4000);
+    }, 8000);
     ship(false);
     return () => {
       window.removeEventListener('pointermove', handleMove);
@@ -670,7 +694,12 @@ export function RoomScreen() {
     const update = () => {
       const shapes = editorState.getCurrentPageShapes();
       // First real stroke (or a dropped block) retires the onboarding sketch.
-      if (shapes.length > 0) setShowOnboarding(false);
+      if (shapes.length > 0) {
+        if (showOnboarding) {
+          setShowOnboarding(false);
+          if (roomIdArg) completeOnboarding({ roomId: roomIdArg }).catch(() => {});
+        }
+      }
       // Guided walkthrough: a real pencil stroke, sticky note, and connector
       // each check their step off; an unguided action (a block, text, a geo
       // shape) means the user is already working independently, so the guide
@@ -933,6 +962,20 @@ export function RoomScreen() {
         closeAiFeed();
         return;
       }
+      // Arrow key navigation for tool rail (when focused)
+      if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !isMod) {
+        const rail = toolRailRef.current;
+        if (rail && (document.activeElement === rail || rail.contains(document.activeElement))) {
+          e.preventDefault();
+          const tools = Array.from(rail.querySelectorAll('.room-rail-tool:not(:disabled)')) as HTMLButtonElement[];
+          const activeIndex = tools.findIndex((t) => t.classList.contains('active'));
+          const nextIndex = e.key === 'ArrowDown'
+            ? (activeIndex + 1) % tools.length
+            : (activeIndex - 1 + tools.length) % tools.length;
+          tools[nextIndex]?.focus();
+          tools[nextIndex]?.click();
+        }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -992,6 +1035,33 @@ export function RoomScreen() {
   // Exact indicator offsets in rail-space (rail padding 6 + 42px per tool
   // slot; the divider is its own 42px slot before the block-library trigger).
   const RAIL_INDICATOR_OFFSETS = [0, 42, 84, 126, 168, 210, 294];
+
+  // Announce presence changes
+  const previousPresenceRef = useRef<string[]>([]);
+  useEffect(() => {
+    const currentIds = presenceList.map((p) => p.userId);
+    const previousIds = previousPresenceRef.current;
+    const joined = currentIds.filter((id) => !previousIds.includes(id));
+    const left = previousIds.filter((id) => !currentIds.includes(id));
+    joined.forEach((id) => {
+      const user = presenceList.find((p) => p.userId === id);
+      if (user) announce(`${user.name} joined the room`);
+    });
+    left.forEach(() => {
+      // We don't have the name for left users in current list, so use generic
+      announce('A collaborator left the room');
+    });
+    previousPresenceRef.current = currentIds;
+  }, [presenceList, announce]);
+
+  // Announce connection status changes
+  useEffect(() => {
+    if (!isConnected) {
+      announce('Connection lost. Changes will sync when reconnected', 'assertive');
+    } else if (saveStatus === 'offline') {
+      announce('Reconnected. Syncing changes');
+    }
+  }, [isConnected, saveStatus, announce]);
 
   return (
     <div className={`room-screen${effectiveFocus ? ' focusing' : ''}${wtActive && wtStep < 3 ? ' walkthrough' : ''}`}>
@@ -1257,7 +1327,10 @@ export function RoomScreen() {
                     setCanvasTouched(true);
                     // The first press on the canvas is the signal: the
                     // onboarding sketch steps aside for real work.
-                    setShowOnboarding(false);
+                    if (showOnboarding) {
+                      setShowOnboarding(false);
+                      if (roomIdArg) completeOnboarding({ roomId: roomIdArg }).catch(() => {});
+                    }
                   },
                   { once: false }
                 );
@@ -1271,6 +1344,12 @@ export function RoomScreen() {
             <PlacementPulses editor={editorState} />
             <FocusDim editor={editorState} active={effectiveFocus} />
             <FocusHint active={effectiveFocus} />
+            <CommentPins
+              editor={editorState}
+              roomId={roomIdArg as Id<'rooms'> | undefined}
+              commentMode={commentMode}
+              onExitCommentMode={() => setCommentMode(false)}
+            />
 
             {!isReadOnly && activePanel === 'blocks' && (
             <BlockLibrary editor={editorState} onClose={() => setActivePanel(null)} anchorRef={blockBtnRef} />
@@ -1315,6 +1394,12 @@ export function RoomScreen() {
           
         </div>
 
+        {isReadOnly && (
+          <div role="status" className="sr-only" style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+            View only — editing is disabled
+          </div>
+        )}
+
         <nav
           className="room-tool-rail glass"
           ref={toolRailRef}
@@ -1340,6 +1425,7 @@ export function RoomScreen() {
                 onClick={() => setTool(id)}
                 data-hint={toolTitle(cfg)}
                 aria-label={toolTitle(cfg)}
+                aria-pressed={activeTool === id}
                 disabled={isReadOnly}
               >
                 <Icon size={18} />
@@ -1358,6 +1444,19 @@ export function RoomScreen() {
             disabled={isReadOnly}
           >
             <Blocks size={18} />
+          </button>
+          <button
+            className={`room-rail-tool ${commentMode ? 'active' : ''}`}
+            onClick={() => {
+              setCommentMode(!commentMode);
+              if (commentMode) setTool('select');
+            }}
+            data-hint="Comment"
+            aria-label="Comment pin"
+            aria-pressed={commentMode}
+            disabled={isReadOnly}
+          >
+            <MessageSquare size={18} />
           </button>
         </nav>
 
@@ -1462,6 +1561,66 @@ export function RoomScreen() {
             onModeChange={setStyleMode}
           />
         )}
+
+        {/* Mobile bottom tool bar (replaces left rail below 720px) */}
+        <nav
+          className="room-tool-bar"
+          role="toolbar"
+          aria-label="Canvas tools"
+          onPointerDownCapture={() => setCanvasTouched(true)}
+        >
+          <div className="room-tool-bar-inner">
+            <div className="room-tool-bar-group">
+              {RAIL_TOOL_IDS.slice(0, 3).map((id) => {
+                const cfg = TOOL_BY_ID[id];
+                const Icon = TOOL_ICONS[id];
+                return (
+                  <button
+                    key={id}
+                    className={`room-tool-bar-btn ${activeTool === id ? 'active' : ''}`}
+                    onClick={() => setTool(id)}
+                    aria-label={toolTitle(cfg)}
+                    aria-pressed={activeTool === id}
+                    disabled={isReadOnly}
+                  >
+                    <Icon size={18} />
+                  </button>
+                );
+              })}
+            </div>
+            <div className="room-tool-bar-divider" aria-hidden="true" />
+            <div className="room-tool-bar-group">
+              {RAIL_TOOL_IDS.slice(3).map((id) => {
+                const cfg = TOOL_BY_ID[id];
+                const Icon = TOOL_ICONS[id];
+                return (
+                  <button
+                    key={id}
+                    className={`room-tool-bar-btn ${activeTool === id ? 'active' : ''}`}
+                    onClick={() => setTool(id)}
+                    aria-label={toolTitle(cfg)}
+                    aria-pressed={activeTool === id}
+                    disabled={isReadOnly}
+                  >
+                    <Icon size={18} />
+                  </button>
+                );
+              })}
+            </div>
+            <div className="room-tool-bar-divider" aria-hidden="true" />
+            <div className="room-tool-bar-group">
+              <button
+                ref={blockBtnRef}
+                className={`room-tool-bar-btn ${activePanel === 'blocks' ? 'active' : ''}`}
+                onClick={() => togglePanel('blocks')}
+                aria-label="Block library"
+                disabled={isReadOnly}
+              >
+                <Blocks size={18} />
+              </button>
+            </div>
+          </div>
+        </nav>
       </div>
 
       {showShortcuts && (
@@ -1738,6 +1897,7 @@ function CoachmarkPill({
       className="room-coachmark glass"
       role="note"
       aria-label="Getting started"
+      aria-live="polite"
       style={pos ? { left: pos.left, top: pos.top } : undefined}
     >
       <p className="room-coachmark-text">{text}</p>

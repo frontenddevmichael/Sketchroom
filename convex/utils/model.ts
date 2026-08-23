@@ -109,6 +109,9 @@ export class Model {
     "Descriptions are one line that says the item's real job, e.g. \"holds the source of truth\" or \"the only door into the system\".",
   ].join("\n");
 
+  /** Route a prompt to the right handler. Currently unused — the action
+   *  calls `completion()` directly. Kept for future use if freeform responses
+   *  are wired in. */
   public async think(prompt: string): Promise<Thinking> {
     try {
       const res = await this.client.chat.completions.create({
@@ -130,6 +133,7 @@ export class Model {
     }
   }
 
+  /** Freeform text response. Currently unused — see `think()`. */
   public async worker(prompt: string): Promise<Worker> {
     try {
       const res = await this.client.chat.completions.create({

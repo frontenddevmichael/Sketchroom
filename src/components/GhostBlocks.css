@@ -109,3 +109,13 @@
   text-anchor: middle;
   pointer-events: none;
 }
+
+/* Discard button in AI ghost block list */
+.ai-ghost-discard {
+  opacity: 0.6;
+  transition: opacity 120ms ease;
+}
+.ai-ghost-discard:hover {
+  opacity: 1;
+  color: var(--red-400, #f87171) !important;
+}

@@ -4,7 +4,11 @@ import { BrowserRouter } from 'react-router-dom';
 import { ConvexAuthProvider } from '@convex-dev/auth/react';
 import { convex } from './lib/convex-client';
 import { AppProviders } from './lib/AppProviders';
+import { initSentry } from './lib/sentry';
 import './index.css';
+
+// Initialize Sentry early
+initSentry();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

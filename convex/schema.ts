@@ -30,6 +30,7 @@ export default defineSchema({
     // Last editor identity, written server-side by the canvas-change and rename
     // mutations. Never trusted from client input; display-only.
     lastEditedBy: v.optional(v.object({ id: v.string(), name: v.string() })),
+    onboardingCompleted: v.optional(v.boolean()),
   })
     .index("by_workspace", ["workspaceId"])
     .index("by_owner", ["ownerId"]),
@@ -111,4 +112,18 @@ export default defineSchema({
     url: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_created", ["createdAt"]),
+
+  comments: defineTable({
+    roomId: v.id("rooms"),
+    userId: v.string(), // who posted
+    x: v.number(), // canvas x coordinate
+    y: v.number(), // canvas y coordinate
+    body: v.string(), // comment text
+    resolved: v.boolean(), // resolve/reopen state
+    parentId: v.optional(v.id("comments")), // null = top-level pin, set = reply in thread
+    createdAt: v.number(),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_room_unresolved", ["roomId", "resolved"])
+    .index("by_parent", ["roomId", "parentId"]),
 });

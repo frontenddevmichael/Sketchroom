@@ -9,15 +9,15 @@ import { useEffect, useRef } from 'react';
 export function useModalFocus<T extends HTMLElement>(onClose: () => void, active = true) {
   const ref = useRef<T | null>(null);
   const trigger = useRef<Element | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!active) return;
     const root = ref.current;
     if (!root) return;
-    // Remember what had focus so we can hand it back on close.
     trigger.current = document.activeElement;
 
-    // Move focus into the dialog — first focusable element, else the dialog.
     const focusables = () =>
       Array.from(
         root.querySelectorAll<HTMLElement>(
@@ -31,7 +31,7 @@ export function useModalFocus<T extends HTMLElement>(onClose: () => void, active
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab') return;
@@ -52,7 +52,6 @@ export function useModalFocus<T extends HTMLElement>(onClose: () => void, active
       document.removeEventListener('keydown', onKeyDown, true);
       if (trigger.current instanceof HTMLElement) trigger.current.focus();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   return ref;

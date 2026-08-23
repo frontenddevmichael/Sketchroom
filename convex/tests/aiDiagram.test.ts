@@ -82,11 +82,11 @@ test("sanitizeEdges returns an empty list when there are fewer than two blocks",
 
 test("buildPrompt attaches selected shapes as context", () => {
   const prompt = buildPrompt("Add an auth step to this flow", [
-    { label: "Client App", kind: "geo" },
-    { label: "Checkout", kind: "geo" },
+    { label: "Client App", kind: "geo", selected: true },
+    { label: "Checkout", kind: "geo", selected: true },
   ]);
   expect(prompt).toContain("Client App");
-  expect(prompt).toContain("selected on the user's canvas");
+  expect(prompt).toContain("Selected shapes (focus of this request)");
   expect(prompt).toContain("relate to these existing shapes");
 });
 
@@ -98,6 +98,29 @@ test("buildPrompt returns the prompt unchanged without context", () => {
 test("fallbackBlocks never exceeds eight entries", () => {
   const blocks = fallbackBlocks("api auth database queue worker event api auth database");
   expect(blocks.length).toBeLessThanOrEqual(8);
+});
+
+test("sanitizeBlock escapes HTML in labels and descriptions", () => {
+  const diagram = buildDiagram(
+    {
+      blocks: [
+        { label: '<script>alert("xss")</script>', kind: "service", description: '<img src=x onerror=alert(1)>' },
+        { label: 'Normal <b>bold</b>', kind: "client" },
+      ],
+    },
+    "test xss"
+  );
+  expect(diagram.blocks[0].label).toBe("&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;");
+  expect(diagram.blocks[0].description).toBe("&lt;img src=x onerror=alert(1)&gt;");
+  expect(diagram.blocks[1].label).toBe("Normal &lt;b&gt;bold&lt;/b&gt;");
+});
+
+test("sanitizeEdges escapes HTML in edge labels", () => {
+  const edges = sanitizeEdges(
+    [{ from: 0, to: 1, label: '<a href="javascript:alert(1)">click</a>' }],
+    2
+  );
+  expect(edges[0].label).toBe("&lt;a href=&quot;javascript:alert(1)&quot;&gt;click&lt;/a&gt;");
 });
 
 function defaultChain(count: number) {

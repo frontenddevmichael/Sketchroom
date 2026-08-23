@@ -99,6 +99,12 @@ export function Dashboard() {
   const [deletingId, setDeletingId] = useState<Id<'rooms'> | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [dismissedLimitNote, setDismissedLimitNote] = useState(false);
+  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState('');
+  const [creatingWorkspaceLoading, setCreatingWorkspaceLoading] = useState(false);
+  // Never a dead end: if the workspace query can't resolve within a
+  // reasonable window, surface a calm error with a retry instead of an
+  // infinite skeleton.
   const [loadFailed, setLoadFailed] = useState(false);
   const [workspaceCreateFailed, setWorkspaceCreateFailed] = useState(false);
   const [workspaceRetryNonce, setWorkspaceRetryNonce] = useState(0);
@@ -158,6 +164,40 @@ export function Dashboard() {
     document.addEventListener('pointerdown', onDown);
     return () => document.removeEventListener('pointerdown', onDown);
   }, [kebabFor]);
+
+  // Same for the workspace switcher: clicking outside closes it.
+  useEffect(() => {
+    if (!workspaceMenuOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if ((e.target as HTMLElement | null)?.closest?.('.sidebar-workspace-switch')) return;
+      setWorkspaceMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setWorkspaceMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [workspaceMenuOpen]);
+
+  const handleCreateWorkspace = async () => {
+    if (creatingWorkspaceLoading) return;
+    const name = newWorkspaceName.trim() || 'Untitled workspace';
+    setCreatingWorkspaceLoading(true);
+    try {
+      const w = await createWorkspace({ name });
+      setNewWorkspaceName('');
+      setWorkspaceId(w.id as Id<'workspaces'>);
+      setWorkspaceMenuOpen(false);
+    } catch {
+      // Keep the menu open and the input intact so the user can retry.
+    } finally {
+      setCreatingWorkspaceLoading(false);
+    }
+  };
 
   if (!workspaces) return <DashboardLoadingShell failed={loadFailed} />;
 
@@ -805,4 +845,46 @@ function TemplatePreview({ category }: { category: string }) {
       <rect x="78" y="50" width="26" height="16" rx="3" stroke="var(--accent)" strokeWidth="1.5" opacity="0.35" />
     </svg>
   );
+}
+
+function greetingForHour(): string {
+  const hour = new Date().getHours();
+  if (hour < 5) return 'Working late';
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function todayLabel(): string {
+  return new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function roleLabel(role: string) {
+  switch (role) {
+    case 'owner':
+      return 'Owner';
+    case 'editor':
+      return 'Editor';
+    case 'viewer':
+      return 'Viewer';
+    default:
+      return role;
+  }
+}
+
+function formatRelativeTime(ts: number) {
+  const diff = Date.now() - ts;
+  if (diff < 0) return 'just now';
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(ts).toLocaleDateString();
 }

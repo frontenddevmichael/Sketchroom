@@ -5,8 +5,8 @@ import { kindColor } from '../lib/blockKinds';
 import { emitPlacementPulse } from '../components/placementPulse';
 
 // ── Shared constants ──────────────────────────────────────────────────────
-export const BLOCK_W = 180;
-export const BLOCK_H = 90;
+import { BLOCK_W, BLOCK_H } from '../lib/blockKinds';
+export { BLOCK_W, BLOCK_H };
 export const GRID = 20;
 export const CASCADE_COLS = 3;
 export const CASCADE_GAP_X = 24;

@@ -70,6 +70,24 @@ export const requestAiSuggestion = action({
       throw new Error(`Rate limit hit — try again in ~${Math.ceil((retryAfter ?? 1000) / 1000)}s`);
     }
 
+    // Per-room rate limit: prevents a single room from consuming all resources.
+    const { ok: roomOk, retryAfter: roomRetryAfter } = await rateLimiter.limit(ctx, "aiRequestPerRoom", {
+      key: args.roomId,
+      throws: true,
+    });
+    if (!roomOk) {
+      throw new Error(`Room rate limit hit — try again in ~${Math.ceil((roomRetryAfter ?? 1000) / 1000)}s`);
+    }
+
+    // Global rate limit: protects against overall abuse.
+    const { ok: globalOk, retryAfter: globalRetryAfter } = await rateLimiter.limit(ctx, "aiRequestGlobal", {
+      key: "global",
+      throws: true,
+    });
+    if (!globalOk) {
+      throw new Error(`System rate limit hit — try again in ~${Math.ceil((globalRetryAfter ?? 1000) / 1000)}s`);
+    }
+
     const now = Date.now();
     const messageId = await ctx.runMutation(internal.features.aiStore.storeAiMessage, {
       roomId: args.roomId,
@@ -148,6 +166,12 @@ export const dismissAiSuggestion = mutation({
     if (!identity) throw new Error("Not authenticated");
     const msg = await ctx.db.get(args.messageId);
     if (!msg || msg.userId !== identity.subject) throw new Error("Not found");
+    // Verify the user is still a member of the room
+    const member = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_room_user", (q) => q.eq("roomId", msg.roomId).eq("userId", identity.subject))
+      .first();
+    if (!member) throw new Error("Not a member of this room");
     await ctx.db.delete(args.messageId);
     return true;
   },
