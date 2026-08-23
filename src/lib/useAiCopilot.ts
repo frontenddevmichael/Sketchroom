@@ -4,7 +4,7 @@ import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import type { Editor, TLShapeId } from 'tldraw';
 import { toRichText, createShapeId } from 'tldraw';
-import { kindColor } from './blockKinds';
+import { kindColor, BLOCK_W, BLOCK_H } from './blockKinds';
 
 export interface AiGhostBlock {
   label: string;
@@ -35,8 +35,6 @@ const SHAPE_LABEL: Record<string, string> = {
   embed: 'embed',
 };
 
-const BLOCK_W = 180;
-const BLOCK_H = 90;
 const DESC_GAP = 12;
 const BLOCK_GAP_X = 60;
 const BLOCK_GAP_Y = 50;

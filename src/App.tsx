@@ -13,15 +13,20 @@ const RoomScreen = lazy(() => import('./screens/RoomScreen').then((m) => ({ defa
 const SettingsScreen = lazy(() => import('./screens/SettingsScreen').then((m) => ({ default: m.SettingsScreen })));
 const BillingScreen = lazy(() => import('./screens/BillingScreen').then((m) => ({ default: m.BillingScreen })));
 const InviteScreen = lazy(() => import('./screens/InviteScreen').then((m) => ({ default: m.InviteScreen })));
+const NotFoundScreen = lazy(() => import('./screens/NotFoundScreen').then((m) => ({ default: m.NotFoundScreen })));
+
+const ALLOWED_NEXT_PREFIXES = ['/room/', '/dashboard', '/settings', '/billing'];
+
+function isSafeNext(next: string): boolean {
+  if (!next.startsWith('/') || next.startsWith('//')) return false;
+  return ALLOWED_NEXT_PREFIXES.some((prefix) => next.startsWith(prefix));
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const location = useLocation();
   if (isLoading) return <LoadingScreen label="Checking your session" />;
   if (!isAuthenticated) {
-    // Preserve intent: send a signed-out user to sign-in with the page they
-    // wanted, so an invite link (or any protected route) resumes where they
-    // were headed instead of stranding them on the homepage.
     const next = location.pathname + location.search;
     return <Navigate to={`/auth?next=${encodeURIComponent(next)}`} replace />;
   }
@@ -33,11 +38,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   if (isLoading) return <LoadingScreen label="Checking your session" />;
   if (isAuthenticated) {
-    // After a successful sign-in, return the user to the page they were
-    // headed for (from ProtectedRoute) instead of always dumping them on the
-    // dashboard. `next` is sanitized to stay within the app.
     const next = new URLSearchParams(location.search).get('next');
-    if (next && next.startsWith('/') && !next.startsWith('//')) {
+    if (next && isSafeNext(next)) {
       return <Navigate to={next} replace />;
     }
     return <Navigate to="/dashboard" replace />;
@@ -53,14 +55,17 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={
-        <ScreenErrorBoundary screenName="Landing">
+        <ScreenErrorBoundary screenName="Landing" recoveryActions={[
+          { label: 'Try Again', onClick: () => window.location.reload(), variant: 'primary' },
+          { label: 'Back to Home', onClick: () => { window.location.href = '/'; }, variant: 'ghost' },
+        ]}>
           <Landing />
         </ScreenErrorBoundary>
       } />
       <Route path="/auth" element={
         <PublicRoute>
           <ScreenErrorBoundary screenName="Auth" recoveryActions={[
-            { label: 'Back to Home', onClick: () => window.location.href = '/', variant: 'ghost' },
+            { label: 'Back to Home', onClick: () => { window.location.href = '/'; }, variant: 'ghost' },
           ]}>
             <AuthScreen />
           </ScreenErrorBoundary>
@@ -71,7 +76,7 @@ export default function App() {
           <Screen>
             <ScreenErrorBoundary screenName="Dashboard" recoveryActions={[
               { label: 'Try Again', onClick: () => window.location.reload(), variant: 'primary' },
-              { label: 'Sign Out', onClick: () => window.location.href = '/auth?logout=1', variant: 'ghost' },
+              { label: 'Sign Out', onClick: () => { window.location.href = '/auth?logout=1'; }, variant: 'ghost' },
             ]}>
               <Dashboard />
             </ScreenErrorBoundary>
@@ -82,7 +87,7 @@ export default function App() {
         <ProtectedRoute>
           <Screen>
             <ScreenErrorBoundary screenName="Room" recoveryActions={[
-              { label: 'Back to Dashboard', onClick: () => window.location.href = '/dashboard', variant: 'primary' },
+              { label: 'Back to Dashboard', onClick: () => { window.location.href = '/dashboard'; }, variant: 'primary' },
               { label: 'Reload Room', onClick: () => window.location.reload(), variant: 'outline' },
             ]}>
               <RoomScreen />
@@ -94,7 +99,7 @@ export default function App() {
         <ProtectedRoute>
           <Screen>
             <ScreenErrorBoundary screenName="Invite" recoveryActions={[
-              { label: 'Back to Dashboard', onClick: () => window.location.href = '/dashboard', variant: 'primary' },
+              { label: 'Back to Dashboard', onClick: () => { window.location.href = '/dashboard'; }, variant: 'primary' },
             ]}>
               <InviteScreen />
             </ScreenErrorBoundary>
@@ -105,7 +110,7 @@ export default function App() {
         <ProtectedRoute>
           <Screen>
             <ScreenErrorBoundary screenName="Settings" recoveryActions={[
-              { label: 'Back to Dashboard', onClick: () => window.location.href = '/dashboard', variant: 'primary' },
+              { label: 'Back to Dashboard', onClick: () => { window.location.href = '/dashboard'; }, variant: 'primary' },
               { label: 'Reload', onClick: () => window.location.reload(), variant: 'outline' },
             ]}>
               <SettingsScreen />
@@ -117,7 +122,7 @@ export default function App() {
         <ProtectedRoute>
           <Screen>
             <ScreenErrorBoundary screenName="Billing" recoveryActions={[
-              { label: 'Back to Dashboard', onClick: () => window.location.href = '/dashboard', variant: 'primary' },
+              { label: 'Back to Dashboard', onClick: () => { window.location.href = '/dashboard'; }, variant: 'primary' },
               { label: 'Reload', onClick: () => window.location.reload(), variant: 'outline' },
             ]}>
               <BillingScreen />
@@ -128,7 +133,11 @@ export default function App() {
       <Route path="/error" element={<ErrorScreen />} />
       <Route path="/terms" element={<LegalScreen page="terms" />} />
       <Route path="/privacy" element={<LegalScreen page="privacy" />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={
+        <Screen>
+          <NotFoundScreen />
+        </Screen>
+      } />
     </Routes>
   );
 }

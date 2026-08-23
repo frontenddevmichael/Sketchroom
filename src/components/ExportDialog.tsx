@@ -199,8 +199,10 @@ function downloadBlob(blob: Blob, filename: string) {
   a.download = filename;
   document.body.appendChild(a);
   a.click();
-  a.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  requestAnimationFrame(() => {
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
 }
 
 function blobToDataURL(blob: Blob): Promise<string> {

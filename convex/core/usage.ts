@@ -12,11 +12,11 @@ type DbCtx = QueryCtx | MutationCtx;
 
 /** How many rooms the user is a member of (owner or collaborator). */
 export async function countRoomMemberships(ctx: DbCtx, userId: string): Promise<number> {
-  const membership = await ctx.db
+  const rows = await ctx.db
     .query("roomMembers")
     .withIndex("by_user", (q) => q.eq("userId", userId))
-    .collect();
-  return membership.length;
+    .take(10000);
+  return rows.length;
 }
 
 /**
@@ -32,7 +32,7 @@ export async function countAiSuggestions(
   const membership = await ctx.db
     .query("roomMembers")
     .withIndex("by_user", (q) => q.eq("userId", userId))
-    .collect();
+    .take(10000);
   let total = 0;
   for (const m of membership) {
     const rows = await ctx.db
@@ -46,8 +46,6 @@ export async function countAiSuggestions(
   }
   return total;
 }
-
-export type { FreePlanCheck } from "../utils/types";
 
 export const FREE_PLAN = {
   ROOM_LIMIT: FREE_ROOM_LIMIT,

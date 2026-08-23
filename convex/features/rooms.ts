@@ -285,50 +285,16 @@ export const deleteRoomData = internalMutation({
     const room = await ctx.db.get(args.roomId);
     if (room) await ctx.db.delete(args.roomId);
 
-    // roomMembers
-    while (true) {
-      const rows = await ctx.db
-        .query("roomMembers")
-        .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
-        .take(BATCH);
-      if (rows.length === 0) break;
-      for (const r of rows) await ctx.db.delete(r._id);
-    }
-    // snapshots
-    while (true) {
-      const rows = await ctx.db
-        .query("snapshots")
-        .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
-        .take(BATCH);
-      if (rows.length === 0) break;
-      for (const r of rows) await ctx.db.delete(r._id);
-    }
-    // aiMessages
-    while (true) {
-      const rows = await ctx.db
-        .query("aiMessages")
-        .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
-        .take(BATCH);
-      if (rows.length === 0) break;
-      for (const r of rows) await ctx.db.delete(r._id);
-    }
-    // presence
-    while (true) {
-      const rows = await ctx.db
-        .query("presence")
-        .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
-        .take(BATCH);
-      if (rows.length === 0) break;
-      for (const r of rows) await ctx.db.delete(r._id);
-    }
-    // invites
-    while (true) {
-      const rows = await ctx.db
-        .query("invites")
-        .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
-        .take(BATCH);
-      if (rows.length === 0) break;
-      for (const r of rows) await ctx.db.delete(r._id);
+    const tables = ["roomMembers", "snapshots", "aiMessages", "presence", "invites", "comments"] as const;
+    for (const table of tables) {
+      while (true) {
+        const rows = await ctx.db
+          .query(table)
+          .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+          .take(BATCH);
+        if (rows.length === 0) break;
+        for (const r of rows) await ctx.db.delete(r._id);
+      }
     }
     return true;
   },

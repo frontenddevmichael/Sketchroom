@@ -28,8 +28,8 @@ export function initSentry() {
     integrations: [
       browserTracingIntegration(),
       replayIntegration({
-        maskAllText: false,
-        blockAllMedia: false,
+        maskAllText: ENVIRONMENT === "production",
+        blockAllMedia: ENVIRONMENT === "production",
       }),
     ],
 

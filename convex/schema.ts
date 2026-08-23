@@ -124,5 +124,6 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_room", ["roomId"])
-    .index("by_room_unresolved", ["roomId", "resolved"]),
+    .index("by_room_unresolved", ["roomId", "resolved"])
+    .index("by_parent", ["roomId", "parentId"]),
 });

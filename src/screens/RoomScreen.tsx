@@ -669,13 +669,13 @@ setSaveStatus('saved');
     };
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pagehide', onPageHide);
-    const heartbeat = window.setInterval(() => ship(false), 4000);
+    const heartbeat = window.setInterval(() => ship(false), 8000);
     const sweep = window.setInterval(() => {
-      if (Date.now() - lastPrune.current > 8000) {
+      if (Date.now() - lastPrune.current > 12000) {
         lastPrune.current = Date.now();
         void prunePresence({ roomId: roomIdArg }).catch(() => undefined);
       }
-    }, 4000);
+    }, 8000);
     ship(false);
     return () => {
       window.removeEventListener('pointermove', handleMove);

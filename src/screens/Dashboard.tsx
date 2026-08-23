@@ -64,6 +64,7 @@ export function Dashboard() {
   const [dismissedLimitNote, setDismissedLimitNote] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
+  const [creatingWorkspaceLoading, setCreatingWorkspaceLoading] = useState(false);
   // Never a dead end: if the workspace query can't resolve within a
   // reasonable window, surface a calm error with a retry instead of an
   // infinite skeleton.
@@ -155,7 +156,9 @@ export function Dashboard() {
   }, [workspaceMenuOpen]);
 
   const handleCreateWorkspace = async () => {
+    if (creatingWorkspaceLoading) return;
     const name = newWorkspaceName.trim() || 'Untitled workspace';
+    setCreatingWorkspaceLoading(true);
     try {
       const w = await createWorkspace({ name });
       setNewWorkspaceName('');
@@ -163,6 +166,8 @@ export function Dashboard() {
       setWorkspaceMenuOpen(false);
     } catch {
       // Keep the menu open and the input intact so the user can retry.
+    } finally {
+      setCreatingWorkspaceLoading(false);
     }
   };
 
@@ -897,6 +902,7 @@ function roleLabel(role: string) {
 
 function formatRelativeTime(ts: number) {
   const diff = Date.now() - ts;
+  if (diff < 0) return 'just now';
   const minutes = Math.floor(diff / 60000);
   if (minutes < 1) return 'just now';
   if (minutes < 60) return `${minutes}m ago`;
