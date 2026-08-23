@@ -36,9 +36,42 @@ const SHAPE_LABEL: Record<string, string> = {
 };
 
 const DESC_GAP = 12;
-const BLOCK_GAP_X = 60;
-const BLOCK_GAP_Y = 50;
-const CELL_H = BLOCK_H + DESC_GAP + 24 + BLOCK_GAP_Y;
+const DESC_LINE_HEIGHT = 20;
+const MIN_BLOCK_W = 120;
+const MAX_BLOCK_W = 280;
+const ARROW_GAP = 20;
+
+function estimateBlockWidth(label: string): number {
+  const charWidth = 8;
+  const padding = 32;
+  const estimated = label.length * charWidth + padding;
+  return Math.max(MIN_BLOCK_W, Math.min(MAX_BLOCK_W, estimated));
+}
+
+function estimateDescWidth(description: string, blockWidth: number): number {
+  if (!description) return 0;
+  const charsPerLine = Math.floor((blockWidth - 16) / 8);
+  const lines = Math.ceil(description.length / charsPerLine);
+  if (lines <= 1) return description.length * 8 + 16;
+  return blockWidth;
+}
+
+function estimateDescHeight(description: string, blockWidth: number): number {
+  if (!description) return 0;
+  const charsPerLine = Math.floor((blockWidth - 16) / 8);
+  const lines = Math.ceil(description.length / charsPerLine);
+  return lines * DESC_LINE_HEIGHT;
+}
+
+function unitHeight(blockWidth: number, description?: string): number {
+  const descH = estimateDescHeight(description ?? '', blockWidth);
+  return BLOCK_H + (descH > 0 ? DESC_GAP + descH : 0);
+}
+
+function unitWidth(blockWidth: number, description?: string): number {
+  const descW = estimateDescWidth(description ?? '', blockWidth);
+  return Math.max(blockWidth, descW);
+}
 
 export const AI_REFINE_SUGGESTIONS = [
   'Add a step to this flow',
@@ -70,39 +103,68 @@ function resolvePosition(
   for (let attempt = 0; attempt < 30; attempt++) {
     const candidate: Rect = { x, y, w: proposed.w, h: proposed.h };
     if (!occupied.some((r) => rectsOverlap(candidate, r))) return { x, y };
-    x += BLOCK_W + BLOCK_GAP_X;
+    x += proposed.w + ARROW_GAP;
     if (attempt % 3 === 2) {
       x = proposed.x;
-      y += CELL_H;
+      y += proposed.h + ARROW_GAP;
     }
   }
   return { x, y };
 }
 
-function layoutDiagram(count: number, center: { x: number; y: number }, existingBounds?: Rect) {
+function layoutDiagram(blocks: AiGhostBlock[], center: { x: number; y: number }, existingBounds?: Rect) {
+  const widths = blocks.map((b) => estimateBlockWidth(b.label));
+  const heights = blocks.map((b, i) => unitHeight(widths[i], b.description));
+  const unitWidths = blocks.map((b, i) => unitWidth(widths[i], b.description));
+  const count = blocks.length;
   const cols = Math.min(count, 3);
-  const rows = Math.ceil(count / cols);
-  const totalW = cols * BLOCK_W + (cols - 1) * BLOCK_GAP_X;
-  const totalH = rows * CELL_H - BLOCK_GAP_Y;
+
+  const rowHs: number[] = [];
+  for (let r = 0; r < Math.ceil(count / cols); r++) {
+    let rowMax = 0;
+    for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c;
+      if (idx < count) rowMax = Math.max(rowMax, heights[idx]);
+    }
+    rowHs.push(rowMax);
+  }
+
+  let totalW = 0;
+  for (let c = 0; c < cols; c++) {
+    let colMax = 0;
+    for (let r = 0; r < Math.ceil(count / cols); r++) {
+      const idx = r * cols + c;
+      if (idx < count) colMax = Math.max(colMax, unitWidths[idx]);
+    }
+    totalW += colMax;
+  }
+  totalW += (cols - 1) * ARROW_GAP;
+
+  const totalH = rowHs.reduce((a, b) => a + b, 0) + (rowHs.length - 1) * ARROW_GAP;
 
   let startX = center.x - totalW / 2;
   let startY = center.y - totalH / 2;
 
   if (existingBounds) {
-    startX = existingBounds.x + existingBounds.w + BLOCK_GAP_X * 2;
+    startX = existingBounds.x + existingBounds.w + ARROW_GAP * 2;
     startY = existingBounds.y;
   }
 
   const positions: { x: number; y: number }[] = [];
-  for (let i = 0; i < count; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    positions.push({
-      x: startX + col * (BLOCK_W + BLOCK_GAP_X),
-      y: startY + row * CELL_H,
-    });
+  let yCursor = startY;
+  for (let r = 0; r < Math.ceil(count / cols); r++) {
+    let xCursor = startX;
+    const rowHeight = rowHs[r];
+    for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c;
+      if (idx >= count) break;
+      positions[idx] = { x: xCursor, y: yCursor };
+      xCursor += unitWidths[idx] + ARROW_GAP;
+    }
+    yCursor += rowHeight + ARROW_GAP;
   }
-  return positions;
+
+  return { positions, widths, unitHeights: heights, unitWidths };
 }
 
 function parseDiagram(raw?: string | null): AiGhostDiagram | null {
@@ -120,13 +182,17 @@ function insertGhost(editor: Editor, blocks: AiGhostBlock[], index: number, onIn
   const viewport = editor.getViewportScreenBounds();
   const center = editor.screenToPage({ x: viewport.midX, y: viewport.midY });
   const block = blocks[index];
+  const blockW = estimateBlockWidth(block.label);
+  const uh = unitHeight(blockW, block.description);
+
   const row = Math.floor(index / 3);
   const col = index % 3;
-  const rawX = center.x + (col - 1) * (BLOCK_W + BLOCK_GAP_X) - BLOCK_W / 2;
-  const rawY = center.y + 40 + row * CELL_H;
+  const rawX = center.x + (col - 1) * (blockW + ARROW_GAP) - blockW / 2;
+  const rawY = center.y + 40 + row * uh;
 
+  const uw = unitWidth(blockW, block.description);
   const occupied = collectExistingRects(editor);
-  const cell: Rect = { x: rawX, y: rawY, w: BLOCK_W, h: CELL_H };
+  const cell: Rect = { x: rawX, y: rawY, w: uw, h: uh };
   const pos = resolvePosition(cell, occupied);
   const color = kindColor(block.kind);
   const ids = [createShapeId(), createShapeId()];
@@ -139,7 +205,7 @@ function insertGhost(editor: Editor, blocks: AiGhostBlock[], index: number, onIn
       y: pos.y,
       props: {
         geo: 'rectangle',
-        w: BLOCK_W,
+        w: blockW,
         h: BLOCK_H,
         color,
         fill: 'semi',
@@ -150,17 +216,15 @@ function insertGhost(editor: Editor, blocks: AiGhostBlock[], index: number, onIn
       id: ids[1],
       type: 'text',
       x: pos.x,
-      y: pos.y + BLOCK_H + 12,
+      y: pos.y + BLOCK_H + DESC_GAP,
       props: {
         color: 'grey',
         size: 's',
-        w: BLOCK_W,
+        w: blockW,
         richText: toRichText(block.description ?? `${block.kind} component`),
       },
     },
   ]);
-  // Select + frame the placed block, matching the block library — the shape
-  // you just brought in is the thing you want to look at.
   editor.setSelectedShapes(ids);
   editor.zoomToSelection({ animation: { duration: 200 } });
   onInserted(block.label);
@@ -183,15 +247,21 @@ function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () =
   const viewport = editor.getViewportScreenBounds();
   const center = editor.screenToPage({ x: viewport.midX, y: viewport.midY });
   const existingBounds = editor.getCurrentPageBounds();
-  const rawPositions = layoutDiagram(diagram.blocks.length, center, existingBounds ? { x: existingBounds.x, y: existingBounds.y, w: existingBounds.width, h: existingBounds.height } : undefined);
+  const { positions, widths, unitHeights, unitWidths } = layoutDiagram(
+    diagram.blocks,
+    center,
+    existingBounds
+      ? { x: existingBounds.x, y: existingBounds.y, w: existingBounds.width, h: existingBounds.height }
+      : undefined,
+  );
 
   const occupied = collectExistingRects(editor);
-  const positions = rawPositions.map((pos) => {
-    const cell: Rect = { x: pos.x, y: pos.y, w: BLOCK_W, h: CELL_H };
-    return resolvePosition(cell, occupied);
+  const resolved = positions.map((pos, i) => {
+    const cell: Rect = { x: pos.x, y: pos.y, w: unitWidths[i], h: unitHeights[i] };
+    const resolvedPos = resolvePosition(cell, occupied);
+    occupied.push({ x: resolvedPos.x, y: resolvedPos.y, w: unitWidths[i], h: unitHeights[i] });
+    return resolvedPos;
   });
-
-  positions.forEach((p) => occupied.push({ x: p.x, y: p.y, w: BLOCK_W, h: CELL_H }));
   const shapes: Parameters<typeof editor.createShapes>[0] = [];
   const shapeIds: TLShapeId[] = [];
   const bindings: {
@@ -202,7 +272,8 @@ function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () =
   }[] = [];
 
   diagram.blocks.forEach((block, i) => {
-    const pos = positions[i];
+    const pos = resolved[i];
+    const bw = widths[i];
     const id = createShapeId();
     shapeIds.push(id);
     const color = kindColor(block.kind);
@@ -214,7 +285,7 @@ function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () =
       y: pos.y,
       props: {
         geo,
-        w: BLOCK_W,
+        w: bw,
         h: BLOCK_H,
         color,
         fill: 'semi',
@@ -228,11 +299,11 @@ function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () =
         id: descId,
         type: 'text',
         x: pos.x,
-        y: pos.y + BLOCK_H + 12,
+        y: pos.y + BLOCK_H + DESC_GAP,
         props: {
           color: 'grey',
           size: 's',
-          w: BLOCK_W,
+          w: bw,
           richText: toRichText(block.description),
         },
       });
@@ -240,11 +311,12 @@ function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () =
   });
 
   diagram.edges.forEach((edge) => {
-    const a = positions[edge.from];
-    const b = positions[edge.to];
+    const a = resolved[edge.from];
+    const b = resolved[edge.to];
     if (!a || !b) return;
+    const aW = widths[edge.from];
     const arrowId = createShapeId();
-    const arrowX = a.x + BLOCK_W;
+    const arrowX = a.x + aW;
     const arrowY = a.y + BLOCK_H / 2;
     shapes.push({
       id: arrowId,
@@ -268,8 +340,8 @@ function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () =
       }
     );
     if (edge.label) {
-      const labelX = (a.x + b.x) / 2 + BLOCK_W / 2;
-      const labelY = (a.y + b.y) / 2 + BLOCK_H / 2 - 16;
+      const labelX = (a.x + aW + b.x) / 2 - 70;
+      const labelY = (a.y + b.y) / 2 + BLOCK_H / 2 - 10;
       const labelCell: Rect = { x: labelX, y: labelY, w: 140, h: 20 };
       const labelPos = resolvePosition(labelCell, occupied);
       occupied.push({ x: labelPos.x, y: labelPos.y, w: 140, h: 20 });
