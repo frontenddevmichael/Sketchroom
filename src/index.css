@@ -1,12 +1,41 @@
 :root {
+  /* Neutrals — dark theme (near-black, subtly warm) */
+  --bg: oklch(0.16 0.005 260);
+  --bg-elev: oklch(0.20 0.006 260);
+  --bg-sunken: oklch(0.13 0.005 260);
+  --ink: oklch(0.98 0.003 85);
+  --ink-2: oklch(0.75 0.008 250);
+  --ink-3: oklch(0.55 0.008 250);
+  --ink-4: oklch(0.38 0.008 250);
+  --line: oklch(0.28 0.006 260);
+  --line-2: oklch(0.34 0.008 260);
+
+  /* Single accent — signature emerald/lime */
+  --accent: oklch(0.78 0.19 148);
+  --accent-ink: oklch(0.16 0.03 148);
+  --accent-soft: oklch(0.35 0.09 148);
+
+  /* State colors */
+  --live: oklch(0.78 0.19 148);
+  --warn: oklch(0.78 0.14 70);
+  --danger: oklch(0.68 0.19 25);
+
+  /* Room preview backdrops (dark, distinct hue tints) */
+  --p1: oklch(0.22 0.02 320);
+  --p2: oklch(0.22 0.025 220);
+  --p3: oklch(0.22 0.025 55);
+  --p4: oklch(0.22 0.02 85);
+  --p5: oklch(0.22 0.025 155);
+  --p6: oklch(0.22 0.02 260);
+
+  /* Legacy tokens — kept for backward compatibility */
   --green-50: #E9FBF0;
   --green-400: #3DD877;
   --green-500: #25D366;
   --green-600: #1DA851;
   --green-700: #16803D;
 
-  /* Green alpha variants — focus rings, ghost accents, glows. Static across
-     themes because the base hue is fixed; opacity is the only variable. */
+  /* Green alpha variants — focus rings, ghost accents, glows */
   --green-500-10: rgba(37, 211, 102, 0.10);
   --green-500-12: rgba(37, 211, 102, 0.12);
   --green-500-25: rgba(37, 211, 102, 0.25);
@@ -15,6 +44,7 @@
   --green-500-50: rgba(37, 211, 102, 0.50);
   --green-500-60: rgba(37, 211, 102, 0.60);
 
+  /* Legacy neutral tokens */
   --neutral-0: #FFFFFF;
   --neutral-25: #FBFBFB;
   --neutral-100: #EFEFEF;
@@ -27,16 +57,18 @@
   --neutral-400: #9A9A9A;
   --neutral-50-dark: #F2F2F2;
 
-  --color-bg-canvas: var(--neutral-0);
-  --color-bg-surface: var(--neutral-25);
-  --color-text-primary: var(--neutral-900);
-  --color-text-secondary: var(--neutral-500);
-  --color-text-tertiary: var(--neutral-400);
-  --color-selected-bg: var(--neutral-150);
-  --color-cta-default: var(--green-500);
-  --color-cta-hover: var(--green-600);
-  --color-cta-active: var(--green-700);
+  /* Semantic color aliases */
+  --color-bg-canvas: var(--bg);
+  --color-bg-surface: var(--bg-elev);
+  --color-text-primary: var(--ink);
+  --color-text-secondary: var(--ink-2);
+  --color-text-tertiary: var(--ink-3);
+  --color-selected-bg: var(--bg-sunken);
+  --color-cta-default: var(--accent);
+  --color-cta-hover: oklch(0.82 0.2 148);
+  --color-cta-active: oklch(0.65 0.16 148);
 
+  /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -47,17 +79,23 @@
   --space-14: 56px;
   --space-20: 80px;
 
+  /* Radius */
+  --radius-card: 14px;
+  --radius-btn: 8px;
+  --radius-pill: 999px;
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-full: 999px;
 
+  /* Animation */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --duration-fast: 180ms;
   --duration-base: 320ms;
   --duration-pulse: 2500ms;
 
+  /* Surface effects */
   --surface-blur: 20px;
   --surface-translucency-light: rgba(255, 255, 255, 0.72);
   --surface-translucency-dark: rgba(20, 20, 20, 0.75);
@@ -65,26 +103,29 @@
   --shadow-card-rest: 0 1px 3px rgba(0, 0, 0, 0.04);
   --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.08);
 
-  /* Glass surface system (see .glass in components/shared.css) */
-  --glass-bg: rgba(255, 255, 255, 0.6);
-  --glass-bg-dense: rgba(255, 255, 255, 0.88);
-  --glass-bg-fallback: rgba(255, 255, 255, 0.92);
+  /* Glass surface system */
+  --glass-bg: rgba(18, 18, 18, 0.62);
+  --glass-bg-dense: rgba(18, 18, 18, 0.92);
+  --glass-bg-fallback: rgba(18, 18, 18, 0.96);
   --glass-blur: 20px;
   --glass-saturation: 1.4;
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-highlight: rgba(255, 255, 255, 0.6);
-  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
 
-  /* Scrollbar system (thin, quiet — matches the glass chrome) */
+  /* Scrollbar */
   --scrollbar-size: 10px;
-  --scrollbar-thumb: rgba(0, 0, 0, 0.16);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.26);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.18);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
   --scrollbar-track: transparent;
 
-  --font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Urbanist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  /* Typography */
+  --font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --font-family: var(--font-body);
 
+  /* Font sizes */
   --fs-display: clamp(34px, 5.2vw, 64px);
   --fs-title: clamp(28px, 3.6vw, 44px);
   --fs-h3: clamp(20px, 2.4vw, 26px);
@@ -92,24 +133,16 @@
   --fs-sm: 14px;
   --fs-xs: 13px;
 
-  /* Room chrome geometry — the canvas fills the stage and every floating
-     surface anchors to the stage edges or the left tool rail. */
-  --room-gutter: var(--space-4);   /* inset of chrome from the stage edge */
-  --room-rail-w: 52px;             /* left tool rail resting width (icon 40px + 2×6px padding) */
-  --room-bar-h: 56px;              /* bottom-center AI input bar height */
-  --room-topbar-h: 61px;           /* topbar height — fixed chrome clears it */
-
-  /* Room button metric — ONE icon-button size language across all chrome:
-     primary tool surface (rail) at --room-btn, supporting chrome (topbar,
-     notch, zoom) at --room-btn-sm. */
+  /* Room chrome geometry */
+  --room-gutter: var(--space-4);
+  --room-rail-w: 52px;
+  --room-bar-h: 56px;
+  --room-topbar-h: 61px;
   --room-btn: 40px;
   --room-btn-sm: 36px;
-
-  /* Top-right controls pill zone: right-docked panels (version history, AI
-     chat) start below this band so they can never overlap the controls. */
   --room-panel-top: calc(var(--room-gutter) + 56px);
 
-  /* Room z-layers (ascending) */
+  /* Room z-layers */
   --room-z-overlays: 5;
   --room-z-panels: 30;
   --room-z-rail: 35;
@@ -118,53 +151,22 @@
   --room-z-modal: 60;
   --room-z-coachmarks: 55;
 
-  /* Semantic status colors (save/sync pills) */
-  --color-status-ok-bg: #EAF6EE;
-  --color-status-ok-text: #1E8E4E;
-  --color-status-warn-bg: #FFF8E1;
-  --color-status-warn-text: #B4633A;
-  --color-status-danger-bg: #FDECEA;
-  --color-status-danger-text: #C0392B;
-}
-
-[data-theme="dark"] {
-  /* Apple-level elevation system: layered lightness, not one flat dark color.
-     Shadows become invisible on black, so depth is carried by surfaces that
-     get progressively lighter as they float higher above the canvas base. */
-  --dark-elevation-0: #000000;  /* canvas base — true black */
-  --dark-elevation-1: #0D0D0D;  /* flat cards (dashboard, billing) */
-  --dark-elevation-2: #161616;  /* panels, sidebar */
-  --dark-elevation-3: #1F1F1F;  /* solid floating overlays, inset thumbnails */
-  --dark-elevation-4: #262626;  /* popovers, tooltips, hover/selected */
-
-  --color-bg-canvas: var(--dark-elevation-0);
-  --color-bg-surface: var(--dark-elevation-2);
-  --color-text-primary: #F5F5F5;   /* off-white, never pure #FFFFFF — avoids halation on black */
-  --color-text-secondary: #A3A3A3;
-  --color-text-tertiary: #6F6F6F;
-  --color-selected-bg: var(--dark-elevation-4);
-  --color-cta-hover: var(--green-400);
-
-  /* Shadows don't work on black — hairlines + elevation carry depth instead */
-  --dark-hairline: rgba(255, 255, 255, 0.06);
-  --dark-canvas-grid-dot: rgba(255, 255, 255, 0.05);
-
-  --glass-bg: rgba(18, 18, 18, 0.62);
-  --glass-bg-dense: rgba(18, 18, 18, 0.92);
-  --glass-bg-fallback: rgba(18, 18, 18, 0.96);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
-
-  --scrollbar-thumb: rgba(255, 255, 255, 0.18);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
-
+  /* Semantic status colors */
   --color-status-ok-bg: rgba(37, 211, 102, 0.12);
   --color-status-ok-text: #4ADE80;
   --color-status-warn-bg: rgba(255, 214, 102, 0.12);
   --color-status-warn-text: #E6B45A;
   --color-status-danger-bg: rgba(255, 99, 71, 0.12);
   --color-status-danger-text: #FF8A7A;
+
+  /* Dark elevation system */
+  --dark-elevation-0: #000000;
+  --dark-elevation-1: #0D0D0D;
+  --dark-elevation-2: #161616;
+  --dark-elevation-3: #1F1F1F;
+  --dark-elevation-4: #262626;
+  --dark-hairline: rgba(255, 255, 255, 0.06);
+  --dark-canvas-grid-dot: rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -178,17 +180,18 @@ html, body, #root {
 }
 
 body {
-  font-family: var(--font-family);
+  font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.5;
-  color: var(--color-text-primary);
-  background: var(--color-bg-canvas);
+  color: var(--ink);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  letter-spacing: -0.005em;
 }
 
-/* Thin, quiet scrollbars everywhere — the canvas stays unobstructed. */
+/* Thin, quiet scrollbars everywhere */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
@@ -225,11 +228,11 @@ body {
 }
 
 ::selection {
-  background: var(--color-selected-bg);
+  background: var(--accent-soft);
 }
 
 :focus-visible {
-  outline: 2px solid var(--green-500);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
