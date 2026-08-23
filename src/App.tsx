@@ -5,6 +5,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { ErrorScreen } from './components/ErrorScreen';
 import { AuthScreen } from './screens/AuthScreen';
 import { LegalScreen } from './screens/LegalScreen';
+import { ScreenErrorBoundary } from './components/ScreenErrorBoundary';
 
 const Landing = lazy(() => import('./landing/Landing').then((m) => ({ default: m.Landing })));
 const Dashboard = lazy(() => import('./screens/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -51,35 +52,77 @@ function Screen({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={
+        <ScreenErrorBoundary screenName="Landing">
+          <Landing />
+        </ScreenErrorBoundary>
+      } />
       <Route path="/auth" element={
         <PublicRoute>
-          <AuthScreen />
+          <ScreenErrorBoundary screenName="Auth" recoveryActions={[
+            { label: 'Back to Home', onClick: () => window.location.href = '/', variant: 'ghost' },
+          ]}>
+            <AuthScreen />
+          </ScreenErrorBoundary>
         </PublicRoute>
       } />
       <Route path="/dashboard" element={
         <ProtectedRoute>
-          <Screen><Dashboard /></Screen>
+          <Screen>
+            <ScreenErrorBoundary screenName="Dashboard" recoveryActions={[
+              { label: 'Try Again', onClick: () => window.location.reload(), variant: 'primary' },
+              { label: 'Sign Out', onClick: () => window.location.href = '/auth?logout=1', variant: 'ghost' },
+            ]}>
+              <Dashboard />
+            </ScreenErrorBoundary>
+          </Screen>
         </ProtectedRoute>
       } />
       <Route path="/room/:roomId" element={
         <ProtectedRoute>
-          <Screen><RoomScreen /></Screen>
+          <Screen>
+            <ScreenErrorBoundary screenName="Room" recoveryActions={[
+              { label: 'Back to Dashboard', onClick: () => window.location.href = '/dashboard', variant: 'primary' },
+              { label: 'Reload Room', onClick: () => window.location.reload(), variant: 'outline' },
+            ]}>
+              <RoomScreen />
+            </ScreenErrorBoundary>
+          </Screen>
         </ProtectedRoute>
       } />
       <Route path="/invite/:token" element={
         <ProtectedRoute>
-          <Screen><InviteScreen /></Screen>
+          <Screen>
+            <ScreenErrorBoundary screenName="Invite" recoveryActions={[
+              { label: 'Back to Dashboard', onClick: () => window.location.href = '/dashboard', variant: 'primary' },
+            ]}>
+              <InviteScreen />
+            </ScreenErrorBoundary>
+          </Screen>
         </ProtectedRoute>
       } />
       <Route path="/settings" element={
         <ProtectedRoute>
-          <Screen><SettingsScreen /></Screen>
+          <Screen>
+            <ScreenErrorBoundary screenName="Settings" recoveryActions={[
+              { label: 'Back to Dashboard', onClick: () => window.location.href = '/dashboard', variant: 'primary' },
+              { label: 'Reload', onClick: () => window.location.reload(), variant: 'outline' },
+            ]}>
+              <SettingsScreen />
+            </ScreenErrorBoundary>
+          </Screen>
         </ProtectedRoute>
       } />
       <Route path="/billing" element={
         <ProtectedRoute>
-          <Screen><BillingScreen /></Screen>
+          <Screen>
+            <ScreenErrorBoundary screenName="Billing" recoveryActions={[
+              { label: 'Back to Dashboard', onClick: () => window.location.href = '/dashboard', variant: 'primary' },
+              { label: 'Reload', onClick: () => window.location.reload(), variant: 'outline' },
+            ]}>
+              <BillingScreen />
+            </ScreenErrorBoundary>
+          </Screen>
         </ProtectedRoute>
       } />
       <Route path="/error" element={<ErrorScreen />} />

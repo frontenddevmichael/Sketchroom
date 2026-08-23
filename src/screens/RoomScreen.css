@@ -1271,7 +1271,345 @@ kbd.room-shortcuts-key,
 }
 
 
+/* ── Mobile-first responsive strategy for RoomScreen ─────────────────────
+   Below 720px: the desktop left rail becomes a bottom tool bar.
+   Below 480px: panels (AI, History, Blocks) become full-screen sheets.  */
 
+/* Bottom tool bar (replaces left rail on mobile) */
+.room-tool-bar {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--room-z-rail);
+  padding: var(--space-2) var(--space-3);
+  padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+  background: var(--color-bg-surface);
+  border-top: 1px solid var(--neutral-150);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .room-tool-bar {
+  background: var(--dark-elevation-1);
+  border-top-color: var(--dark-hairline);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.room-tool-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.room-tool-bar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.room-tool-bar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  transition: background var(--duration-fast) var(--ease-spring),
+    color var(--duration-fast) var(--ease-spring);
+}
+
+.room-tool-bar-btn:hover:not(:disabled) {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.room-tool-bar-btn.active {
+  background: var(--color-selected-bg);
+  color: var(--color-text-primary);
+}
+
+.room-tool-bar-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.room-tool-bar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--neutral-150);
+  margin: 0 var(--space-2);
+}
+
+[data-theme="dark"] .room-tool-bar-divider {
+  background: var(--dark-hairline);
+}
+
+/* Mobile: hide desktop rail, show bottom bar */
+@media (max-width: 720px) {
+  .room-tool-rail {
+    display: none;
+  }
+
+  .room-tool-bar {
+    display: block;
+  }
+
+  /* Adjust stage bottom padding for bottom bar */
+  .room-stage {
+    padding-bottom: calc(40px + var(--room-gutter) + env(safe-area-inset-bottom));
+  }
+
+  /* AI bar sits above bottom tool bar */
+  .room-bottom-stack {
+    bottom: calc(40px + var(--room-gutter) + env(safe-area-inset-bottom));
+  }
+
+  /* Controls move to bottom-left on mobile */
+  .room-controls {
+    right: auto;
+    left: var(--room-gutter);
+    top: auto;
+    bottom: calc(52px + var(--room-gutter) + env(safe-area-inset-bottom));
+    z-index: var(--room-z-rail);
+  }
+
+  /* Zoom indicator compact on mobile */
+  .room-controls-pct {
+    min-width: 36px;
+    padding: 0 4px;
+    font-size: 11px;
+  }
+}
+
+/* Small phones: compact tool bar */
+@media (max-width: 420px) {
+  .room-tool-bar-inner {
+    gap: var(--space-1);
+  }
+
+  .room-tool-bar-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .room-tool-bar-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .room-tool-bar-divider {
+    height: 20px;
+    margin: 0 var(--space-1);
+  }
+}
+
+/* ── Panels as sheets on mobile ──────────────────────────────────────────
+   Below 480px: AI feed, History, Block Library become bottom sheets */
+
+@media (max-width: 480px) {
+  /* AI Chat panel */
+  .ai-chat {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    height: 70vh;
+    max-height: 70vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border: none;
+    border-top: 1px solid var(--neutral-150);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+    z-index: var(--room-z-panels);
+    animation: sheet-in 300ms var(--ease-spring);
+  }
+
+  [data-theme="dark"] .ai-chat {
+    border-top-color: var(--dark-hairline);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .ai-chat-header {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--neutral-150);
+    position: sticky;
+    top: 0;
+    background: var(--glass-bg-dense);
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+    z-index: 1;
+  }
+
+  .ai-feed-body {
+    max-height: calc(70vh - 56px);
+    overflow-y: auto;
+  }
+
+  /* History panel */
+  .history-panel {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    height: 75vh;
+    max-height: 75vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border: none;
+    border-top: 1px solid var(--neutral-150);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+    z-index: var(--room-z-panels);
+    animation: sheet-in 300ms var(--ease-spring);
+  }
+
+  [data-theme="dark"] .history-panel {
+    border-top-color: var(--dark-hairline);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .history-panel header {
+    position: sticky;
+    top: 0;
+    background: var(--glass-bg-dense);
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+    z-index: 1;
+  }
+
+  /* Block Library panel */
+  .block-library {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    height: 60vh;
+    max-height: 60vh;
+    width: 100% !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border: none;
+    border-top: 1px solid var(--neutral-150);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+    z-index: var(--room-z-panels);
+    animation: sheet-in 300ms var(--ease-spring);
+  }
+
+  [data-theme="dark"] .block-library {
+    border-top-color: var(--dark-hairline);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .block-library header {
+    position: sticky;
+    top: 0;
+    background: var(--glass-bg-dense);
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+    z-index: 1;
+  }
+
+  .block-library .block-library-grid {
+    max-height: calc(60vh - 56px);
+    overflow-y: auto;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Share modal on mobile */
+@media (max-width: 480px) {
+  .share-modal {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    height: 85vh;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .share-modal .modal-card {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}
+
+/* Export dialog on mobile */
+@media (max-width: 480px) {
+  .export-dialog {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}
+
+/* Tool options rail on mobile */
+@media (max-width: 720px) {
+  .tool-options-rail {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: calc(40px + var(--room-gutter) + env(safe-area-inset-bottom));
+    z-index: var(--room-z-panels);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+    animation: sheet-in 300ms var(--ease-spring);
+  }
+
+  [data-theme="dark"] .tool-options-rail {
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Focus mode on mobile - don't fade bottom bar */
+@media (max-width: 720px) {
+  .room-screen.focusing .room-tool-bar {
+    opacity: 1;
+  }
+}
+
+/* Prevent body scroll when panels are open on mobile */
+body.has-open-panel {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Safe area support for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 720px) {
+    .room-tool-bar {
+      padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+    }
+    .room-bottom-stack {
+      bottom: calc(40px + var(--room-gutter) + env(safe-area-inset-bottom));
+    }
+    .room-controls {
+      bottom: calc(52px + var(--room-gutter) + env(safe-area-inset-bottom));
+    }
+    .tool-options-rail {
+      bottom: calc(40px + var(--room-gutter) + env(safe-area-inset-bottom));
+    }
+  }
+}
 
 /* ── Canvas blur-up loading ──────────────────────────────────────────────
    The room's last-known thumbnail stands in, blurred, while the live canvas

@@ -1,9 +1,11 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { captureError } from '../lib/sentry';
 import '../components/shared.css';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
   onReport?: (error: unknown, info: ErrorInfo) => void;
+  fallback?: ReactNode;
 }
 
 interface ErrorBoundaryState {
@@ -23,6 +25,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
     this.props.onReport?.(error, info);
+    // Send to Sentry
+    captureError(
+      error instanceof Error ? error : new Error(String(error)),
+      { componentStack: info.componentStack }
+    );
   }
 
   render() {

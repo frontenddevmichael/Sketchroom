@@ -1,5 +1,7 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import imagetools from 'vite-imagetools'
+import sentry from '@sentry/vite-plugin'
 
 /**
  * SEO plugin. All of the site-URL-dependent bits (canonical, og:url, the
@@ -54,7 +56,13 @@ function seoPlugin(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), seoPlugin()],
+  plugins: [react(), seoPlugin(), imagetools(), sentry({
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    // Only upload source maps in production
+    disable: process.env.NODE_ENV !== 'production',
+  })],
   build: {
     // Split heavy, stable vendors into their own cacheable chunks. tldraw is
     // ~1.3 MB raw and only used by the room screen; without this the room

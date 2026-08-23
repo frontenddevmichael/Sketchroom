@@ -234,6 +234,21 @@ export const updateRoomName = mutation({
   },
 });
 
+export const completeOnboarding = mutation({
+  args: { roomId: v.id("rooms") },
+  handler: async (ctx, args) => {
+    const identity = await auth.getIdentity(ctx);
+    if (!identity) throw new Error("Not authenticated");
+    const member = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_room_user", (q) => q.eq("roomId", args.roomId).eq("userId", identity.subject))
+      .first();
+    if (!member) throw new Error("Not a member of this room");
+    await ctx.db.patch(args.roomId, { onboardingCompleted: true });
+    return true;
+  },
+});
+
 export const deleteRoom = mutation({
   args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {

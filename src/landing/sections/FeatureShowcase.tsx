@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Reveal } from '../components/Reveal';
+import { LazyMount } from '../components/LazyMount';
 import './FeatureShowcase.css';
+
+const Walkthrough = lazy(() => import('./Walkthrough').then((m) => ({ default: m.Walkthrough })));
 
 const AGENTS = [
   {
@@ -137,6 +140,13 @@ export function FeatureShowcase() {
       {AGENTS.map((agent, i) => (
         <AgentSection key={agent.id} agent={agent} index={i} />
       ))}
+
+      {/* Walkthrough — lazy-loaded with gsap, only mounts when near viewport */}
+      <LazyMount minHeight={800} className="wt-placeholder">
+        <Suspense fallback={null}>
+          <Walkthrough />
+        </Suspense>
+      </LazyMount>
     </div>
   );
 }

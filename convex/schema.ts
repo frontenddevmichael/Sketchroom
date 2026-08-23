@@ -30,6 +30,7 @@ export default defineSchema({
     // Last editor identity, written server-side by the canvas-change and rename
     // mutations. Never trusted from client input; display-only.
     lastEditedBy: v.optional(v.object({ id: v.string(), name: v.string() })),
+    onboardingCompleted: v.optional(v.boolean()),
   })
     .index("by_workspace", ["workspaceId"])
     .index("by_owner", ["ownerId"]),

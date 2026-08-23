@@ -16,9 +16,9 @@ import {
   Users,
 } from "lucide-react";
 
-import carouselImg1 from "../assets/Abstract Flower Art.png";
-import carouselImg2 from "../assets/Abstract Motion Blur.png";
-import carouselImg3 from "../assets/Ethereal Motion Portrait.png";
+import carouselImg1 from "../assets/Abstract Flower Art.png?w=1920&format=webp;avif";
+import carouselImg2 from "../assets/Abstract Motion Blur.png?w=1920&format=webp;avif";
+import carouselImg3 from "../assets/Ethereal Motion Portrait.png?w=1920&format=webp;avif";
 
 import "../components/shared.css";
 import "./AuthScreen.css";
