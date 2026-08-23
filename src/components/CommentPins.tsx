@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
@@ -62,9 +62,9 @@ export function CommentPins({ editor, roomId, commentMode, onExitCommentMode }: 
   // Register editor listener
   const editorRef = useRef(editor);
   editorRef.current = editor;
-  useState(() => {
+  useEffect(() => {
     if (editor) return handleEditorMount(editor);
-  });
+  }, [editor, handleEditorMount]);
 
   // Handle canvas click in comment mode
   const handleCanvasClick = useCallback(
