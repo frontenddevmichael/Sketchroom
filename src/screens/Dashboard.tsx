@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'convex/react';
+import { useAuthActions } from '@convex-dev/auth/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import {
@@ -14,12 +15,10 @@ import {
   Pencil,
   X,
   Home,
-  Calendar,
-  FolderOpen,
-  FileText,
   Sparkles,
   Zap,
-  ArrowRight,
+  LogOut,
+  CreditCard,
 } from 'lucide-react';
 import { useTheme } from '../lib/useTheme';
 import { TEMPLATES, buildTemplateSeed } from '../lib/templates';
@@ -74,13 +73,6 @@ function formatRelativeTime(ts: number) {
   return new Date(ts).toLocaleDateString();
 }
 
-/* Preview color cycle for room cards */
-const PREVIEW_COLORS = [
-  'oklch(0.22 0.04 160)', 'oklch(0.24 0.06 220)',
-  'oklch(0.20 0.05 30)',  'oklch(0.25 0.04 280)',
-  'oklch(0.22 0.03 50)',  'oklch(0.23 0.05 190)',
-];
-
 /* ── Main component ─────────────────────────────────────────────────── */
 
 export function Dashboard() {
@@ -92,20 +84,19 @@ export function Dashboard() {
   const modalRef = useModalFocus<HTMLDivElement>(() => setModal(null), !!modal);
   const [roomName, setRoomName] = useState('');
   const [workspaceId, setWorkspaceId] = useState<Id<'workspaces'> | null>(null);
-  const [query] = useState('');
+  const [query, setQuery] = useState('');
   const [sort, setSort] = useState<Sort>('recent');
   const [kebabFor, setKebabFor] = useState<Id<'rooms'> | null>(null);
   const [creatingTemplate, setCreatingTemplate] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<Id<'rooms'> | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [dismissedLimitNote, setDismissedLimitNote] = useState(false);
-  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
-  // Never a dead end: if the workspace query can't resolve within a
-  // reasonable window, surface a calm error with a retry instead of an
-  // infinite skeleton.
   const [loadFailed, setLoadFailed] = useState(false);
   const [workspaceCreateFailed, setWorkspaceCreateFailed] = useState(false);
   const [workspaceRetryNonce, setWorkspaceRetryNonce] = useState(0);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [wsHover, setWsHover] = useState(false);
+  const { signOut } = useAuthActions();
 
   const workspaces = useQuery(api.features.rooms.getWorkspaces);
   const usage = useQuery(api.features.rooms.getUsage);
@@ -126,7 +117,15 @@ export function Dashboard() {
   const createRoom = useMutation(api.features.rooms.createRoom);
   const deleteRoom = useMutation(api.features.rooms.deleteRoom);
   const updateRoomName = useMutation(api.features.rooms.updateRoomName);
+  const syncMemberProfile = useMutation(api.features.rooms.syncMemberProfile);
   const creatingWorkspace = useRef(false);
+  const syncedProfile = useRef(false);
+
+  useEffect(() => {
+    if (syncedProfile.current || !user) return;
+    syncedProfile.current = true;
+    void syncMemberProfile();
+  }, [user, syncMemberProfile]);
 
   useEffect(() => {
     if (workspaces && workspaces.length === 0 && user && !creatingWorkspace.current) {
@@ -153,33 +152,61 @@ export function Dashboard() {
     );
   }, [rooms, query, sort]);
 
+  /* Total members across all rooms (real data) */
+  const totalMembers = useMemo(() => {
+    if (!rooms) return 0;
+    return rooms.reduce((sum, r) => sum + (r.members?.avatars.length ?? 0) + (r.members?.plusCount ?? 0), 0);
+  }, [rooms]);
+
+  /* Keyboard shortcut: N to create room */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'n' && e.key !== 'N') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      e.preventDefault();
+      openCreate();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Close kebab on outside click */
   useEffect(() => {
     if (!kebabFor) return;
     const onDown = (e: PointerEvent) => {
-      if ((e.target as HTMLElement | null)?.closest?.('.room')) return;
+      if ((e.target as HTMLElement | null)?.closest?.('.kebab-menu')) return;
       setKebabFor(null);
     };
     document.addEventListener('pointerdown', onDown);
     return () => document.removeEventListener('pointerdown', onDown);
   }, [kebabFor]);
 
-  // Same for the workspace switcher: clicking outside closes it.
+  /* Close popovers on outside click */
   useEffect(() => {
-    if (!workspaceMenuOpen) return;
+    if (!avatarOpen && !wsHover) return;
     const onDown = (e: PointerEvent) => {
-      if ((e.target as HTMLElement | null)?.closest?.('.sidebar-workspace-switch')) return;
-      setWorkspaceMenuOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setWorkspaceMenuOpen(false);
+      const target = e.target as HTMLElement;
+      if (target.closest('.sidebar-logo') || target.closest('.ws-popover')) return;
+      if (target.closest('.sidebar-avatar') || target.closest('.user-popover')) return;
+      setAvatarOpen(false);
+      setWsHover(false);
     };
     document.addEventListener('pointerdown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('pointerdown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [workspaceMenuOpen]);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [avatarOpen, wsHover]);
+
+  const handleSignOut = useCallback(() => {
+    setAvatarOpen(false);
+    signOut().catch(() => {});
+  }, [signOut]);
+
+  const openCreate = useCallback(() => {
+    setRoomName('');
+    setCreateError(null);
+    setModal({ kind: 'create' });
+  }, []);
 
   if (!workspaces) return <DashboardLoadingShell failed={loadFailed} />;
 
@@ -260,54 +287,144 @@ export function Dashboard() {
     setKebabFor(null);
   };
 
-  const openCreate = () => {
-    setRoomName('');
-    setCreateError(null);
-    setModal({ kind: 'create' });
-  };
-
   return (
     <div className="dashboard">
-      {/* ── Icon rail ── */}
-      <nav className="rail">
-        <div className="logo">S</div>
-        <button className="icon active" title="Home" onClick={() => navigate('/dashboard')}>
-          <Home size={20} />
-        </button>
-        <button className="icon" title="Search" onClick={() => {
-          const el = document.querySelector<HTMLInputElement>('.greet + .section-head + .rooms');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }}><Search size={20} /></button>
-        <button className="icon" title="Calendar"><Calendar size={20} /></button>
-        <button className="icon" title="Files"><FileText size={20} /></button>
-        <button className="icon" title="Folders"><FolderOpen size={20} /></button>
-        <div className="spacer" />
-        <button className="icon" title="Settings" onClick={() => navigate('/settings')}>
-          <Settings size={20} />
-        </button>
+      {/* ── Sidebar ── */}
+      <nav className="sidebar" aria-label="Navigation">
+        {/* Logo — hover opens workspace popover */}
         <div
-          className="avatar-mini"
-          title={user?.name || 'Account'}
-          onClick={() => navigate('/settings')}
+          className="sidebar-logo"
+          onMouseEnter={() => setWsHover(true)}
+          onClick={() => setWsHover(!wsHover)}
           role="button"
           tabIndex={0}
+          aria-label="Workspace info"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setWsHover(!wsHover); }}
+        >
+          S
+        </div>
+
+        <button className="sidebar-item" title="Home" onClick={() => navigate('/dashboard')}>
+          <Home size={20} />
+          <span className="sidebar-item-label">Home</span>
+        </button>
+
+        <button className="sidebar-item" title="New room" onClick={openCreate}>
+          <Plus size={20} />
+          <span className="sidebar-item-label">New room</span>
+        </button>
+
+        <div className="sidebar-spacer" />
+
+        {/* AI usage */}
+        {usage && (
+          <div className="sidebar-item" title={`${usage.aiSuggestions}/${FREE_AI_LIMIT} AI suggestions used`}>
+            <Sparkles size={18} />
+            <span className="sidebar-item-badge">AI {usage.aiSuggestions}/{FREE_AI_LIMIT}</span>
+          </div>
+        )}
+
+        <button className="sidebar-item" title="Billing" onClick={() => navigate('/billing')}>
+          <CreditCard size={20} />
+          <span className="sidebar-item-label">Billing</span>
+        </button>
+
+        <button className="sidebar-item" title="Settings" onClick={() => navigate('/settings')}>
+          <Settings size={20} />
+          <span className="sidebar-item-label">Settings</span>
+        </button>
+
+        {/* Avatar — click opens user popover */}
+        <button
+          className="sidebar-avatar"
+          title={user?.name || 'Account'}
+          onClick={() => setAvatarOpen(!avatarOpen)}
+          aria-expanded={avatarOpen}
+          aria-haspopup="true"
         >
           {userInitials}
-        </div>
+        </button>
       </nav>
+
+      {/* Workspace popover — fixed position */}
+      {wsHover && (
+        <div className="ws-popover" role="tooltip">
+          <div className="ws-popover-header">
+            <div className="ws-popover-icon">S</div>
+            <div className="ws-popover-info">
+              <p className="ws-popover-name">{workspaces?.[0]?.name || 'My Workspace'}</p>
+              <p className="ws-popover-email">{user?.email || ''}</p>
+            </div>
+          </div>
+          <div className="ws-popover-sep" />
+          <div className="ws-popover-row">
+            <span className="ws-popover-row-label">Rooms</span>
+            <span className="ws-popover-row-value">{rooms?.length || 0}</span>
+          </div>
+          <div className="ws-popover-row">
+            <span className="ws-popover-row-label">Plan</span>
+            <span className="ws-popover-row-value">Free</span>
+          </div>
+          <div className="ws-popover-row">
+            <span className="ws-popover-row-label">AI used</span>
+            <span className="ws-popover-row-value">{usage?.aiSuggestions || 0}/{FREE_AI_LIMIT}</span>
+          </div>
+        </div>
+      )}
+
+      {/* User popover — fixed position */}
+      {avatarOpen && (
+        <div className="user-popover" role="menu">
+          <div className="user-popover-header">
+            <div className="user-popover-avatar">{userInitials}</div>
+            <div className="user-popover-info">
+              <p className="user-popover-name">{user?.name || 'User'}</p>
+              <p className="user-popover-email">{user?.email || ''}</p>
+            </div>
+          </div>
+          <div className="user-popover-sep" />
+          <button className="user-popover-btn" role="menuitem" onClick={() => { setAvatarOpen(false); toggleTheme(); }}>
+            {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
+            <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
+          </button>
+          <button className="user-popover-btn" role="menuitem" onClick={() => { setAvatarOpen(false); navigate('/settings'); }}>
+            <Settings size={14} />
+            <span>Settings</span>
+          </button>
+          <button className="user-popover-btn" role="menuitem" onClick={() => { setAvatarOpen(false); navigate('/billing'); }}>
+            <CreditCard size={14} />
+            <span>Billing</span>
+          </button>
+          <div className="user-popover-sep" />
+          <button className="user-popover-btn user-popover-danger" role="menuitem" onClick={handleSignOut}>
+            <LogOut size={14} />
+            <span>Sign out</span>
+          </button>
+        </div>
+      )}
 
       {/* ── Main content ── */}
       <main className="main">
         {/* Topbar */}
         <div className="topbar">
-          
           <div className="search">
-            <Search size={14} />
-            Search rooms, people, files…
-            <span className="kbd">⌘K</span>
+            <Search size={14} aria-hidden="true" />
+            <input
+              type="text"
+              placeholder="Search rooms…"
+              aria-label="Search rooms"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="search-input"
+            />
+            {query && (
+              <button className="search-clear" onClick={() => setQuery('')} aria-label="Clear search">
+                <X size={12} />
+              </button>
+            )}
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" onClick={toggleTheme}>
+          <div className="topbar-actions">
+            <button className="btn" onClick={toggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>
               {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
             </button>
             <button className="btn primary" onClick={openCreate}>
@@ -316,86 +433,76 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Greeting */}
+        {/* Greeting — clean, no fake stats */}
         <div className="greet">
           <div>
-            <h1 className=''>{greetingForHour()}, {firstName}.</h1>
-            <div className="sub">
-              {todayLabel()} · Your team drew <b>{(usage?.rooms ?? 0) * 12} shapes</b> this week and
-              left <b>{(usage?.aiSuggestions ?? 0) * 2} comments</b> on things you own.
-            </div>
+            <h1>{greetingForHour()}, {firstName}.</h1>
+            <div className="sub">{todayLabel()}</div>
           </div>
         </div>
 
         {showLimitNote && (
-          <div className="card" role="note" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', background: 'oklch(0.22 0.06 148 / 0.12)', borderColor: 'oklch(0.78 0.19 148 / 0.2)' }}>
-            <span style={{ fontSize: '13px' }}>
+          <div className="limit-note" role="note">
+            <span className="limit-note-text">
               You've used all {FREE_ROOM_LIMIT} rooms on the free plan — rooms stay open.
             </span>
-            <button className="btn" style={{ flexShrink: 0 }} onClick={() => navigate('/billing')}>See plans</button>
-            <button style={{ background: 'none', border: 'none', color: 'var(--ink-3)', cursor: 'pointer', padding: '4px', marginLeft: '8px' }} onClick={() => setDismissedLimitNote(true)}>
+            <button className="btn" onClick={() => navigate('/billing')}>See plans</button>
+            <button className="limit-note-dismiss" onClick={() => setDismissedLimitNote(true)} aria-label="Dismiss limit notice">
               <X size={14} />
             </button>
           </div>
         )}
 
-        {/* KPI strip */}
+        {/* Compact KPI bar */}
         {usage && (
-          <div className="kpis">
-            <div className="kpi">
-              <div className="label"><FolderOpen size={12} />Rooms</div>
-              <div className="value">{usage.rooms}<span className="of">/{FREE_ROOM_LIMIT}</span></div>
-              <div className="seg-bar">
+          <div className="kpi-bar">
+            <div className="kpi-pill">
+              <span className="kpi-pill-label">Rooms</span>
+              <span className="kpi-pill-value">{usage.rooms}<span className="kpi-pill-of">/{FREE_ROOM_LIMIT}</span></span>
+              <div className="kpi-pill-bar">
                 {Array.from({ length: FREE_ROOM_LIMIT }, (_, i) => (
-                  <span key={i} className={`seg ${i < usage.rooms ? 'on' : ''}`} />
+                  <span key={i} className={`kpi-pill-seg ${i < usage.rooms ? 'on' : ''}`} />
                 ))}
               </div>
-              <div className="meta">{FREE_ROOM_LIMIT - usage.rooms} slots left on Free plan</div>
             </div>
-            <div className="kpi">
-              <div className="label"><Sparkles size={12} />AI Suggests</div>
-              <div className="value">{usage.aiSuggestions}<span className="unit">this month</span></div>
-              <div className="sparkline">
-                {Array.from({ length: 7 }, (_, i) => (
-                  <span key={i} className={`bar ${i === 6 ? 'today' : ''}`}
-                    style={{ height: `${30 + (i * 11) % 60}%` }} />
-                ))}
-              </div>
-              <div className="meta">
-                <span className="delta">
-                  {FREE_AI_LIMIT - usage.aiSuggestions > 0 ? '↑' : '↓'}{' '}
-                  {Math.round(((FREE_AI_LIMIT - usage.aiSuggestions) / FREE_AI_LIMIT) * 100)}%
-                </span> remaining
-              </div>
+            <div className="kpi-pill">
+              <span className="kpi-pill-label"><Sparkles size={11} />AI</span>
+              <span className="kpi-pill-value">{usage.aiSuggestions}<span className="kpi-pill-of">/{FREE_AI_LIMIT}</span></span>
+              <span className="kpi-pill-meta">{FREE_AI_LIMIT - usage.aiSuggestions} left this month</span>
             </div>
-            <div className="kpi">
-              <div className="label"><FolderOpen size={12} />Storage</div>
-              <div className="value">2.4<span className="unit">GB</span></div>
-              <div className="fill-bar"><span style={{ width: '48%' }} /></div>
-              <div className="meta">2.6 GB of 5 GB remaining</div>
-            </div>
-            <div className="kpi">
-              <div className="label"><Zap size={12} />Plan</div>
-              <div className="plan-pill"><span className="dot" />Free · Personal</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Next renewal · n/a
+            {totalMembers > 0 && (
+              <div className="kpi-pill">
+                <span className="kpi-pill-label">Team</span>
+                <span className="kpi-pill-value">{totalMembers}</span>
+                <span className="kpi-pill-meta">{totalMembers === 1 ? 'member' : 'members'}</span>
               </div>
-              <button className="upgrade-link" onClick={() => navigate('/billing')}>
-                Upgrade to <u>Studio · $12/mo</u> →
-              </button>
+            )}
+            <div className="kpi-pill kpi-pill-plan">
+              <span className="kpi-pill-label"><Zap size={11} />Free</span>
+              <button className="kpi-pill-upgrade" onClick={() => navigate('/billing')}>Upgrade →</button>
             </div>
           </div>
         )}
 
         {/* Section head + rooms grid */}
         <div className="section-head">
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px' }}>
-            <h2>Recent rooms</h2>
+          <div className="section-head-left">
+            <h2>Rooms</h2>
             <span className="count">{filteredRooms.length} total</span>
           </div>
-          <div className="tabs">
-            <span className={`tab ${sort === 'recent' ? 'active' : ''}`} onClick={() => setSort('recent')}>Recent</span>
-            <span className={`tab ${sort === 'name' ? 'active' : ''}`} onClick={() => setSort('name')}>By name</span>
+          <div className="tabs" role="tablist">
+            <button
+              className={`tab ${sort === 'recent' ? 'active' : ''}`}
+              onClick={() => setSort('recent')}
+              role="tab"
+              aria-selected={sort === 'recent'}
+            >Recent</button>
+            <button
+              className={`tab ${sort === 'name' ? 'active' : ''}`}
+              onClick={() => setSort('name')}
+              role="tab"
+              aria-selected={sort === 'name'}
+            >By name</button>
           </div>
         </div>
 
@@ -424,7 +531,8 @@ export function Dashboard() {
           </div>
         ) : (
           <div className="rooms">
-            <div className="room add" onClick={openCreate}>
+            <div className="room add" onClick={openCreate} role="button" tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openCreate(); }}>
               <div className="add-inner"><div className="plus"><Plus size={20} /></div>New room</div>
             </div>
             {filteredRooms.map((room, i) => (
@@ -446,66 +554,6 @@ export function Dashboard() {
         )}
       </main>
 
-      {/* ── Right sidebar ── */}
-      <aside className="sidebar">
-        <div className="user-block">
-          <div className="av">{userInitials}</div>
-          <div>
-            <p className="name">{user?.name || 'User'}</p>
-            <p className="role">Free · Personal</p>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="label">Next deadline <span className="pill">today</span></div>
-          <h3>Product review</h3>
-          <p className="when">In <b>3 hours</b> · with design team</p>
-        </div>
-
-        <div className="card">
-          <div className="label">Storage</div>
-          <div className="usage-summary">
-            <svg className="donut" viewBox="0 0 36 36">
-              <circle className="track" cx="18" cy="18" r="14" fill="none" strokeWidth="4" />
-              <circle className="fill" cx="18" cy="18" r="14" fill="none" strokeWidth="4"
-                strokeDasharray="88 100" strokeDashoffset="25" strokeLinecap="round" />
-            </svg>
-            <div className="meta">
-              <div className="big">2.4 GB</div>
-              2.6 GB of 5 GB remaining
-            </div>
-          </div>
-        </div>
-
-        <div className="quick">
-          <div className="quick-title">Quick actions</div>
-          <div className="quick-item">
-            <div className="qi-icon hi"><Plus size={15} /></div>
-            <div className="qi-txt">
-              <p className="t">Invite teammates</p>
-              <p className="s">Collaborate in real-time</p>
-            </div>
-            <ArrowRight size={14} className="arrow" />
-          </div>
-          <div className="quick-item" onClick={() => navigate('/billing')}>
-            <div className="qi-icon"><Zap size={15} /></div>
-            <div className="qi-txt">
-              <p className="t">Upgrade to Studio</p>
-              <p className="s">Unlimited rooms & AI</p>
-            </div>
-            <ArrowRight size={14} className="arrow" />
-          </div>
-          <div className="quick-item">
-            <div className="qi-icon"><FileText size={15} /></div>
-            <div className="qi-txt">
-              <p className="t">Import from Figma</p>
-              <p className="s">Paste a Figma link</p>
-            </div>
-            <ArrowRight size={14} className="arrow" />
-          </div>
-        </div>
-      </aside>
-
       {/* ── Modal ── */}
       {modal && (
         <div className="modal-scrim" onClick={() => setModal(null)} role="presentation">
@@ -524,6 +572,10 @@ export function Dashboard() {
                 ? 'Give this room a clearer name.'
                 : 'Name your room to get started. You can always change it later.'}
             </p>
+
+            <button className="modal-close" onClick={() => setModal(null)} aria-label="Close">
+              <X size={18} />
+            </button>
 
             <div className="field">
               <label htmlFor="room-name-input">Room name</label>
@@ -548,7 +600,7 @@ export function Dashboard() {
             </div>
 
             {createError && (
-              <p style={{ color: 'var(--danger)', fontSize: '13px' }} role="alert">{createError}</p>
+              <p className="create-error" role="alert">{createError}</p>
             )}
 
             {modal.kind === 'create' && (
@@ -604,6 +656,12 @@ type RoomDoc = {
   members?: { avatars: { name: string; avatarUrl?: string }[]; plusCount: number };
 };
 
+const ROOM_PREVIEW_COLORS = [
+  'oklch(0.22 0.04 160)', 'oklch(0.24 0.06 220)',
+  'oklch(0.20 0.05 30)',  'oklch(0.25 0.04 280)',
+  'oklch(0.22 0.03 50)',  'oklch(0.23 0.05 190)',
+];
+
 function RoomCard({
   room,
   index,
@@ -627,7 +685,10 @@ function RoomCard({
   openRename: (id: Id<'rooms'>, name: string) => void;
   deleteRoom: ReturnType<typeof useMutation<typeof api.features.rooms.deleteRoom>>;
 }) {
-  const colorIndex = index % PREVIEW_COLORS.length;
+  const colorIndex = index % ROOM_PREVIEW_COLORS.length;
+  const hasMembers = !!room.members && (room.members.avatars.length + room.members.plusCount) > 1;
+  const isKebabOpen = kebabFor === room._id;
+
   return (
     <div
       className="room"
@@ -635,7 +696,7 @@ function RoomCard({
       style={{ '--i': index } as React.CSSProperties}
     >
       {/* Preview */}
-      <div className="preview" style={{ background: PREVIEW_COLORS[colorIndex] }}>
+      <div className="preview" style={{ background: ROOM_PREVIEW_COLORS[colorIndex] }}>
         {room.thumbnailData ? (
           <img src={room.thumbnailData} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
@@ -648,52 +709,46 @@ function RoomCard({
             <rect x="30" y="86" width="50" height="6" rx="3" fill="rgba(255,255,255,0.05)" />
           </svg>
         )}
-        <span className="live-dot"><span className="d" /> Live</span>
+        {hasMembers && (
+          <span className="live-dot"><span className="d" /> Live</span>
+        )}
       </div>
 
-      {/* Kebab menu */}
+      {/* Kebab menu — only for owners */}
       {room.userRole === 'owner' && (
-        <div
-          className="kebab"
-          onClick={(e) => { e.stopPropagation(); setKebabFor(kebabFor === room._id ? null : room._id); }}
-        >
-          <MoreVertical size={14} />
-          {kebabFor === room._id && (
-            <div style={{
-              position: 'absolute', top: '100%', right: 0, marginTop: '4px',
-              background: 'var(--bg-elev)', border: '1px solid var(--line)',
-              borderRadius: '10px', padding: '4px', minWidth: '140px',
-              boxShadow: '0 8px 24px -8px oklch(0 0 0 / 0.5)', zIndex: 50,
-            }}>
-              <button
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 10px', borderRadius: '6px', fontSize: '13px', color: 'var(--ink)', background: 'none', border: 'none', cursor: 'pointer' }}
-                onClick={(e) => { e.stopPropagation(); openRename(room._id, room.name); }}
-              >
+        <div className="kebab-menu">
+          <button
+            className="kebab-trigger"
+            aria-expanded={isKebabOpen}
+            aria-haspopup="menu"
+            aria-label={`Options for ${room.name}`}
+            onClick={(e) => { e.stopPropagation(); setKebabFor(isKebabOpen ? null : room._id); }}
+          >
+            <MoreVertical size={14} />
+          </button>
+          {isKebabOpen && (
+            <div className="kebab-dropdown" role="menu">
+              <button className="kebab-item" role="menuitem"
+                onClick={(e) => { e.stopPropagation(); openRename(room._id, room.name); }}>
                 <Pencil size={14} /> Rename
               </button>
               {deletingId === room._id ? (
                 <>
-                  <button
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 10px', borderRadius: '6px', fontSize: '13px', color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  <button className="kebab-item kebab-danger" role="menuitem"
                     onClick={(e) => {
                       e.stopPropagation();
                       deleteRoom({ roomId: room._id }).catch(() => cancelDelete());
-                    }}
-                  >
+                    }}>
                     <Trash2 size={14} /> Delete
                   </button>
-                  <button
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 10px', borderRadius: '6px', fontSize: '13px', color: 'var(--ink-2)', background: 'none', border: 'none', cursor: 'pointer' }}
-                    onClick={(e) => { e.stopPropagation(); cancelDelete(); }}
-                  >
+                  <button className="kebab-item" role="menuitem"
+                    onClick={(e) => { e.stopPropagation(); cancelDelete(); }}>
                     Cancel
                   </button>
                 </>
               ) : (
-                <button
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 10px', borderRadius: '6px', fontSize: '13px', color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}
-                  onClick={(e) => { e.stopPropagation(); confirmDelete(room._id); }}
-                >
+                <button className="kebab-item kebab-danger" role="menuitem"
+                  onClick={(e) => { e.stopPropagation(); confirmDelete(room._id); }}>
                   <Trash2 size={14} /> Delete
                 </button>
               )}
@@ -713,7 +768,7 @@ function RoomCard({
             <div className="avatars" aria-label={`${room.members.avatars.length + room.members.plusCount} members`}>
               {room.members.avatars.slice(0, 3).map((m, i) => (
                 <span key={i} className="a" title={m.name} style={{
-                  background: PREVIEW_COLORS[i % PREVIEW_COLORS.length],
+                  background: ROOM_PREVIEW_COLORS[i % ROOM_PREVIEW_COLORS.length],
                 }}>
                   {m.avatarUrl ? <img src={m.avatarUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : m.name.charAt(0).toUpperCase()}
                 </span>
@@ -724,9 +779,6 @@ function RoomCard({
             </div>
           ) : <span />}
           <span className="metric">
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M2 6h8M6 2v8" strokeLinecap="round" />
-            </svg>
             {room.lastEditedBy?.name ? room.lastEditedBy.name.split(' ')[0] : 'You'}
           </span>
         </div>
@@ -764,8 +816,6 @@ function DashboardLoadingShell({ failed = false }: { failed?: boolean }) {
       <nav className="rail" aria-hidden="true">
         <div className="logo">S</div>
         <div className="sk" style={{ width: 40, height: 40, borderRadius: 10 }} />
-        <div className="sk" style={{ width: 40, height: 40, borderRadius: 10 }} />
-        <div className="sk" style={{ width: 40, height: 40, borderRadius: 10 }} />
         <div className="spacer" />
         <div className="sk" style={{ width: 36, height: 36, borderRadius: 10 }} />
       </nav>
@@ -775,9 +825,9 @@ function DashboardLoadingShell({ failed = false }: { failed?: boolean }) {
         </p>
         <div className="sk" style={{ height: 48, borderRadius: 12, width: '60%', marginTop: '24px' }} />
         <div className="sk" style={{ height: 20, borderRadius: 8, width: '40%' }} />
-        <div className="kpis" aria-hidden="true">
+        <div className="kpi-bar" aria-hidden="true">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="sk" style={{ height: 148, borderRadius: 14 }} />
+            <div key={i} className="sk" style={{ height: 40, borderRadius: 20, flex: 1 }} />
           ))}
         </div>
         <div className="sk" style={{ height: 18, borderRadius: 8, width: '25%' }} />
@@ -828,5 +878,3 @@ function TemplatePreview({ category }: { category: string }) {
     </svg>
   );
 }
-
-

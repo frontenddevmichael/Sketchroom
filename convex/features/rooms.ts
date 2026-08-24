@@ -2,6 +2,7 @@ import { query, mutation, internalMutation } from "../_generated/server";
 import { v } from "convex/values";
 import { auth, MAX_THUMBNAIL_CHARS } from "../core/lib";
 import { internal } from "../_generated/api";
+import type { Id } from "../_generated/dataModel";
 import { countRoomMemberships, countAiSuggestions, FREE_PLAN, planLimitError } from "../core/usage";
 import { rateLimiter } from "../core/rateLimiter";
 
@@ -86,31 +87,61 @@ export const getRooms = query({
   handler: async (ctx, args) => {
     const identity = await auth.getIdentity(ctx);
     if (!identity) return [];
-    const membership = await ctx.db
-      .query("roomMembers")
-      .withIndex("by_user", (q) => q.eq("userId", identity.subject))
-      .collect();
-    const rooms = await Promise.all(
-      membership.map(async (m) => {
-        const room = await ctx.db.get(m.roomId);
-        if (!room || room.workspaceId !== args.workspaceId) return null;
-        // Light member summary for the card avatar stack: 3 avatars + overflow.
-        const members = await ctx.db
+    // Fetch rooms in this workspace and the user's memberships in parallel, then
+    // join in memory.  This avoids the previous N+1 pattern (scanning ALL of
+    // the user's memberships across every workspace and doing a db.get per room).
+    const [workspaceRooms, userMemberships] = await Promise.all([
+      ctx.db
+        .query("rooms")
+        .withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId))
+        .collect(),
+      ctx.db
+        .query("roomMembers")
+        .withIndex("by_user", (q) => q.eq("userId", identity.subject))
+        .collect(),
+    ]);
+    // Build a lookup of the user's membership per room.
+    const membershipByRoom = new Map(userMemberships.map((m) => [m.roomId, m]));
+    // Collect room IDs we need member counts for.
+    const memberRoomIds = workspaceRooms.map((r) => r._id);
+    const allMembers = await Promise.all(
+      memberRoomIds.map((roomId) =>
+        ctx.db
           .query("roomMembers")
-          .withIndex("by_room", (q) => q.eq("roomId", room._id))
-          .collect();
+          .withIndex("by_room", (q) => q.eq("roomId", roomId))
+          .collect()
+      )
+    );
+    const membersByRoom = new Map(memberRoomIds.map((id, i) => [id, allMembers[i]]));
+    function displayName(name: string | undefined, email: string | undefined): string {
+      if (name && name !== "Unknown") return name;
+      if (email) {
+        const local = email.split("@")[0];
+        return local.charAt(0).toUpperCase() + local.slice(1).replace(/[._-]/g, " ");
+      }
+      return "Unknown";
+    }
+    return workspaceRooms
+      .filter((room) => membershipByRoom.has(room._id))
+      .map((room) => {
+        const m = membershipByRoom.get(room._id)!;
+        const members = membersByRoom.get(room._id) ?? [];
+        const memberById = new Map(members.map((mem) => [mem.userId, mem]));
         const avatars = members.slice(0, 3).map((mem) => ({
-          name: mem.name || mem.email || "Unknown",
+          name: displayName(mem.name, mem.email),
           avatarUrl: mem.avatarUrl,
         }));
+        const editor = room.lastEditedBy?.id ? memberById.get(room.lastEditedBy.id) : undefined;
+        const resolvedLastEditedBy = editor
+          ? { id: editor.userId, name: displayName(editor.name, editor.email) }
+          : room.lastEditedBy;
         return {
           ...room,
+          lastEditedBy: resolvedLastEditedBy,
           userRole: m.role,
           members: { avatars, plusCount: Math.max(0, members.length - avatars.length) },
         };
-      })
-    );
-    return rooms.filter((r): r is NonNullable<typeof r> => r !== null);
+      });
   },
 });
 
@@ -182,13 +213,11 @@ export const updateRoomThumbnail = mutation({
       throw new Error("Insufficient permissions");
     }
     // Rate-limit thumbnail updates to prevent storage abuse
-    const { ok, retryAfter } = await rateLimiter.limit(ctx, "canvasApply", {
-      key: `thumbnail:${identity.subject}`,
-      throws: true,
+    const { ok } = await rateLimiter.limit(ctx, "thumbnailUpdate", {
+      key: identity.subject,
+      throws: false,
     });
-    if (!ok) {
-      throw new Error(`Rate limit hit — try again in ~${Math.ceil((retryAfter ?? 1000) / 1000)}s`);
-    }
+    if (!ok) return false;
     const thumbnail = args.thumbnailData ?? "";
     if (thumbnail.length > MAX_THUMBNAIL_CHARS) {
       throw new Error("That thumbnail is too large to store.");
@@ -297,5 +326,39 @@ export const deleteRoomData = internalMutation({
       }
     }
     return true;
+  },
+});
+
+/**
+ * Sync the current user's profile (name, email, avatar) into every roomMembers
+ * record they own.  Called on login so dashboard cards show real names.
+ */
+export const syncMemberProfile = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await auth.getIdentity(ctx);
+    if (!identity) return 0;
+    const user = await ctx.db.get(identity.subject as Id<"users">);
+    if (!user) return 0;
+    const newName = (user as any).name || (user as any).email || "";
+    const newEmail = (user as any).email || "";
+    const newAvatar = (user as any).image || "";
+    if (!newName && !newEmail) return 0;
+    const memberships = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_user", (q) => q.eq("userId", identity.subject))
+      .take(100);
+    let updated = 0;
+    for (const m of memberships) {
+      const patch: Record<string, string> = {};
+      if (newName && m.name !== newName) patch.name = newName;
+      if (newEmail && m.email !== newEmail) patch.email = newEmail;
+      if (newAvatar && m.avatarUrl !== newAvatar) patch.avatarUrl = newAvatar;
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(m._id, patch);
+        updated++;
+      }
+    }
+    return updated;
   },
 });

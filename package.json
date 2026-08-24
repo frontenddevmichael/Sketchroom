@@ -24,7 +24,7 @@
     "@tldraw/tlschema": "^5.3.2",
     "@tldraw/utils": "^5.3.2",
     "axios": "^1.19.0",
-    "convex": "^1.44.0",
+    "convex": "^1.45.0",
     "framer-motion": "^13.1.0",
     "gsap": "^3.15.0",
     "jspdf": "^4.2.1",

@@ -342,6 +342,11 @@ export function RoomScreen() {
   const saveSnapshot = useMutation(api.features.snapshots.saveSnapshot);
   const updateRoomThumbnail = useMutation(api.features.rooms.updateRoomThumbnail);
   const completeOnboarding = useMutation(api.features.rooms.completeOnboarding);
+  const syncMemberProfile = useMutation(api.features.rooms.syncMemberProfile);
+
+  useEffect(() => {
+    void syncMemberProfile();
+  }, [syncMemberProfile]);
 
   const captureThumbnail = useCallback(async () => {
     if (!roomIdArg || isReadOnly) return;
@@ -351,13 +356,14 @@ export function RoomScreen() {
     if (shapes.length === 0) return;
     try {
       const { url } = await editor.toImageDataUrl(shapes, {
-        format: 'png',
-        scale: 0.4,
+        format: 'jpeg',
+        quality: 0.6,
+        scale: 0.25,
         background: true,
       });
       await updateRoomThumbnail({ roomId: roomIdArg, thumbnailData: url });
-    } catch {
-      // Thumbnailing is best-effort; never interrupt the editor for it.
+    } catch (e) {
+      console.warn('[thumbnail] capture failed:', e);
     }
   }, [roomIdArg, isReadOnly, updateRoomThumbnail]);
 
@@ -478,6 +484,8 @@ setSaveStatus('saved');
   // Accumulate local document edits (source 'user', scope 'document') and
   // debounce-push them. Remote reconciles never match these filters, so there
   // is no write-back loop.
+  const thumbnailTimer = useRef<number | null>(null);
+
   useEffect(() => {
     if (!roomIdArg) return;
     const unlisten = store.listen(
@@ -511,14 +519,18 @@ setSaveStatus('saved');
         dirtySinceSnapshot.current = true;
         if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
         saveTimer.current = window.setTimeout(() => void flushRef.current(), 800);
+        // Debounced thumbnail capture — 3s after last edit
+        if (thumbnailTimer.current !== null) window.clearTimeout(thumbnailTimer.current);
+        thumbnailTimer.current = window.setTimeout(() => void captureThumbnail(), 3000);
       },
       { source: 'user', scope: 'document' }
     );
     return () => {
       unlisten();
       if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
+      if (thumbnailTimer.current !== null) window.clearTimeout(thumbnailTimer.current);
     };
-  }, [store, roomIdArg, room, flush]);
+  }, [store, roomIdArg, room, flush, captureThumbnail]);
 
   // Retry pending changes when the network comes back.
   useEffect(() => {
@@ -555,6 +567,16 @@ setSaveStatus('saved');
       window.clearTimeout(t2);
     };
   }, [roomIdArg, room, canvas, showRoomFlourish]);
+
+  // Auto-capture thumbnail on room open for legacy rooms created before the
+  // JPEG thumbnail fix. Only fires once per room load after the editor hydrates.
+  useEffect(() => {
+    if (!roomIdArg || isReadOnly || !room || !canvas?.canvasData || room.thumbnailData) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+    const timer = window.setTimeout(() => void captureThumbnail(), 2000);
+    return () => window.clearTimeout(timer);
+  }, [roomIdArg, room, canvas, isReadOnly, captureThumbnail]);
 
   // First-visit onboarding sketch: on an empty room, a pencil → note →
   // connector scene draws itself in once — a quiet "this is the loop" beat.
@@ -981,6 +1003,33 @@ setSaveStatus('saved');
     return () => window.removeEventListener('keydown', onKey);
   }, [saveSnapshot, roomIdArg, store, setTool, room, isReadOnly, captureThumbnail, flush, closeAiFeed, openAi, dismissWalkthrough]);
 
+  // Announce presence changes
+  const presenceList = presence || [];
+  const previousPresenceRef = useRef<string[]>([]);
+  useEffect(() => {
+    const currentIds = presenceList.map((p) => p.userId);
+    const previousIds = previousPresenceRef.current;
+    const joined = currentIds.filter((id) => !previousIds.includes(id));
+    const left = previousIds.filter((id) => !currentIds.includes(id));
+    joined.forEach((id) => {
+      const user = presenceList.find((p) => p.userId === id);
+      if (user) announce(`${user.name} joined the room`);
+    });
+    left.forEach(() => {
+      announce('A collaborator left the room');
+    });
+    previousPresenceRef.current = currentIds;
+  }, [presenceList, announce]);
+
+  // Announce connection status changes
+  useEffect(() => {
+    if (!isConnected) {
+      announce('Connection lost. Changes will sync when reconnected', 'assertive');
+    } else if (saveStatus === 'offline') {
+      announce('Reconnected. Syncing changes');
+    }
+  }, [isConnected, saveStatus, announce]);
+
   // Focus mode is only meaningful while something is selected: the dim hides
   // the moment the selection empties (derived, not an effect), and quietly
   // resumes if you select again — intent stays armed, nothing lingers.
@@ -1025,7 +1074,6 @@ setSaveStatus('saved');
             ? { tone: 'ok', label: 'Saved' }
             : null;
 
-  const presenceList = presence || [];
   const railActiveIndex =
     activePanel === 'blocks'
       ? RAIL_TOOL_IDS.length
@@ -1036,32 +1084,7 @@ setSaveStatus('saved');
   // slot; the divider is its own 42px slot before the block-library trigger).
   const RAIL_INDICATOR_OFFSETS = [0, 42, 84, 126, 168, 210, 294];
 
-  // Announce presence changes
-  const previousPresenceRef = useRef<string[]>([]);
-  useEffect(() => {
-    const currentIds = presenceList.map((p) => p.userId);
-    const previousIds = previousPresenceRef.current;
-    const joined = currentIds.filter((id) => !previousIds.includes(id));
-    const left = previousIds.filter((id) => !currentIds.includes(id));
-    joined.forEach((id) => {
-      const user = presenceList.find((p) => p.userId === id);
-      if (user) announce(`${user.name} joined the room`);
-    });
-    left.forEach(() => {
-      // We don't have the name for left users in current list, so use generic
-      announce('A collaborator left the room');
-    });
-    previousPresenceRef.current = currentIds;
-  }, [presenceList, announce]);
 
-  // Announce connection status changes
-  useEffect(() => {
-    if (!isConnected) {
-      announce('Connection lost. Changes will sync when reconnected', 'assertive');
-    } else if (saveStatus === 'offline') {
-      announce('Reconnected. Syncing changes');
-    }
-  }, [isConnected, saveStatus, announce]);
 
   return (
     <div className={`room-screen${effectiveFocus ? ' focusing' : ''}${wtActive && wtStep < 3 ? ' walkthrough' : ''}`}>

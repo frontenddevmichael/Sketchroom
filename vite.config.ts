@@ -62,6 +62,9 @@ export default defineConfig({
     // Only upload source maps in production
     disable: process.env.NODE_ENV !== 'production',
   })],
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
   build: {
     // Split heavy, stable vendors into their own cacheable chunks. tldraw is
     // ~1.3 MB raw and only used by the room screen; without this the room
