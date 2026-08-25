@@ -337,14 +337,14 @@ export const syncMemberProfile = mutation({
   handler: async (ctx) => {
     const identity = await auth.getIdentity(ctx);
     if (!identity) return 0;
-    const { getAuthUserId } = await import("@convex-dev/auth/server");
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return 0;
-    const user = await ctx.db.get(userId);
+    // identity.subject is the userId (after "|" split in auth.getIdentity).
+    // The users table stores Convex Auth user IDs as _id.
+    const user = await ctx.db.get(identity.subject as any);
     if (!user) return 0;
-    const newName = String((user as Record<string, unknown>).name || (user as Record<string, unknown>).email || "");
-    const newEmail = String((user as Record<string, unknown>).email || "");
-    const newAvatar = String((user as Record<string, unknown>).image || "");
+    const fields = user as Record<string, unknown>;
+    const newName = String(fields.name || fields.email || "");
+    const newEmail = String(fields.email || "");
+    const newAvatar = String(fields.image || "");
     if (!newName && !newEmail) return 0;
     const memberships = await ctx.db
       .query("roomMembers")
