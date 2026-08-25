@@ -2,7 +2,6 @@ import { query, mutation, internalMutation } from "../_generated/server";
 import { v } from "convex/values";
 import { auth, MAX_THUMBNAIL_CHARS } from "../core/lib";
 import { internal } from "../_generated/api";
-import type { Id } from "../_generated/dataModel";
 import { countRoomMemberships, countAiSuggestions, FREE_PLAN, planLimitError } from "../core/usage";
 import { rateLimiter } from "../core/rateLimiter";
 
@@ -338,11 +337,14 @@ export const syncMemberProfile = mutation({
   handler: async (ctx) => {
     const identity = await auth.getIdentity(ctx);
     if (!identity) return 0;
-    const user = await ctx.db.get(identity.subject as Id<"users">);
+    const { getAuthUserId } = await import("@convex-dev/auth/server");
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return 0;
+    const user = await ctx.db.get(userId);
     if (!user) return 0;
-    const newName = (user as any).name || (user as any).email || "";
-    const newEmail = (user as any).email || "";
-    const newAvatar = (user as any).image || "";
+    const newName = String((user as Record<string, unknown>).name || (user as Record<string, unknown>).email || "");
+    const newEmail = String((user as Record<string, unknown>).email || "");
+    const newAvatar = String((user as Record<string, unknown>).image || "");
     if (!newName && !newEmail) return 0;
     const memberships = await ctx.db
       .query("roomMembers")

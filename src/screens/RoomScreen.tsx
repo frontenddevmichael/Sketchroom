@@ -345,7 +345,7 @@ export function RoomScreen() {
   const syncMemberProfile = useMutation(api.features.rooms.syncMemberProfile);
 
   useEffect(() => {
-    void syncMemberProfile();
+    syncMemberProfile().catch(() => {});
   }, [syncMemberProfile]);
 
   const captureThumbnail = useCallback(async () => {

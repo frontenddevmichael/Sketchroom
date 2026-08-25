@@ -124,7 +124,7 @@ export function Dashboard() {
   useEffect(() => {
     if (syncedProfile.current || !user) return;
     syncedProfile.current = true;
-    void syncMemberProfile();
+    syncMemberProfile().catch(() => {});
   }, [user, syncMemberProfile]);
 
   useEffect(() => {
