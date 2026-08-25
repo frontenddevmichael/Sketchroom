@@ -813,24 +813,49 @@ function DashboardLoadingShell({ failed = false }: { failed?: boolean }) {
   }
   return (
     <div className="dashboard" aria-label="Loading your workspace">
-      <nav className="rail" aria-hidden="true">
-        <div className="logo">S</div>
-        <div className="sk" style={{ width: 40, height: 40, borderRadius: 10 }} />
-        <div className="spacer" />
+      <nav className="sidebar" aria-hidden="true">
+        <div className="sidebar-logo">S</div>
         <div className="sk" style={{ width: 36, height: 36, borderRadius: 10 }} />
+        <div className="sk" style={{ width: 36, height: 36, borderRadius: 10 }} />
+        <div className="sidebar-spacer" />
+        <div className="sk" style={{ width: 36, height: 36, borderRadius: 10 }} />
+        <div className="sidebar-divider" />
+        <div className="sk" style={{ width: 36, height: 36, borderRadius: 10 }} />
+        <div className="sk" style={{ width: 36, height: 36, borderRadius: 50 }} />
       </nav>
       <main className="main">
-        <p key={phrase} style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--ink-3)', textAlign: 'center', padding: '40px 0 0' }}>
-          {phrase}
-        </p>
-        <div className="sk" style={{ height: 48, borderRadius: 12, width: '60%', marginTop: '24px' }} />
-        <div className="sk" style={{ height: 20, borderRadius: 8, width: '40%' }} />
+        <div className="topbar">
+          <div className="search" style={{ opacity: 0.4 }}>
+            <Search size={14} aria-hidden="true" />
+            <span className="search-input" style={{ color: 'var(--ink-3)', fontSize: 13 }}>Search rooms…</span>
+          </div>
+          <div className="sk" style={{ width: 32, height: 32, borderRadius: 50 }} />
+        </div>
+
+        <div className="greeting-row">
+          <div>
+            <h1 className="greeting">{phrase}</h1>
+            <p className="date-label">{todayLabel()}</p>
+          </div>
+        </div>
+
         <div className="kpi-bar" aria-hidden="true">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="sk" style={{ height: 40, borderRadius: 20, flex: 1 }} />
+            <div key={i} className="sk" style={{ height: 34, borderRadius: 18, flex: 1, opacity: 0.5 + i * 0.1 }} />
           ))}
         </div>
-        <div className="sk" style={{ height: 18, borderRadius: 8, width: '25%' }} />
+
+        <div className="section-head">
+          <div className="section-head-left">
+            <div className="sk" style={{ width: 80, height: 18, borderRadius: 6 }} />
+            <div className="sk" style={{ width: 40, height: 12, borderRadius: 6 }} />
+          </div>
+          <div className="tabs" aria-hidden="true">
+            <div className="sk" style={{ width: 60, height: 28, borderRadius: 8 }} />
+            <div className="sk" style={{ width: 60, height: 28, borderRadius: 8 }} />
+          </div>
+        </div>
+
         <div className="rooms">
           {Array.from({ length: 4 }, (_, i) => (
             <RoomCardSkeleton key={i} index={i} />
