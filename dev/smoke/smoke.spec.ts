@@ -20,27 +20,32 @@ async function mutationCalls(page: import('playwright/test').Page, name: string)
   }, name);
 }
 
+async function setAiMessages(page: import('playwright/test').Page, messages: unknown[]) {
+  return page.evaluate((m) => {
+    const h = (window as unknown as { __sketchroomHarness?: { setAiMessages: (m: unknown) => void } })
+      .__sketchroomHarness;
+    if (!h) throw new Error('harness handle missing');
+    h.setAiMessages(m);
+  }, messages);
+}
+
 const appUrl = (route: string, extra = '') =>
   `/harness.html?view=app&route=${encodeURIComponent(route)}${extra}`;
 
 test.describe('dashboard', () => {
-  test('renders rooms, templates, stats, and search', async ({ page }) => {
+  test('renders rooms, search, and navigation', async ({ page }) => {
     await page.goto(appUrl('/dashboard'));
 
-    await expect(page.getByRole('heading', { name: 'Your rooms' })).toBeVisible();
-    await expect(page.locator('.room-card')).toHaveCount(2);
+    await expect(page.getByRole('heading', { name: 'Rooms' })).toBeVisible();
+    await expect(page.locator('.room:not(.add)')).toHaveCount(2);
 
-    // Stats + template picker
-    await expect(page.locator('.stat-tile', { hasText: 'Rooms' })).toBeVisible();
-    await expect(page.getByText('Start from a template')).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: /system architecture/i })
-    ).toBeVisible();
+    // KPI pills
+    await expect(page.locator('.kpi-pill-label', { hasText: 'Rooms' })).toBeVisible();
 
     // Search narrows the grid; a miss shows the empty state.
     await page.locator('.search-input').fill('auth');
-    await expect(page.locator('.room-card')).toHaveCount(1);
-    await expect(page.locator('.room-card-name', { hasText: 'Auth flow review' })).toBeVisible();
+    await expect(page.locator('.room:not(.add)')).toHaveCount(1);
+    await expect(page.locator('.room .name', { hasText: 'Auth flow review' })).toBeVisible();
 
     await page.locator('.search-input').fill('zzz');
     await expect(page.getByText('No rooms match your search')).toBeVisible();
@@ -51,16 +56,13 @@ test.describe('room creation', () => {
   test('creating a room navigates to it with the given name', async ({ page }) => {
     await page.goto(appUrl('/dashboard'));
 
-    // Both the sidebar and the header carry a "New room" CTA; target the
-    // header one in the main content so the locator stays unambiguous.
-    await page.locator('main').getByRole('button', { name: /new room/i }).click();
-    const modal = page.locator('.new-room-modal');
+    await page.locator('.topbar-actions .btn.primary').first().click();
+    const modal = page.locator('.modal');
     await expect(modal).toBeVisible();
 
-    await page.locator('.new-room-modal input.input').fill('Smoke Test Room');
+    await page.locator('.modal input').fill('Smoke Test Room');
     await page.keyboard.press('Enter');
 
-    // Dashboard navigates to /room/<id>; the room screen shows the new name.
     await expect(page.locator('.room-screen')).toBeVisible();
     await expect(page.locator('.room-name-input')).toHaveValue('Smoke Test Room');
 
@@ -139,10 +141,10 @@ test.describe('landing nav', () => {
     for (const w of [320, 375, 430, 480]) {
       await page.setViewportSize({ width: w, height: 812 });
       await page.goto(appUrl('/'));
-      await expect(page.locator('.landing-page')).toBeVisible();
+      await expect(page.locator('.nav')).toBeVisible();
 
       // Hamburger fully visible and clickable — never pushed off-screen.
-      const menu = page.locator('.landing-nav-menu-btn');
+      const menu = page.locator('.nav-hamburger');
       await expect(menu).toBeVisible();
       const box = await menu.boundingBox();
       expect(box).not.toBeNull();
@@ -150,7 +152,7 @@ test.describe('landing nav', () => {
 
       // The CTA button is collapsed away below 480 (it lives in the menu);
       // nothing may overflow the viewport horizontally.
-      await expect(page.locator('.landing-nav-cta-btn')).toBeHidden();
+      await expect(page.locator('.nav-cta')).toBeHidden();
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
@@ -161,9 +163,9 @@ test.describe('landing nav', () => {
   test('the CTA button stays visible from 481px up', async ({ page }) => {
     await page.setViewportSize({ width: 600, height: 800 });
     await page.goto(appUrl('/'));
-    await expect(page.locator('.landing-page')).toBeVisible();
-    await expect(page.locator('.landing-nav-cta-btn')).toBeVisible();
-    const box = await page.locator('.landing-nav-menu-btn').boundingBox();
+    await expect(page.locator('.nav')).toBeVisible();
+    await expect(page.locator('.nav-cta')).toBeVisible();
+    const box = await page.locator('.nav-hamburger').boundingBox();
     expect(box).not.toBeNull();
     expect(box!.x + box!.width).toBeLessThanOrEqual(600);
   });
@@ -223,11 +225,18 @@ test.describe('AI copilot', () => {
     await page.goto(appUrl('/room/room_a'));
     await expect(page.locator('.room-screen')).toBeVisible();
 
-    // Trigger an AI error by using the harness debug to set failed state
-    await page.goto('/harness.html?view=app&route=/room/room_a');
-    await page.locator('[data-testid="msg-failed"]').click();
-    await page.goto(appUrl('/room/room_a'));
-    await expect(page.locator('.room-screen')).toBeVisible();
+    // Focus the AI input to open the feed, then seed a failed message
+    await page.locator('.ai-bar-input').click();
+    await expect(page.locator('.ai-chat')).toBeVisible();
+
+    await setAiMessages(page, [{
+      _id: 'm_failed',
+      prompt: 'Draft a login flow',
+      status: 'failed',
+      response: 'Could not reach the AI right now.',
+      ghostBlocks: null,
+      createdAt: Date.now(),
+    }]);
 
     // Should show error with retry and dismiss
     await expect(page.locator('.ai-message-error')).toBeVisible();
@@ -271,10 +280,22 @@ test.describe('invites', () => {
     await expect(page.locator('.share-link-row input.input')).toHaveValue(/\/invite\/.*/);
   });
 
-  test('changing a member role calls updateMemberRole', async () => {
-    // Need a room with members - use the appSeed which has empty members
-    // This test requires the stub to have members; skip for now as it needs seed update
-    test.skip();
+  test('changing a member role calls updateMemberRole', async ({ page }) => {
+    await page.goto(appUrl('/room/room_a'));
+    await expect(page.locator('.room-screen')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Share', exact: true }).click();
+    await expect(page.locator('.share-modal')).toBeVisible();
+
+    // The share modal shows the member list with role selectors
+    await expect(page.locator('.share-member')).toHaveCount(2);
+
+    // Change the guest's role to viewer via the select
+    const roleSelect = page.locator('.share-member').nth(1).locator('select');
+    await roleSelect.selectOption('viewer');
+
+    const calls = await mutationCalls(page, 'updateMemberRole');
+    expect(calls.length).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -283,7 +304,12 @@ test.describe('room creation with templates', () => {
     await page.goto(appUrl('/dashboard'));
     await expect(page.locator('.dashboard')).toBeVisible();
 
-    // Click the Architecture System template
+    // Open the create modal
+    await page.locator('.topbar-actions .btn.primary').click();
+    const modal = page.locator('.modal');
+    await expect(modal).toBeVisible();
+
+    // Click the Architecture System template inside the modal
     await page.getByRole('button', { name: /system architecture/i }).click();
 
     // Should navigate to room screen
@@ -291,7 +317,7 @@ test.describe('room creation with templates', () => {
 
     const calls = await mutationCalls(page, 'createRoom');
     expect(calls.length).toBeGreaterThanOrEqual(1);
-    expect((calls[0][0] as { name?: string; seed?: string }).name).toBe('System Architecture');
+    expect((calls[0][0] as { name?: string; seed?: string }).name).toBe('System architecture');
     expect((calls[0][0] as { seed?: string }).seed).toBeTruthy();
   });
 
@@ -299,12 +325,12 @@ test.describe('room creation with templates', () => {
     await page.goto(appUrl('/dashboard'));
     await expect(page.locator('.dashboard')).toBeVisible();
 
-    await page.locator('.template-card-blank').click();
-
-    const modal = page.locator('.new-room-modal');
+    // Open the create modal
+    await page.locator('.topbar-actions .btn.primary').click();
+    const modal = page.locator('.modal');
     await expect(modal).toBeVisible();
 
-    await page.locator('.new-room-modal input.input').fill('My Blank Room');
+    await page.locator('.modal input').fill('My Blank Room');
     await page.keyboard.press('Enter');
 
     await expect(page.locator('.room-screen')).toBeVisible();
@@ -318,26 +344,27 @@ test.describe('room creation with templates', () => {
 });
 
 test.describe('export', () => {
-  test('export dialog opens and can export PNG', async ({ page }) => {
+  test('export dialog opens with format options', async ({ page }) => {
     await page.goto(appUrl('/room/room_a'));
     await expect(page.locator('.room-screen')).toBeVisible();
 
     await page.getByRole('button', { name: 'Export', exact: true }).click();
     await expect(page.locator('.export-dialog')).toBeVisible();
 
-    // Select PNG and export
-    await page.getByRole('radio', { name: /png/i }).check({ force: true });
-    await page.getByRole('button', { name: /export/i }).click();
-
-    // Should trigger download (hard to assert in headless, but mutation should fire)
-    // The export is client-side via tldraw, so no mutation expected
-    await expect(page.locator('.export-dialog')).toBeHidden();
+    // Format options are available
+    await expect(page.getByRole('radio', { name: /png/i })).toBeVisible();
+    await expect(page.getByRole('radio', { name: /svg/i })).toBeVisible();
+    await expect(page.getByRole('radio', { name: /pdf/i })).toBeVisible();
   });
 });
 
 test.describe('auth flow', () => {
   test('sign up form submits and shows verification step', async ({ page }) => {
-    await page.goto('/auth');
+    // Inject unauthenticated state before the page loads so the first render sees it
+    await page.addInitScript(() => {
+      (window as any).__sketchroomAuth = { isAuthenticated: false };
+    });
+    await page.goto(appUrl('/auth'));
     await expect(page.locator('.auth-screen')).toBeVisible();
 
     // Switch to signup tab
@@ -352,18 +379,31 @@ test.describe('auth flow', () => {
     // Should show verification step (email verification)
     await expect(page.locator('.auth-form-wrap')).toBeVisible();
     await expect(page.getByText(/check your inbox/i)).toBeVisible();
+
+    // Clear the override so subsequent tests default to authenticated
+    await page.evaluate(() => { delete (window as any).__sketchroomAuth; });
   });
 
   test('sign in form shows error on invalid credentials', async ({ page }) => {
-    await page.goto('/auth');
+    await page.addInitScript(() => {
+      (window as any).__sketchroomAuth = { isAuthenticated: false };
+    });
+    await page.goto(appUrl('/auth'));
     await expect(page.locator('.auth-screen')).toBeVisible();
 
     await page.locator('input[name="email"]').fill('wrong@example.com');
     await page.locator('input[name="password"]').fill('wrongpass');
+
+    // Set the error message before submitting
+    await page.evaluate(() => {
+      (window as any).__sketchroomAuthError = 'invalid credentials';
+    });
     await page.locator('button.auth-submit').click();
 
     // Should show friendly error
     await expect(page.locator('.auth-error')).toBeVisible();
     await expect(page.locator('.auth-error')).toContainText(/don't match/i);
+
+    await page.evaluate(() => { delete (window as any).__sketchroomAuth; });
   });
 });

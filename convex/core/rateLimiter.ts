@@ -14,5 +14,7 @@ export const rateLimiter = new RateLimiter(components.rateLimiter, {
   // letting a runaway client flood the change log.
   canvasApply: { kind: "token bucket", rate: 120, period: MINUTE, capacity: 30 },
   thumbnailUpdate: { kind: "token bucket", rate: 10, period: MINUTE, capacity: 3 },
+  snapshotSave: { kind: "token bucket", rate: 30, period: MINUTE, capacity: 10 },
+  createComment: { kind: "token bucket", rate: 30, period: MINUTE, capacity: 10 },
   reportError: { kind: "token bucket", rate: 30, period: MINUTE, capacity: 30 },
 });

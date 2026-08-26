@@ -163,11 +163,50 @@ function registerMutations() {
   __setMutationHandler(api.features.snapshots.restoreSnapshot, () => ({ version: 99, canvasData: '{}' }));
 
   __setMutationHandler(api.features.ai.dismissAiSuggestion, () => true);
+  __setMutationHandler(api.features.ai.requestAiSuggestion, (args) => {
+    const { prompt } = (args ?? {}) as { prompt?: string };
+    const pendingMsg = {
+      _id: `ai_${Date.now()}`,
+      prompt: prompt ?? '',
+      status: 'pending' as const,
+      response: '',
+      ghostBlocks: null,
+      createdAt: Date.now(),
+    };
+    // Show pending state immediately
+    __setQueryResult(api.features.ai.getAiMessages, [pendingMsg]);
+    // After a short delay, complete with ghost blocks
+    setTimeout(() => {
+      const completedMsg = {
+        ...pendingMsg,
+        status: 'completed' as const,
+        response: 'Here is a two-step login flow with a session store.',
+        ghostBlocks: JSON.stringify({
+          blocks: [
+            { kind: 'client', label: 'Login Screen' },
+            { kind: 'service', label: 'Auth Service' },
+            { kind: 'database', label: 'Users DB' },
+          ],
+          edges: [
+            { from: 0, to: 1 },
+            { from: 1, to: 2 },
+          ],
+        }),
+      };
+      __setQueryResult(api.features.ai.getAiMessages, [completedMsg]);
+    }, 500);
+    return undefined;
+  });
   __setMutationHandler(api.features.invites.inviteMember, () => ({ inviteId: 'inv_1', token: 'tok_demo' }));
   __setMutationHandler(api.features.invites.createInviteLink, () => ({ token: 'tok_demo' }));
   __setMutationHandler(api.features.invites.revokeInvite, () => true);
   __setMutationHandler(api.features.invites.updateMemberRole, () => true);
   __setMutationHandler(api.features.invites.removeMember, () => true);
+  __setMutationHandler(api.features.comments.createComment, () => ({ commentId: 'c_new' }));
+  __setMutationHandler(api.features.comments.replyToComment, () => ({ commentId: 'c_reply' }));
+  __setMutationHandler(api.features.comments.resolveComment, () => true);
+  __setMutationHandler(api.features.comments.reopenComment, () => true);
+  __setMutationHandler(api.features.comments.deleteComment, () => true);
   __setMutationHandler(api.core.errors.reportError, () => true);
 }
 
@@ -185,8 +224,12 @@ export function seedAppStubs(opts: { snapshots?: boolean } = {}) {
   __setQueryResult(api.features.presence.getPresence, []);
   __setQueryResult(api.features.ai.getAiMessages, []);
   __setQueryResult(api.features.snapshots.listSnapshots, snapshots);
-  __setQueryResult(api.features.invites.listMembers, []);
+  __setQueryResult(api.features.invites.listMembers, [
+    { _id: 'm1', userId: 'u_harness', email: 'ada@example.com', name: 'Ada Lovelace', role: 'owner', joinedAt: NOW - 10 * 24 * 3600_000 },
+    { _id: 'm2', userId: 'u_guest', email: 'guest@example.com', name: 'Guest User', role: 'editor', joinedAt: NOW - 5 * 24 * 3600_000 },
+  ]);
   __setQueryResult(api.features.invites.getRoomInvites, []);
+  __setQueryResult(api.features.comments.listComments, []);
   __setQueryResult(api.core.users.me, {
     id: 'u_harness',
     name: 'Ada Lovelace',

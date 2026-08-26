@@ -35,8 +35,8 @@ function parseCanonicalRecords(canvasData: string | undefined | null): Record<st
       }
       return canonical;
     }
-  } catch {
-    // ignore malformed payloads
+  } catch (e) {
+    console.warn("[canvas] malformed canvasData, resetting to empty:", e);
   }
   return {};
 }
@@ -64,7 +64,7 @@ export const applyCanvasChanges = mutation({
     if (!identity) throw new Error("Not authenticated");
     const { ok, retryAfter } = await rateLimiter.limit(ctx, "canvasApply", {
       key: identity.subject,
-      throws: true,
+      throws: false,
     });
     if (!ok) {
       throw new Error(`Saving too fast — try again in ~${Math.ceil((retryAfter ?? 1000) / 1000)}s`);

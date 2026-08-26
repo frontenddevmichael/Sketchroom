@@ -17,7 +17,7 @@ export const reportError = mutation({
     // so an unauthenticated caller cannot flood the error log.
     const { ok } = await rateLimiter.limit(ctx, "reportError", {
       key: identity?.subject ?? "anonymous",
-      throws: true,
+      throws: false,
     });
     if (!ok) return false;
     if (args.message.length > 2000) {

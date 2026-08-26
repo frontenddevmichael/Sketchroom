@@ -3,6 +3,7 @@ import { useLenis } from './lib/useLenis';
 import { usePageTitle } from '../lib/usePageTitle';
 import { Nav } from './sections/Nav';
 import { Hero } from './sections/Hero';
+import { LazyMount } from './components/LazyMount';
 import { FeatureShowcase } from './sections/FeatureShowcase';
 import { PerformanceSection } from './sections/PerformanceSection';
 import { ComparisonTable } from './sections/ComparisonTable';
@@ -22,10 +23,18 @@ export function Landing() {
         <main>
           <Hero />
           <FeatureShowcase />
-          <PerformanceSection />
-          <ComparisonTable />
-          <SocialProof />
-          <FinalCta />
+          <LazyMount>
+            <PerformanceSection />
+          </LazyMount>
+          <LazyMount>
+            <ComparisonTable />
+          </LazyMount>
+          <LazyMount>
+            <SocialProof />
+          </LazyMount>
+          <LazyMount>
+            <FinalCta />
+          </LazyMount>
         </main>
         <Footer />
       </div>

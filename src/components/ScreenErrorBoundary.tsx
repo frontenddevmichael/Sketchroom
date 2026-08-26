@@ -30,7 +30,6 @@ export class ScreenErrorBoundary extends Component<ScreenErrorBoundaryProps, Scr
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
-    console.error(`[${this.props.screenName}] Error caught:`, error, info);
     this.props.onReport?.(error, info);
     // Send to Sentry with screen context
     captureError(

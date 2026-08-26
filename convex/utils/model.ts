@@ -62,9 +62,11 @@ export class Model {
   private model: string
 
   constructor() {
+    const apiKey = process.env.AI_API_KEY;
+    if (!apiKey) throw new Error("AI_API_KEY env var must be set");
     this.client = new OpenAi({
       baseURL: process.env.AI_BASE_URL,
-      apiKey: process.env.AI_API_KEY,
+      apiKey,
     })
     this.model = process.env.AI_MODEL ?? "gemini-2.5-flash"
   }

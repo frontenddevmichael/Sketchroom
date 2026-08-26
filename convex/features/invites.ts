@@ -12,12 +12,13 @@ export const inviteMember = mutation({
     if (!identity) throw new Error("Not authenticated");
     const { ok, retryAfter } = await rateLimiter.limit(ctx, "createInvite", {
       key: identity.subject,
-      throws: true,
+      throws: false,
     });
     if (!ok) {
       throw new Error(`Too many invites — try again in ~${Math.ceil((retryAfter ?? 1000) / 1000)}s`);
     }
     const email = args.email.trim().toLowerCase();
+    if (email.length > 254 || !email.includes("@")) throw new Error("Invalid email address");
     const member = await ctx.db
       .query("roomMembers")
       .withIndex("by_room_user", (q) => q.eq("roomId", args.roomId).eq("userId", identity.subject))
@@ -247,7 +248,7 @@ export const createInviteLink = mutation({
     if (!identity) throw new Error("Not authenticated");
     const { ok, retryAfter } = await rateLimiter.limit(ctx, "createInvite", {
       key: identity.subject,
-      throws: true,
+      throws: false,
     });
     if (!ok) {
       throw new Error(`Too many invites — try again in ~${Math.ceil((retryAfter ?? 1000) / 1000)}s`);

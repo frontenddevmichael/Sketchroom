@@ -4,6 +4,7 @@ import { auth, MAX_THUMBNAIL_CHARS } from "../core/lib";
 import { internal } from "../_generated/api";
 import { countRoomMemberships, countAiSuggestions, FREE_PLAN, planLimitError } from "../core/usage";
 import { rateLimiter } from "../core/rateLimiter";
+import type { Id } from "../_generated/dataModel";
 
 export const getWorkspaces = query({
   args: {},
@@ -35,9 +36,11 @@ export const createWorkspace = mutation({
   handler: async (ctx, args) => {
     const identity = await auth.getIdentity(ctx);
     if (!identity) throw new Error("Not authenticated");
+    const name = args.name.trim().slice(0, 200);
+    if (!name) throw new Error("Workspace name cannot be empty");
     const now = Date.now();
     const id = await ctx.db.insert("workspaces", {
-      name: args.name,
+      name,
       ownerId: identity.subject,
       createdAt: now,
       updatedAt: now,
@@ -51,7 +54,7 @@ export const updateWorkspaceName = mutation({
   handler: async (ctx, args) => {
     const identity = await auth.getIdentity(ctx);
     if (!identity) throw new Error("Not authenticated");
-    const name = args.name.trim();
+    const name = args.name.trim().slice(0, 200);
     if (!name) throw new Error("Name cannot be empty");
     const workspace = await ctx.db.get(args.workspaceId);
     if (!workspace) throw new Error("Workspace not found");
@@ -155,6 +158,8 @@ export const createRoom = mutation({
   handler: async (ctx, args) => {
     const identity = await auth.getIdentity(ctx);
     if (!identity) throw new Error("Not authenticated");
+    const name = args.name.trim().slice(0, 200);
+    if (!name) throw new Error("Room name cannot be empty");
     const workspace = await ctx.db.get(args.workspaceId);
     if (!workspace) throw new Error("Workspace not found");
     if (workspace.ownerId !== identity.subject) {
@@ -171,7 +176,7 @@ export const createRoom = mutation({
     const hasSeed = typeof args.seed === "string" && args.seed.length > 0;
     const roomId = await ctx.db.insert("rooms", {
       workspaceId: args.workspaceId,
-      name: args.name,
+      name,
       ownerId: identity.subject,
       canvasData: hasSeed ? args.seed : "",
       canvasVersion: hasSeed ? 1 : 0,
@@ -251,6 +256,8 @@ export const updateRoomName = mutation({
   handler: async (ctx, args) => {
     const identity = await auth.getIdentity(ctx);
     if (!identity) throw new Error("Not authenticated");
+    const name = args.name.trim().slice(0, 200);
+    if (!name) throw new Error("Room name cannot be empty");
     const member = await ctx.db
       .query("roomMembers")
       .withIndex("by_room_user", (q) => q.eq("roomId", args.roomId).eq("userId", identity.subject))
@@ -260,8 +267,6 @@ export const updateRoomName = mutation({
     }
     const room = await ctx.db.get(args.roomId);
     if (!room) throw new Error("Room not found");
-    const name = args.name.trim();
-    if (!name) throw new Error("Name cannot be empty");
     await ctx.db.patch(args.roomId, {
       name,
       updatedAt: Date.now(),
@@ -281,6 +286,7 @@ export const completeOnboarding = mutation({
       .withIndex("by_room_user", (q) => q.eq("roomId", args.roomId).eq("userId", identity.subject))
       .first();
     if (!member) throw new Error("Not a member of this room");
+    if (member.role === "viewer") throw new Error("Viewers cannot complete onboarding");
     await ctx.db.patch(args.roomId, { onboardingCompleted: true });
     return true;
   },
@@ -339,7 +345,7 @@ export const syncMemberProfile = mutation({
     if (!identity) return 0;
     // identity.subject is the userId (after "|" split in auth.getIdentity).
     // The users table stores Convex Auth user IDs as _id.
-    const user = await ctx.db.get(identity.subject as any);
+    const user = await ctx.db.get(identity.subject as Id<"users">);
     if (!user) return 0;
     const fields = user as Record<string, unknown>;
     const newName = String(fields.name || fields.email || "");

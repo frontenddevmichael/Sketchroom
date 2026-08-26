@@ -251,6 +251,10 @@ declare global {
       getMutationCalls: (name: string) => unknown[][];
       /** Swap the version-history list (used to seed restore scenarios). */
       setSnapshots: (snapshots: unknown) => void;
+      /** Swap the AI messages list (used to seed AI error/completion scenarios). */
+      setAiMessages: (messages: unknown) => void;
+      /** Toggle the auth state (used to test auth screens). */
+      setAuth: (authed: boolean) => void;
     };
   }
 }
@@ -267,6 +271,7 @@ const MUTATION_BY_NAME: Record<string, unknown> = {
   upsertPresence: api.features.presence.upsertPresence,
   inviteMember: api.features.invites.inviteMember,
   createInviteLink: api.features.invites.createInviteLink,
+  requestAiSuggestion: api.features.ai.requestAiSuggestion,
 };
 
 function AppView() {
@@ -283,6 +288,8 @@ function AppView() {
     window.__sketchroomHarness = {
       getMutationCalls: (name) => __getMutationCalls(MUTATION_BY_NAME[name]),
       setSnapshots: (snapshots) => __setQueryResult(api.features.snapshots.listSnapshots, snapshots),
+      setAiMessages: (messages) => __setQueryResult(api.features.ai.getAiMessages, messages),
+      setAuth: (authed) => { (window as any).__sketchroomAuth = { isAuthenticated: authed }; },
     };
     return () => {
       delete window.__sketchroomHarness;

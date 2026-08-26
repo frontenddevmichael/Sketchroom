@@ -46,7 +46,8 @@ export default defineSchema({
   })
     .index("by_room", ["roomId"])
     .index("by_user", ["userId"])
-    .index("by_room_user", ["roomId", "userId"]),
+    .index("by_room_user", ["roomId", "userId"])
+    .index("by_room_email", ["roomId", "email"]),
 
   snapshots: defineTable({
     roomId: v.id("rooms"),
@@ -73,7 +74,8 @@ export default defineSchema({
     status: v.union(v.literal("pending"), v.literal("completed"), v.literal("failed")),
     createdAt: v.number(),
   })
-    .index("by_room", ["roomId"]),
+    .index("by_room", ["roomId"])
+    .index("by_room_status_created", ["roomId", "status", "createdAt"]),
 
   presence: defineTable({
     roomId: v.id("rooms"),

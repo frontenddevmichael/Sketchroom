@@ -1,6 +1,7 @@
 import { query, mutation } from "../_generated/server";
 import { v } from "convex/values";
-import { requireMember, requireRole } from "../core/lib";
+import { auth, requireMember, requireRole } from "../core/lib";
+import { rateLimiter } from "../core/rateLimiter";
 
 export const createComment = mutation({
   args: {
@@ -11,6 +12,11 @@ export const createComment = mutation({
   },
   handler: async (ctx, args) => {
     const { identity } = await requireMember(ctx, args.roomId);
+    const { ok } = await rateLimiter.limit(ctx, "createComment", {
+      key: identity.subject,
+      throws: false,
+    });
+    if (!ok) throw new Error("Too many comments — slow down");
     const body = args.body.trim();
     if (!body) throw new Error("Comment cannot be empty");
     if (body.length > 2000) throw new Error("Comment is too long");
@@ -94,26 +100,24 @@ export const reopenComment = mutation({
 export const listComments = query({
   args: { roomId: v.id("rooms"), resolved: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
+    const identity = await auth.getIdentity(ctx);
     if (!identity) return [];
-    const [userId] = identity.subject.split("|");
     const member = await ctx.db
       .query("roomMembers")
-      .withIndex("by_room_user", (q) => q.eq("roomId", args.roomId).eq("userId", userId))
+      .withIndex("by_room_user", (q) => q.eq("roomId", args.roomId).eq("userId", identity.subject))
       .first();
     if (!member) return [];
     const idx = args.resolved === false
       ? "by_room_unresolved"
       : "by_room";
-    const comments = await ctx.db
+    return ctx.db
       .query("comments")
       .withIndex(idx, (q) => {
         const base = q.eq("roomId", args.roomId);
         return args.resolved === false ? base.eq("resolved", false) : base;
       })
       .order("desc")
-      .collect();
-    return comments;
+      .take(200);
   },
 });
 
@@ -122,13 +126,12 @@ export const deleteComment = mutation({
   handler: async (ctx, args) => {
     const comment = await ctx.db.get(args.commentId);
     if (!comment) throw new Error("Comment not found");
-    const identity = await ctx.auth.getUserIdentity();
+    const identity = await auth.getIdentity(ctx);
     if (!identity) throw new Error("Not authenticated");
-    const [userId] = identity.subject.split("|");
-    if (comment.userId !== userId) {
+    if (comment.userId !== identity.subject) {
       const member = await ctx.db
         .query("roomMembers")
-        .withIndex("by_room_user", (q) => q.eq("roomId", comment.roomId).eq("userId", userId))
+        .withIndex("by_room_user", (q) => q.eq("roomId", comment.roomId).eq("userId", identity.subject))
         .first();
       if (!member || member.role !== "owner") {
         throw new Error("Only the author or room owner can delete");

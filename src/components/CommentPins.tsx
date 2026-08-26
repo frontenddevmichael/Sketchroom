@@ -120,6 +120,15 @@ export function CommentPins({ editor, roomId, commentMode, onExitCommentMode }: 
         <div
           className="comment-click-overlay"
           onClick={handleCanvasClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleCanvasClick(e as unknown as React.MouseEvent);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Click to place a comment"
           style={{ position: 'absolute', inset: 0, zIndex: 50, cursor: 'crosshair' }}
         />
       )}

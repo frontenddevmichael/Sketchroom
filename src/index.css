@@ -292,3 +292,30 @@ img {
   height: auto;
   display: block;
 }
+
+/* Accessibility — skip-to-content link */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  padding: 12px 24px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+.skip-to-content:focus {
+  top: 0;
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Ensure main landmark does not add extra layout */
+main {
+  display: contents;
+}

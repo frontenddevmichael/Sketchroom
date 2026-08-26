@@ -130,8 +130,10 @@ export const sendInviteEmail = internalAction({
   handler: async (_ctx, args) => {
     if (!process.env.AUTH_RESEND_KEY) return { sent: false, reason: "no-key" };
 
-    const site = (process.env.SITE_URL ?? "https://sketchroom.app").replace(/\/+$/, "");
-    const inviteUrl = `${site}/invite/${args.token}`;
+    const site = process.env.SITE_URL;
+    if (!site) throw new Error("SITE_URL env var must be set for invite emails");
+    const siteUrl = site.replace(/\/+$/, "");
+    const inviteUrl = `${siteUrl}/invite/${args.token}`;
     const roleLabel = args.role === "editor" ? "an editor" : "a viewer";
     const inviterName = args.inviterName?.trim() || "Someone";
     const roomName = args.roomName.trim() || "a room";

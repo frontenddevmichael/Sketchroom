@@ -47,12 +47,14 @@ test("saveSnapshot bumps version, stores a snapshot, and requires membership", a
     canvasData: "{v1}",
     description: "first",
   });
-  expect(r1.version).toBe(1);
+  expect(r1).not.toBeNull();
+  expect(r1!.version).toBe(1);
   const r2 = await aliceT.mutation(api.features.snapshots.saveSnapshot, {
     roomId,
     canvasData: "{v2}",
   });
-  expect(r2.version).toBe(2);
+  expect(r2).not.toBeNull();
+  expect(r2!.version).toBe(2);
   const snapshots = await aliceT.query(api.features.snapshots.listSnapshots, { roomId });
   expect(snapshots).toHaveLength(2);
   expect(snapshots[0].canvasData).toBe("{v2}");

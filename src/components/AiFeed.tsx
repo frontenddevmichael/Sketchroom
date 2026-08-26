@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 import type { RefObject } from 'react';
 import { useQuery, useMutation, useAction } from 'convex/react';
 import { api } from '../../convex/_generated/api';
@@ -52,7 +52,7 @@ interface AiFeedProps {
   unviewed?: boolean;
 }
 
-export function AiFeed({
+export const AiFeed = memo(function AiFeed({
   copilot,
   roomId,
   editor,
@@ -89,6 +89,14 @@ export function AiFeed({
     copilot.feedOpen ||
     copilot.isAsking ||
     (messages && messages.length > 0 && messages[messages.length - 1]?.status === 'pending');
+
+  const parsedMessages = useMemo(() => {
+    if (!messages) return [];
+    return messages.map((msg) => ({
+      ...msg,
+      diagram: parseAiDiagram(msg.ghostBlocks),
+    }));
+  }, [messages]);
 
   const retry = (promptText: string) => {
     requestAi({ roomId, prompt: promptText }).catch((err) =>
@@ -137,10 +145,9 @@ export function AiFeed({
               </div>
             )}
 
-            {messages?.map((msg) => {
-              const diagram = parseAiDiagram(msg.ghostBlocks);
-              const blocks = diagram?.blocks ?? [];
-              const edges = diagram?.edges ?? [];
+            {parsedMessages.map((msg) => {
+              const blocks = msg.diagram?.blocks ?? [];
+              const edges = msg.diagram?.edges ?? [];
               return (
                 <div key={msg._id} className="ai-message">
                   <div className="ai-message-prompt">
@@ -304,7 +311,7 @@ export function AiFeed({
       </div>
     </div>
   );
-}
+});
 
 // The AI's thinking state is anticipation for a specific answer — not a page
 // load — so it gets its own identity: the sparkle pulsing with expanding

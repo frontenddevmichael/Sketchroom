@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'convex/react';
 import { useAuthActions } from '@convex-dev/auth/react';
@@ -281,11 +281,14 @@ export function Dashboard() {
     setRoomName('');
   };
 
-  const openRename = (roomId: Id<'rooms'>, name: string) => {
+  const handleConfirmDelete = useCallback((id: Id<'rooms'>) => setDeletingId(id), []);
+  const handleCancelDelete = useCallback(() => setDeletingId(null), []);
+
+  const openRename = useCallback((roomId: Id<'rooms'>, name: string) => {
     setRoomName(name);
     setModal({ kind: 'rename', roomId, name });
     setKebabFor(null);
-  };
+  }, []);
 
   return (
     <div className="dashboard">
@@ -536,7 +539,7 @@ export function Dashboard() {
               <div className="add-inner"><div className="plus"><Plus size={20} /></div>New room</div>
             </div>
             {filteredRooms.map((room, i) => (
-              <RoomCard
+              <MemoizedRoomCard
                 key={room._id}
                 room={room}
                 index={i}
@@ -544,8 +547,8 @@ export function Dashboard() {
                 kebabFor={kebabFor}
                 setKebabFor={setKebabFor}
                 deletingId={deletingId}
-                confirmDelete={(id) => setDeletingId(id)}
-                cancelDelete={() => setDeletingId(null)}
+                confirmDelete={handleConfirmDelete}
+                cancelDelete={handleCancelDelete}
                 openRename={openRename}
                 deleteRoom={deleteRoom}
               />
@@ -662,7 +665,7 @@ const ROOM_PREVIEW_COLORS = [
   'oklch(0.22 0.03 50)',  'oklch(0.23 0.05 190)',
 ];
 
-function RoomCard({
+const MemoizedRoomCard = memo(function RoomCard({
   room,
   index,
   navigate,
@@ -698,7 +701,7 @@ function RoomCard({
       {/* Preview */}
       <div className="preview" style={{ background: ROOM_PREVIEW_COLORS[colorIndex] }}>
         {room.thumbnailData ? (
-          <img src={room.thumbnailData} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={room.thumbnailData} alt={`Preview of ${room.name}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <svg viewBox="0 0 240 135" fill="none" aria-hidden="true" style={{ width: '100%', height: '100%' }}>
             <rect x="20" y="18" width="56" height="36" rx="6" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
@@ -785,7 +788,7 @@ function RoomCard({
       </div>
     </div>
   );
-}
+});
 
 /* ── Loading shell ──────────────────────────────────────────────────── */
 

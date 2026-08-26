@@ -1,6 +1,7 @@
 import { mutation, query } from "../_generated/server";
 import { v } from "convex/values";
 import { auth, requireRole, SNAPSHOT_RETENTION, MAX_CANVAS_BYTES } from "../core/lib";
+import { rateLimiter } from "../core/rateLimiter";
 
 function assertWithinCanvasLimit(canvasData: string): void {
   if (canvasData.length > MAX_CANVAS_BYTES) {
@@ -14,6 +15,11 @@ export const saveSnapshot = mutation({
   args: { roomId: v.id("rooms"), canvasData: v.string(), description: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const { identity, member } = await requireRole(ctx, args.roomId, ["owner", "editor"]);
+    const { ok } = await rateLimiter.limit(ctx, "snapshotSave", {
+      key: identity.subject,
+      throws: false,
+    });
+    if (!ok) return null;
     const room = await ctx.db.get(args.roomId);
     if (!room) throw new Error("Room not found");
     assertWithinCanvasLimit(args.canvasData);
@@ -87,7 +93,7 @@ export const listSnapshots = query({
       .query("snapshots")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .order("desc")
-      .collect();
+      .take(SNAPSHOT_RETENTION + 10);
   },
 });
 

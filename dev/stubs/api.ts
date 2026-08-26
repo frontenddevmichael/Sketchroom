@@ -35,6 +35,14 @@ export const api = {
       removePresence: 'presence:removePresence',
       prunePresence: 'presence:prunePresence',
     },
+    comments: {
+      listComments: 'comments:listComments',
+      createComment: 'comments:createComment',
+      replyToComment: 'comments:replyToComment',
+      resolveComment: 'comments:resolveComment',
+      reopenComment: 'comments:reopenComment',
+      deleteComment: 'comments:deleteComment',
+    },
     ai: {
       getAiMessages: 'ai:getAiMessages',
       requestAiSuggestion: 'ai:requestAiSuggestion',

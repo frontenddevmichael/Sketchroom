@@ -64,7 +64,7 @@ export const requestAiSuggestion = action({
 
     const { ok, retryAfter } = await rateLimiter.limit(ctx, "aiRequest", {
       key: identity.subject,
-      throws: true,
+      throws: false,
     });
     if (!ok) {
       throw new Error(`Rate limit hit — try again in ~${Math.ceil((retryAfter ?? 1000) / 1000)}s`);
@@ -73,7 +73,7 @@ export const requestAiSuggestion = action({
     // Per-room rate limit: prevents a single room from consuming all resources.
     const { ok: roomOk, retryAfter: roomRetryAfter } = await rateLimiter.limit(ctx, "aiRequestPerRoom", {
       key: args.roomId,
-      throws: true,
+      throws: false,
     });
     if (!roomOk) {
       throw new Error(`Room rate limit hit — try again in ~${Math.ceil((roomRetryAfter ?? 1000) / 1000)}s`);
@@ -82,7 +82,7 @@ export const requestAiSuggestion = action({
     // Global rate limit: protects against overall abuse.
     const { ok: globalOk, retryAfter: globalRetryAfter } = await rateLimiter.limit(ctx, "aiRequestGlobal", {
       key: "global",
-      throws: true,
+      throws: false,
     });
     if (!globalOk) {
       throw new Error(`System rate limit hit — try again in ~${Math.ceil((globalRetryAfter ?? 1000) / 1000)}s`);

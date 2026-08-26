@@ -222,6 +222,15 @@ export function RoomScreen() {
   const roomIdArg = roomId ? (roomId as Id<'rooms'>) : undefined;
   const room = useQuery(api.features.rooms.getRoom, roomIdArg ? { roomId: roomIdArg } : 'skip');
 
+  // Redirect to error page when room is unavailable (not during render).
+  useEffect(() => {
+    if (room === null) {
+      navigate('/error', { replace: true, state: { message: 'This room is not available.' } });
+    } else if (room === undefined && roomIdArg === undefined && roomId) {
+      navigate('/error', { replace: true, state: { message: 'This room link is invalid.' } });
+    }
+  }, [room, roomIdArg, roomId, navigate]);
+
   // The walkthrough is active until every guided step is done (or dismissed);
   // wtStep is the first uncompleted step in order, 3 = everything done.
   const wtActive = walkthrough !== null && !wtClosing;
@@ -362,8 +371,8 @@ export function RoomScreen() {
         background: true,
       });
       await updateRoomThumbnail({ roomId: roomIdArg, thumbnailData: url });
-    } catch (e) {
-      console.warn('[thumbnail] capture failed:', e);
+    } catch {
+      // Thumbnail capture is best-effort; ignore failures
     }
   }, [roomIdArg, isReadOnly, updateRoomThumbnail]);
 
@@ -1048,17 +1057,11 @@ setSaveStatus('saved');
   // room is undefined while loading (or when the query is skipped); null
   // means the room was loaded and genuinely does not exist / no access.
   if (room === undefined) {
-    if (!roomIdArg) {
-      navigate('/error', { replace: true, state: { message: 'This room link is invalid.' } });
-      return null;
-    }
+    if (!roomIdArg) return null;
     return <RoomCanvasBoot />;
   }
 
-  if (room === null) {
-    navigate('/error', { replace: true, state: { message: 'This room is not available.' } });
-    return null;
-  }
+  if (room === null) return null;
 
   const userRole = room.userRole;
 

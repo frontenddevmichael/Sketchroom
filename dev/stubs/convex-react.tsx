@@ -98,7 +98,11 @@ const __actionFns = new Map<unknown, (...args: unknown[]) => Promise<unknown>>()
 export function useAction(fn: unknown) {
   let a = __actionFns.get(fn);
   if (!a) {
-    a = () => Promise.resolve();
+    a = async (...args: unknown[]) => {
+      __mutationCalls.push({ fn, args });
+      const handler = __mutationHandlers.get(fn);
+      return handler ? handler(...args) : undefined;
+    };
     __actionFns.set(fn, a);
   }
   return a;
