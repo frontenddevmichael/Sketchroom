@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'convex/react';
 import { useAuthActions } from '@convex-dev/auth/react';
@@ -30,6 +30,7 @@ import { useLongLoad } from '../hooks/useLongLoad';
 import { Spinner } from '../components/Spinner';
 import { ErrorIllo } from '../components/illustrations';
 import { useModalFocus } from '../lib/useModalFocus';
+import { formatRelativeTime } from '../lib/formatTime';
 import { usePageTitle } from '../lib/usePageTitle';
 import { FREE_ROOM_LIMIT, FREE_AI_LIMIT } from '../lib/plans';
 import '../components/shared.css';
@@ -59,18 +60,6 @@ function todayLabel(): string {
     month: 'long',
     day: 'numeric',
   });
-}
-
-function formatRelativeTime(ts: number) {
-  const diff = Date.now() - ts;
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(ts).toLocaleDateString();
 }
 
 /* ── Main component ─────────────────────────────────────────────────── */
@@ -158,6 +147,12 @@ export function Dashboard() {
     return rooms.reduce((sum, r) => sum + (r.members?.avatars.length ?? 0) + (r.members?.plusCount ?? 0), 0);
   }, [rooms]);
 
+  const openCreate = useCallback(() => {
+    setRoomName('');
+    setCreateError(null);
+    setModal({ kind: 'create' });
+  }, []);
+
   /* Keyboard shortcut: N to create room */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -170,7 +165,7 @@ export function Dashboard() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [openCreate]);
 
   /* Close kebab on outside click */
   useEffect(() => {
@@ -201,12 +196,6 @@ export function Dashboard() {
     setAvatarOpen(false);
     signOut().catch(() => {});
   }, [signOut]);
-
-  const openCreate = useCallback(() => {
-    setRoomName('');
-    setCreateError(null);
-    setModal({ kind: 'create' });
-  }, []);
 
   if (!workspaces) return <DashboardLoadingShell failed={loadFailed} />;
 
@@ -281,14 +270,14 @@ export function Dashboard() {
     setRoomName('');
   };
 
-  const handleConfirmDelete = useCallback((id: Id<'rooms'>) => setDeletingId(id), []);
-  const handleCancelDelete = useCallback(() => setDeletingId(null), []);
+  const handleConfirmDelete = (id: Id<'rooms'>) => setDeletingId(id);
+  const handleCancelDelete = () => setDeletingId(null);
 
-  const openRename = useCallback((roomId: Id<'rooms'>, name: string) => {
+  const openRename = (roomId: Id<'rooms'>, name: string) => {
     setRoomName(name);
     setModal({ kind: 'rename', roomId, name });
     setKebabFor(null);
-  }, []);
+  };
 
   return (
     <div className="dashboard">
@@ -539,11 +528,10 @@ export function Dashboard() {
               <div className="add-inner"><div className="plus"><Plus size={20} /></div>New room</div>
             </div>
             {filteredRooms.map((room, i) => (
-              <MemoizedRoomCard
+              <RoomCard
                 key={room._id}
                 room={room}
                 index={i}
-                navigate={navigate}
                 kebabFor={kebabFor}
                 setKebabFor={setKebabFor}
                 deletingId={deletingId}
@@ -665,10 +653,9 @@ const ROOM_PREVIEW_COLORS = [
   'oklch(0.22 0.03 50)',  'oklch(0.23 0.05 190)',
 ];
 
-const MemoizedRoomCard = memo(function RoomCard({
+function RoomCard({
   room,
   index,
-  navigate,
   kebabFor,
   setKebabFor,
   deletingId,
@@ -679,7 +666,6 @@ const MemoizedRoomCard = memo(function RoomCard({
 }: {
   room: RoomDoc;
   index: number;
-  navigate: ReturnType<typeof useNavigate>;
   kebabFor: Id<'rooms'> | null;
   setKebabFor: (id: Id<'rooms'> | null) => void;
   deletingId: Id<'rooms'> | null;
@@ -688,6 +674,7 @@ const MemoizedRoomCard = memo(function RoomCard({
   openRename: (id: Id<'rooms'>, name: string) => void;
   deleteRoom: ReturnType<typeof useMutation<typeof api.features.rooms.deleteRoom>>;
 }) {
+  const navigate = useNavigate();
   const colorIndex = index % ROOM_PREVIEW_COLORS.length;
   const hasMembers = !!room.members && (room.members.avatars.length + room.members.plusCount) > 1;
   const isKebabOpen = kebabFor === room._id;
@@ -788,7 +775,7 @@ const MemoizedRoomCard = memo(function RoomCard({
       </div>
     </div>
   );
-});
+}
 
 /* ── Loading shell ──────────────────────────────────────────────────── */
 

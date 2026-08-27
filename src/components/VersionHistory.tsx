@@ -9,6 +9,7 @@ import { useSmartFloat } from '../hooks/useSmartFloat';
 import { SmartFloatHandle } from './SmartFloatHandle';
 import { ListRowSkeleton } from './skeletons';
 import { HistoryEmptyIllo, DrawnTitle } from './illustrations';
+import { formatRelativeTime } from '../lib/formatTime';
 import './VersionHistory.css';
 
 interface VersionHistoryProps {
@@ -91,7 +92,7 @@ export function VersionHistory({ roomId, onClose, editor = null }: VersionHistor
               )}
             </div>
             <div className="history-row-info">
-              <span className="history-row-time">{formatRelativeTime(snap.createdAt)}</span>
+              <span className="history-row-time">{formatRelativeTime(snap.createdAt, { showTime: true })}</span>
               <span className="history-row-desc">{snap.description || `Version ${snap.version}`}</span>
             </div>
             <button
@@ -106,18 +107,6 @@ export function VersionHistory({ roomId, onClose, editor = null }: VersionHistor
       </div>
     </aside>
   );
-}
-
-function formatRelativeTime(ts: number) {
-  const diff = Date.now() - ts;
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(ts).toLocaleDateString() + ' ' + new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 /* ---- Snapshot mini-map preview ---- */
