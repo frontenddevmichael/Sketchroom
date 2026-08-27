@@ -63,7 +63,7 @@ function AgentSection({ agent, index }: { agent: typeof AGENTS[number]; index: n
     <section
       ref={sectionRef}
       className={`agent-section ${inView ? 'agent-section--visible' : ''}`}
-      id={index === 0 ? 'agents' : undefined}
+      id={index === 0 ? 'features' : undefined}
     >
       <div className="agent-inner">
         <div className="agent-copy">
@@ -151,12 +151,12 @@ export function FeatureShowcase() {
   );
 }
 
-/* ── Scene components — embedded "fake-real" product UI ───────────────── */
+/* ── Scene components — animated product UI ──────────────────────────── */
 
 function CopilotScene() {
+  const reduce = useReducedMotion();
   return (
     <div className="scene" aria-hidden="true">
-      {/* Exploration panel — like Framer's layout variants panel */}
       <div className="scene-panel">
         <div className="scene-panel-header">
           <span className="scene-panel-title">Exploration</span>
@@ -186,37 +186,114 @@ function CopilotScene() {
           </div>
         </div>
       </div>
-      {/* Canvas area */}
       <div className="scene-canvas">
-        <div className="scene-block scene-block--primary">Hero·v2</div>
-        <div className="scene-block scene-block--ghost">Hero·v3</div>
+        <motion.div
+          className="scene-block scene-block--primary"
+          initial={reduce ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          Hero·v2
+        </motion.div>
+        <motion.div
+          className="scene-block scene-block--ghost"
+          initial={reduce ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          Hero·v3
+        </motion.div>
         <svg className="scene-spark" viewBox="0 0 12 12" style={{ left: '48%', top: '25%' }}>
           <path d="M6 0 l1.4 4.6 4.6 1.4 -4.6 1.4 -1.4 4.6 -1.4 -4.6 -4.6 -1.4 4.6 -1.4 z" />
         </svg>
-        <div className="scene-cursor scene-cursor--green" style={{ left: '60%', top: '20%' }} />
-        <div className="scene-bubble">try a 2-step fallback</div>
+        <motion.div
+          className="scene-cursor scene-cursor--green"
+          style={{ left: '60%', top: '20%' }}
+          animate={reduce ? {} : { x: [0, -12, 5, 0], y: [0, 8, -4, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="scene-bubble"
+          initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 1 }}
+        >
+          <span className="scene-typing">
+            <span /><span /><span />
+          </span>
+          try a 2-step fallback
+        </motion.div>
       </div>
     </div>
   );
 }
 
 function CollabScene() {
+  const reduce = useReducedMotion();
   return (
     <div className="scene" aria-hidden="true">
       <div className="scene-canvas">
-        <div className="scene-cursor" style={{ left: '18%', top: '28%' }} />
-        <div className="scene-cursor" style={{ left: '68%', top: '52%' }} />
-        <div className="scene-cursor scene-cursor--green" style={{ left: '40%', top: '70%' }} />
-        <div className="scene-block" style={{ left: '12%', top: '48%' }}>Auth·v2</div>
-        <div className="scene-block" style={{ left: '52%', top: '22%' }}>API·v1</div>
-        <div className="scene-label" style={{ left: '20%', top: '16%' }}>Maya</div>
-        <div className="scene-label scene-label--green" style={{ left: '58%', top: '64%' }}>Alex</div>
+        <motion.div
+          className="scene-cursor"
+          style={{ left: '18%', top: '28%' }}
+          animate={reduce ? {} : { x: [0, 30, 15, 40, 0], y: [0, -10, 20, 5, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="scene-cursor"
+          style={{ left: '68%', top: '52%' }}
+          animate={reduce ? {} : { x: [0, -20, -5, -25, 0], y: [0, 15, -8, 10, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="scene-cursor scene-cursor--green"
+          style={{ left: '40%', top: '70%' }}
+          animate={reduce ? {} : { x: [0, 10, -8, 5, 0], y: [0, -20, -5, -15, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="scene-block"
+          style={{ left: '12%', top: '48%' }}
+          initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          Auth·v2
+        </motion.div>
+        <motion.div
+          className="scene-block"
+          style={{ left: '52%', top: '22%' }}
+          initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          API·v1
+        </motion.div>
+        <motion.div
+          className="scene-label"
+          style={{ left: '20%', top: '16%' }}
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.8 }}
+        >
+          Maya
+        </motion.div>
+        <motion.div
+          className="scene-label scene-label--green"
+          style={{ left: '58%', top: '64%' }}
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 1.1 }}
+        >
+          Alex
+        </motion.div>
       </div>
     </div>
   );
 }
 
 function BlocksScene() {
+  const reduce = useReducedMotion();
   return (
     <div className="scene" aria-hidden="true">
       <div className="scene-canvas">
@@ -226,26 +303,74 @@ function BlocksScene() {
           <span className="scene-tool">◇</span>
           <span className="scene-tool">✎</span>
         </div>
-        <div className="scene-block scene-block--ghost scene-block--drop">Decision</div>
-        <div className="scene-block" style={{ left: '25%', top: '55%' }}>Auth·v2</div>
-        <div className="scene-block" style={{ left: '55%', top: '30%' }}>API·v1</div>
+        <motion.div
+          className="scene-block scene-block--ghost scene-block--drop"
+          initial={reduce ? false : { opacity: 0, y: -40, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.4, type: 'spring', stiffness: 200, damping: 18 }}
+        >
+          Decision
+        </motion.div>
+        <motion.div
+          className="scene-block"
+          style={{ left: '25%', top: '55%' }}
+          initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          Auth·v2
+        </motion.div>
+        <motion.div
+          className="scene-block"
+          style={{ left: '55%', top: '30%' }}
+          initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
+        >
+          API·v1
+        </motion.div>
       </div>
     </div>
   );
 }
 
 function HistoryScene() {
+  const reduce = useReducedMotion();
   return (
     <div className="scene" aria-hidden="true">
       <div className="scene-canvas">
         <div className="scene-history">
           <span className="scene-history-chip">2m ago</span>
           <span className="scene-history-chip">1m ago</span>
-          <span className="scene-history-chip scene-history-chip--now">now</span>
+          <motion.span
+            className="scene-history-chip scene-history-chip--now"
+            animate={reduce ? {} : { boxShadow: ['0 0 0 0 oklch(0.78 0.19 148 / 0)', '0 0 0 6px oklch(0.78 0.19 148 / 0.25)', '0 0 0 0 oklch(0.78 0.19 148 / 0)'] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
+          >
+            now
+          </motion.span>
         </div>
-        <div className="scene-cursor" style={{ left: '22%', top: '32%' }} />
-        <div className="scene-cursor scene-cursor--green" style={{ left: '62%', top: '58%' }} />
-        <div className="scene-block" style={{ left: '28%', top: '48%' }}>Sprint·plan</div>
+        <motion.div
+          className="scene-cursor"
+          style={{ left: '22%', top: '32%' }}
+          animate={reduce ? {} : { x: [0, 20, 10, 25, 0], y: [0, 10, -5, 15, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="scene-cursor scene-cursor--green"
+          style={{ left: '62%', top: '58%' }}
+          animate={reduce ? {} : { x: [0, -15, 5, -10, 0], y: [0, -10, 10, -5, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="scene-block"
+          style={{ left: '28%', top: '48%' }}
+          initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          Sprint·plan
+        </motion.div>
       </div>
     </div>
   );

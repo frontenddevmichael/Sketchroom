@@ -87,13 +87,9 @@
   box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.12);
 }
 
-[data-theme='dark'] .final-cta-input {
-  border-color: var(--dark-hairline);
-}
 
-[data-theme='dark'] .final-cta-input:focus-within {
-  border-color: var(--green-500);
-}
+
+
 
 .final-cta-input-icon {
   flex-shrink: 0;
@@ -157,9 +153,7 @@
   white-space: nowrap;
 }
 
-[data-theme='dark'] .final-cta-chip {
-  border-color: var(--dark-hairline);
-}
+
 
 .final-cta-chip:hover {
   border-color: var(--green-500);

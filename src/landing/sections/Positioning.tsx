@@ -67,7 +67,7 @@ export function Positioning() {
   }, []);
 
   return (
-    <section className="landing-section positioning" id="product">
+    <section className="landing-section positioning" id="positioning">
       <div className="positioning-grid" aria-hidden="true" ref={scribbleRef}>
         <svg className={`positioning-scribble ${drawn ? 'drawn' : ''}`} viewBox="0 0 200 40" fill="none" preserveAspectRatio="none">
           <path d="M4 24 C 40 10, 70 34, 108 22 S 168 20, 196 28" stroke="var(--neutral-400)" strokeWidth="1.4" strokeLinecap="round" />

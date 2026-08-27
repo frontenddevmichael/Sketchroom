@@ -12,10 +12,7 @@
   border-bottom: 1px solid var(--neutral-100);
 }
 
-[data-theme='dark'] .wt-pinned {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
-}
+
 
 .wt-grid {
   width: 100%;
@@ -105,9 +102,7 @@
   overflow: hidden;
 }
 
-[data-theme='dark'] .wt-progress {
-  background: var(--neutral-600);
-}
+
 
 .wt-progress-bar {
   height: 100%;
@@ -145,10 +140,7 @@
   pointer-events: none;
 }
 
-[data-theme='dark'] .wt-scroll-hint {
-  background: var(--surface-translucency-dark);
-  border-color: var(--dark-hairline);
-}
+
 
 .wt-scroll-wheel {
   width: 22px;

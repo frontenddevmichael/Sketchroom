@@ -6,10 +6,7 @@
   padding: 80px 32px 40px;
 }
 
-[data-theme='dark'] .footer {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
-}
+
 
 .footer-inner {
   max-width: 1200px;
@@ -28,9 +25,7 @@
   margin-bottom: 24px;
 }
 
-[data-theme='dark'] .footer-top {
-  border-color: var(--dark-hairline);
-}
+
 
 .footer-top-headline {
   margin: 0;
@@ -124,9 +119,7 @@
   margin-bottom: 48px;
 }
 
-[data-theme='dark'] .footer-columns {
-  border-color: var(--dark-hairline);
-}
+
 
 .footer-col {
   display: flex;

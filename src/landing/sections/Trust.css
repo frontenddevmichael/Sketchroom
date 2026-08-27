@@ -131,7 +131,3 @@
   letter-spacing: 0.02em;
 }
 
-[data-theme='dark'] .trust-slot {
-  border-color: var(--dark-hairline);
-  color: var(--neutral-500);
-}

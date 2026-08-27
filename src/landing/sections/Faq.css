@@ -1,7 +1,7 @@
 .landing-section-faq {
   position: relative;
   padding: var(--space-14);
-  background: var(--green-600);
+  background: var(--bg-base);
 }
 
 .faq-head {
@@ -22,11 +22,6 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition: border-color var(--duration-fast) var(--ease-spring);
-}
-
-[data-theme='dark'] .faq-item {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
 }
 
 .faq-question {
@@ -100,7 +95,6 @@
   font-size: 14px;
   line-height: 1.7;
   font-weight: 400;
-  font-family: var(--font-mono);
   color: var(--color-text-secondary);
 }
 

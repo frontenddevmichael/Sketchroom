@@ -18,7 +18,10 @@ const STATS = [
 function VitalBar({ label, value, description, target }: typeof VITALS[number]) {
   const numVal = parseFloat(value);
   const numTarget = parseFloat(target.replace(/[<>]/g, ''));
-  const pct = Math.min((numTarget / numVal) * 60, 95);
+  const pct = Math.min(
+    (label === 'FCP' ? numVal / numTarget : numTarget / numVal) * 60,
+    95
+  );
 
   return (
     <div className="vital">

@@ -18,27 +18,20 @@
     box-shadow var(--duration-base) var(--ease-spring);
 }
 
-[data-theme='dark'] .pricing-card {
-  border-color: var(--dark-hairline);
-}
-
 .pricing-card:hover {
   border-color: var(--neutral-400);
   transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
 }
 
-[data-theme='dark'] .pricing-card:hover {
-  border-color: var(--neutral-500);
-}
-
 .pricing-card-featured {
   border-color: var(--green-500);
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-surface) 0%,
+    oklch(0.22 0.04 155) 100%
+  );
   box-shadow: 0 6px 24px rgba(37, 211, 102, 0.12);
-}
-
-[data-theme='dark'] .pricing-card-featured {
-  border-color: var(--green-500);
 }
 
 .pricing-card-featured:hover {

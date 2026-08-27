@@ -60,18 +60,14 @@
   margin-bottom: 32px;
 }
 
-[data-theme='dark'] .perf-vitals {
-  border-color: var(--dark-hairline);
-}
+
 
 .perf-vitals-header {
   padding: 16px 24px;
   border-bottom: 1px solid var(--neutral-100);
 }
 
-[data-theme='dark'] .perf-vitals-header {
-  border-color: var(--dark-hairline);
-}
+
 
 .perf-vitals-badge {
   display: inline-flex;
@@ -104,9 +100,7 @@
   border-right: none;
 }
 
-[data-theme='dark'] .perf-vitals-grid .vital {
-  border-color: var(--dark-hairline);
-}
+
 
 /* ── Vital bar ────────────────────────────────────────────────────────── */
 
@@ -162,9 +156,7 @@
   overflow: hidden;
 }
 
-[data-theme='dark'] .vital-track {
-  background: var(--dark-elevation-2);
-}
+
 
 .vital-fill {
   height: 100%;
@@ -193,9 +185,7 @@
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-[data-theme='dark'] .perf-stat {
-  border-color: var(--dark-hairline);
-}
+
 
 .perf-stat:hover {
   border-color: var(--neutral-300);
@@ -236,9 +226,7 @@
     border-bottom: 1px solid var(--neutral-100);
   }
 
-  [data-theme='dark'] .perf-vitals-grid .vital {
-    border-color: var(--dark-hairline);
-  }
+  
 
   .perf-stats {
     grid-template-columns: repeat(2, 1fr);

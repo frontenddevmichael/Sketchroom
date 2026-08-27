@@ -148,3 +148,17 @@
     animation: none !important;
   }
 }
+
+.section-divider {
+  width: 100%;
+  height: 1px;
+  max-width: 1160px;
+  margin: 0 auto;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border) 20%,
+    var(--color-border) 80%,
+    transparent
+  );
+}
