@@ -111,19 +111,19 @@ export function BillingScreen() {
           <h2 className="plan-name">Free</h2>
           <p className="plan-price">$0<span className="plan-period">/mo</span></p>
           <div className="plan-usage">
-            <div className="plan-usage-row">
-              <span>Rooms</span>
-              <div className="plan-usage-bar">
-                <span className="plan-usage-fill" style={{ width: `${roomPct}%` }} />
+            <div className="plan-stat">
+              <div className="plan-stat-number">{usage.rooms}<span className="plan-stat-of">/{FREE_ROOM_LIMIT}</span></div>
+              <div className="plan-stat-label">Rooms</div>
+              <div className="plan-stat-bar">
+                <span className="plan-stat-fill" style={{ width: `${roomPct}%` }} />
               </div>
-              <span className="plan-usage-count">{usage.rooms} / {FREE_ROOM_LIMIT}</span>
             </div>
-            <div className="plan-usage-row">
-              <span>AI suggestions</span>
-              <div className="plan-usage-bar">
-                <span className="plan-usage-fill plan-usage-fill-ai" style={{ width: `${aiPct}%` }} />
+            <div className="plan-stat">
+              <div className="plan-stat-number">{usage.aiSuggestions}<span className="plan-stat-of">/{FREE_AI_LIMIT}</span></div>
+              <div className="plan-stat-label">AI suggestions</div>
+              <div className="plan-stat-bar">
+                <span className="plan-stat-fill plan-stat-fill-ai" style={{ width: `${aiPct}%` }} />
               </div>
-              <span className="plan-usage-count">{usage.aiSuggestions} / {FREE_AI_LIMIT}</span>
             </div>
           </div>
           <ul className="plan-features">

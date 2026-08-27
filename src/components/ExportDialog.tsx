@@ -181,7 +181,7 @@ export function ExportDialog({ onClose, editor }: ExportDialogProps) {
           </label>
         </div>
 
-        {error && <p className="export-error">{error}</p>}
+        {error && <p className="export-error" role="alert">{error}</p>}
 
         <button className="btn btn-primary export-button" onClick={handleExport} disabled={exporting}>
           {exporting && <Spinner size={15} />}

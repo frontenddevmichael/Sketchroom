@@ -5,7 +5,6 @@ import { useAuthActions } from '@convex-dev/auth/react';
 import { api } from '../../convex/_generated/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { UserMenu } from '../components/UserMenu';
-import { AppTabBar } from '../components/AppTabBar';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useModalFocus } from '../lib/useModalFocus';
 import { FormSkeleton } from '../components/skeletons';
@@ -101,64 +100,75 @@ export function SettingsScreen() {
   const handleSignOut = () => {
     signOut()
       .then(() => navigate('/'))
-      // A failed sign-out must not be an unhandled rejection: keep the user
-      // in the app with a clear message instead of a silent no-op.
       .catch(() => setSignOutError('Could not sign out — check your connection and try again.'));
   };
 
   return (
     <div className="settings-screen">
-      <AppTabBar />
-      <aside className="settings-sidebar">
+      <div className="settings-topbar">
         <button className="settings-back" onClick={() => navigate('/dashboard')} aria-label="Back to dashboard">
           <ArrowLeft size={18} />
         </button>
-        <div className="settings-nav">
-          <button
-            className={`settings-nav-item ${tab === 'workspace' ? 'active' : ''}`}
-            onClick={() => setTab('workspace')}
-          >
-            Workspace
-          </button>
-          <button
-            className={`settings-nav-item ${tab === 'account' ? 'active' : ''}`}
-            onClick={() => setTab('account')}
-          >
-            Account
-          </button>
-          <button className="settings-nav-item" onClick={() => navigate('/billing')}>
-            Billing
-          </button>
-        </div>
-      </aside>
+      </div>
+
+      <div className="settings-tabs" role="tablist">
+        <button
+          className={`settings-tab${tab === 'workspace' ? ' active' : ''}`}
+          role="tab"
+          aria-selected={tab === 'workspace'}
+          onClick={() => setTab('workspace')}
+        >
+          Workspace
+        </button>
+        <button
+          className={`settings-tab${tab === 'account' ? ' active' : ''}`}
+          role="tab"
+          aria-selected={tab === 'account'}
+          onClick={() => setTab('account')}
+        >
+          Account
+        </button>
+        <button
+          className="settings-tab"
+          role="tab"
+          onClick={() => navigate('/billing')}
+        >
+          Billing
+        </button>
+      </div>
 
       <main className="settings-main">
         {tab === 'workspace' ? (
           <>
             <h1 className="settings-title">Workspace settings</h1>
-            <div className="settings-section">
-              <label className="settings-label" htmlFor="workspace-name">Workspace name</label>
-              <input
-                id="workspace-name"
-                className="input"
-                placeholder={workspace?.name}
-                value={workspaceName}
-                onChange={(e) => setWorkspaceName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(); }}
-              />
+
+            <div className="settings-card">
+              <h2 className="settings-card-header">Workspace name</h2>
+              <p className="settings-card-desc">Change how your workspace appears to collaborators.</p>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                <input
+                  id="workspace-name"
+                  className="input"
+                  placeholder={workspace?.name}
+                  value={workspaceName}
+                  onChange={(e) => setWorkspaceName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(); }}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  className="settings-save"
+                  onClick={handleSaveName}
+                  disabled={!workspaceName.trim()}
+                >
+                  {savedName ? <><Check size={14} />Saved</> : 'Save'}
+                </button>
+              </div>
               {nameError && <p className="settings-error" role="alert">{nameError}</p>}
-              <button
-                className="settings-save"
-                onClick={handleSaveName}
-                disabled={!workspaceName.trim()}
-              >
-                {savedName ? <><Check size={14} />Saved</> : 'Save'}
-              </button>
             </div>
 
-            <div className="settings-section">
-              <label className="settings-label" htmlFor="settings-usage">Plan & usage</label>
-              <div className="settings-usage" id="settings-usage">
+            <div className="settings-card">
+              <h2 className="settings-card-header">Plan & usage</h2>
+              <div className="settings-usage">
                 <div className="settings-usage-row">
                   <span className="settings-usage-label">Rooms</span>
                   <div className="settings-usage-bar" aria-hidden="true">
@@ -180,8 +190,8 @@ export function SettingsScreen() {
               </button>
             </div>
 
-            <div className="settings-section">
-              <label className="settings-label">Members</label>
+            <div className="settings-card">
+              <h2 className="settings-card-header">Members</h2>
               <div className="settings-members">
                 <div className="settings-member">
                   <div className="settings-member-avatar">
@@ -194,13 +204,14 @@ export function SettingsScreen() {
                 </div>
               </div>
             </div>
+
             <div className="danger-zone">
               <h3 className="danger-zone-title">Danger zone</h3>
               <p className="danger-zone-text">
                 Deleting your workspace permanently removes all rooms, snapshots, and data.
               </p>
               {deleteState.error && <p className="settings-error" role="alert">{deleteState.error}</p>}
-              <button className="btn btn-danger" onClick={() => setConfirmDeleteOpen(true)}>
+              <button className="btn-danger" onClick={() => setConfirmDeleteOpen(true)}>
                 <Trash2 size={16} />
                 Delete workspace
               </button>
@@ -209,8 +220,9 @@ export function SettingsScreen() {
         ) : (
           <>
             <h1 className="settings-title">Account settings</h1>
-            <div className="settings-section settings-account-row">
-              <div className="settings-avatar-large">
+
+            <div className="settings-card settings-account-row">
+              <div className="settings-member-avatar">
                 <UserMenu placement="down" size="lg" align="left" />
               </div>
               <div className="settings-account-fields">
@@ -241,8 +253,9 @@ export function SettingsScreen() {
                 />
               </div>
             </div>
-            <div className="settings-section">
-              <label className="settings-label">Session</label>
+
+            <div className="settings-card">
+              <h2 className="settings-card-header">Session</h2>
               <button className="settings-signout" onClick={handleSignOut}>
                 <LogOut size={16} />
                 Sign out
@@ -259,7 +272,7 @@ export function SettingsScreen() {
         <div className="settings-confirm-backdrop" onClick={() => setConfirmDeleteOpen(false)} role="presentation">
           <div
             ref={confirmRef}
-            className="settings-confirm-card glass-dense"
+            className="settings-confirm-card"
             onClick={(e) => e.stopPropagation()}
             role="alertdialog"
             aria-modal="true"
@@ -279,9 +292,9 @@ export function SettingsScreen() {
             </p>
             {deleteState.error && <p className="settings-error" role="alert">{deleteState.error}</p>}
             <div className="settings-confirm-actions">
-              <button className="btn btn-ghost" onClick={() => setConfirmDeleteOpen(false)}>Cancel</button>
+              <button className="btn-ghost" onClick={() => setConfirmDeleteOpen(false)}>Cancel</button>
               <button
-                className="btn btn-danger"
+                className="btn-danger"
                 onClick={() => void handleDeleteWorkspace()}
                 disabled={deleteState.inProgress}
               >
@@ -296,20 +309,17 @@ export function SettingsScreen() {
   );
 }
 
-// Settings first-load shell: the screen's own shape (sidebar nav + form
-// sections) as skeletons, so the first paint reads as Settings — not a
-// generic spinner or a blank page.
 function SettingsLoadingShell() {
   return (
     <div className="settings-screen" aria-label="Loading settings">
-      <aside className="settings-sidebar" aria-hidden="true">
-        <div className="skel skel-settings-back" />
-        <div className="settings-nav">
-          <div className="skel skel-settings-nav-item" />
-          <div className="skel skel-settings-nav-item" />
-          <div className="skel skel-settings-nav-item" />
-        </div>
-      </aside>
+      <div className="settings-topbar" aria-hidden="true">
+        <div className="skel" style={{ width: 36, height: 36, borderRadius: 8 }} />
+      </div>
+      <div className="settings-tabs" aria-hidden="true">
+        <div className="skel skel-settings-nav-item" />
+        <div className="skel skel-settings-nav-item" />
+        <div className="skel skel-settings-nav-item" />
+      </div>
       <main className="settings-main">
         <div className="skel skel-line skel-settings-title" />
         <FormSkeleton index={0} rows={3} />

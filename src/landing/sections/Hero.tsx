@@ -6,29 +6,10 @@ import './Hero.css';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-/* Live-updating counter — mimics Framer's token ticker */
-function useCounter(target: number, duration = 2000) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    let raf: number;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min((now - start) / duration, 1);
-      setCount(Math.floor(t * target));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]);
-  return count;
-}
-
 export function Hero() {
   const reduce = useReducedMotion();
   const demoRef = useRef<HTMLDivElement>(null);
   const [demoVisible, setDemoVisible] = useState(false);
-
-  const tokenCount = useCounter(12847, 2200);
 
   useEffect(() => {
     const el = demoRef.current;
@@ -96,7 +77,7 @@ export function Hero() {
           </Link>
         </motion.div>
 
-        {/* Live token counter badge — Framer-style kinetic detail */}
+        {/* Trust badge — static, no fake counters */}
         <motion.div
           className="hero-badge"
           initial={reduce ? false : { opacity: 0, y: 12 }}
@@ -105,7 +86,7 @@ export function Hero() {
         >
           <span className="hero-badge-dot" />
           <span className="hero-badge-text">
-            <strong>{tokenCount.toLocaleString()}</strong> AI tokens generated this week
+            Trusted by teams shipping real products
           </span>
         </motion.div>
 

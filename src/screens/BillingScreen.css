@@ -1,7 +1,7 @@
 .billing-screen {
   min-height: 100svh;
-  background: var(--color-bg-canvas);
-  padding: var(--space-10) var(--space-14);
+  background: var(--bg);
+  padding: var(--space-10) var(--space-6);
   max-width: 900px;
   margin: 0 auto;
   display: flex;
@@ -13,34 +13,38 @@
 .billing-back {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-btn);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   margin-bottom: var(--space-4);
-  transition: background var(--duration-fast) var(--ease-spring);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
 }
 
 .billing-back:hover {
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--bg-sunken);
+  color: var(--ink);
 }
 
 .billing-title {
+  font-family: var(--font-display);
   font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   margin: 0;
-  color: var(--color-text-primary);
 }
 
 .billing-subtitle {
   font-size: 15px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   margin: 0;
 }
 
+/* ── Plan cards ───────────────────────────────────────────────────────── */
 .billing-plans {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -53,75 +57,139 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-8);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--neutral-100);
-  background: var(--color-bg-surface);
+  padding: var(--space-6);
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  transition: border-color 0.15s;
+}
+
+.plan-card:hover {
+  border-color: var(--ink-4);
+}
+
+/* Team card — gradient makes it the hero */
+.plan-team {
+  background: linear-gradient(135deg, oklch(0.22 0.06 148) 0%, oklch(0.18 0.08 170) 50%, oklch(0.20 0.04 200) 100%);
+  border-color: oklch(0.78 0.19 148 / 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.plan-team::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, oklch(0.78 0.19 148 / 0.12), transparent 70%);
+  pointer-events: none;
+}
+
+.plan-recommended {
+  align-self: flex-start;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .plan-name {
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
   margin: 0;
-  color: var(--color-text-primary);
 }
 
 .plan-price {
+  font-family: var(--font-display);
   font-size: 34px;
   font-weight: 700;
-  letter-spacing: -0.8px;
+  letter-spacing: -0.03em;
   margin: 0;
-  color: var(--color-text-primary);
+}
+
+.plan-price-soon {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .plan-period {
   font-size: 15px;
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   letter-spacing: 0;
 }
 
+/* ── Usage stats — large number badges ─────────────────────────────────── */
 .plan-usage {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4) 0;
-}
-
-.plan-usage-row {
-  display: flex;
-  align-items: center;
   gap: var(--space-3);
-  font-size: 13px;
-  color: var(--color-text-secondary);
+  padding: var(--space-3) 0;
 }
 
-.plan-usage-bar {
+.plan-stat {
   flex: 1;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--neutral-100);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-4);
+  border-radius: 10px;
+  background: oklch(0 0 0 / 0.2);
+}
+
+.plan-stat-number {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.plan-stat-of {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.plan-stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+.plan-stat-bar {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: oklch(0 0 0 / 0.2);
   overflow: hidden;
 }
 
-.plan-usage-fill {
+.plan-stat-fill {
   display: block;
   height: 100%;
-  border-radius: var(--radius-full);
-  background: var(--neutral-500);
+  border-radius: 2px;
+  background: var(--ink-4);
+  transition: width 0.3s var(--ease-spring);
 }
 
-/* AI meter uses the product green — it's the feature that consumes the
-   monthly allowance, and its tick is the one users watch. */
-.plan-usage-fill-ai {
-  background: var(--green-500);
+.plan-stat-fill-ai {
+  background: var(--accent);
 }
 
-.plan-usage-count {
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
+/* ── Feature list ─────────────────────────────────────────────────────── */
 .plan-features {
   list-style: none;
   padding: 0;
@@ -130,7 +198,7 @@
   flex-direction: column;
   gap: var(--space-3);
   font-size: 14px;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .plan-features li {
@@ -140,62 +208,50 @@
 }
 
 .plan-features svg {
-  color: var(--color-text-secondary);
+  color: var(--accent);
   flex-shrink: 0;
 }
 
 .plan-current {
   margin-top: auto;
   padding: 10px 16px;
-  border-radius: var(--radius-full);
-  background: var(--color-selected-bg);
-  color: var(--color-text-secondary);
+  border-radius: var(--radius-btn);
+  background: var(--bg-sunken);
+  color: var(--ink-3);
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
   cursor: not-allowed;
+  border: none;
+  text-align: center;
 }
 
 .plan-coming-soon {
   margin-top: auto;
   font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-text-secondary);
+  line-height: 1.6;
+  color: var(--ink-2);
 }
 
-/* The Team ribbon reads honest: it is coming soon, not a purchasable CTA. */
-.plan-recommended {
-  align-self: flex-start;
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
-  background: var(--green-500);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  margin-top: calc(var(--space-4) * -1);
-}
-
-/* ── Plan comparison table ────────────────────────────────────────────── */
+/* ── Comparison table ─────────────────────────────────────────────────── */
 .billing-compare {
   width: 100%;
   margin-top: var(--space-10);
 }
 
 .billing-section-title {
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.015em;
   margin: 0 0 var(--space-4);
-  color: var(--color-text-primary);
 }
 
 .billing-compare-table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--color-bg-surface);
-  border: 1px solid var(--neutral-100);
-  border-radius: var(--radius-lg);
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 14px;
   overflow: hidden;
   font-size: 14px;
 }
@@ -204,25 +260,25 @@
 .billing-compare-table td {
   padding: 12px 16px;
   text-align: left;
-  border-bottom: 1px solid var(--neutral-100);
+  border-bottom: 1px solid var(--line);
 }
 
 .billing-compare-table thead th {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
-  background: var(--color-selected-bg);
+  color: var(--ink-3);
+  background: var(--bg-sunken);
 }
 
 .billing-compare-table tbody th {
   font-weight: 500;
-  color: var(--color-text-primary);
 }
 
 .billing-compare-table tbody td {
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 .billing-compare-table tbody tr:last-child th,
@@ -230,7 +286,7 @@
   border-bottom: none;
 }
 
-/* ── Billing FAQ ──────────────────────────────────────────────────────── */
+/* ── FAQ ───────────────────────────────────────────────────────────────── */
 .billing-faq {
   width: 100%;
   margin-top: var(--space-10);
@@ -243,9 +299,9 @@
 }
 
 .billing-faq-item {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--neutral-100);
-  border-radius: var(--radius-md);
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -258,21 +314,21 @@
   padding: 14px 18px;
   border: none;
   background: transparent;
-  color: var(--color-text-primary);
-  font: 500 14px var(--font-family);
+  color: var(--ink);
+  font: 500 14px var(--font-body);
   text-align: left;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-spring);
+  transition: background 0.12s;
 }
 
 .billing-faq-question:hover {
-  background: var(--color-selected-bg);
+  background: var(--bg-sunken);
 }
 
 .billing-faq-chevron {
   flex-shrink: 0;
-  color: var(--color-text-secondary);
-  transition: transform var(--duration-fast) var(--ease-spring);
+  color: var(--ink-3);
+  transition: transform 0.2s var(--ease-spring);
 }
 
 .billing-faq-item.open .billing-faq-chevron {
@@ -284,19 +340,13 @@
   padding: 0 18px 16px;
   font-size: 13.5px;
   line-height: 1.7;
-  color: var(--color-text-secondary);
-  animation: faq-answer-in var(--duration-fast) var(--ease-spring);
+  color: var(--ink-2);
+  animation: faq-answer-in 0.15s var(--ease-spring);
 }
 
 @keyframes faq-answer-in {
-  from {
-    opacity: 0;
-    transform: translateY(-3px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
 }
 
 .billing-upgrade-link {
@@ -306,129 +356,15 @@
   margin-top: var(--space-4);
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--green-700);
-  transition: color var(--duration-fast) var(--ease-spring);
+  color: var(--accent);
+  transition: opacity 0.12s;
 }
 
 .billing-upgrade-link:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  opacity: 0.8;
 }
 
-[data-theme='dark'] .billing-upgrade-link {
-  color: var(--green-400);
-}
-
-@media (max-width: 720px) {
-  .billing-screen {
-    padding: var(--space-6) var(--space-4);
-    padding-bottom: calc(var(--space-8) + 64px);
-  }
-
-  .billing-plans {
-    grid-template-columns: 1fr;
-  }
-
-  /* Narrow: the comparison table becomes a readable stacked block — first
-     column hides, the row header + values wrap instead of overflowing. */
-  .billing-compare-table th,
-  .billing-compare-table td {
-    padding: 10px 12px;
-  }
-
-  .billing-compare-table thead th:first-child,
-  .billing-compare-table tbody th:first-child {
-    display: none;
-  }
-}
-
-[data-theme="dark"] .billing-screen {
-  background: #000;
-}
-
-[data-theme="dark"] .billing-back:hover {
-  background: var(--dark-elevation-3);
-}
-
-[data-theme="dark"] .plan-card {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
-  transition: border-color var(--duration-fast) var(--ease-spring);
-}
-
-[data-theme="dark"] .plan-card:hover {
-  border-color: rgba(37, 211, 102, 0.18);
-}
-
-[data-theme="dark"] .plan-recommended {
-  box-shadow: 0 2px 12px rgba(37, 211, 102, 0.25);
-}
-
-[data-theme="dark"] .plan-current {
-  background: var(--dark-elevation-2);
-  border-color: var(--dark-hairline);
-}
-
-[data-theme="dark"] .plan-usage-bar {
-  background: var(--dark-elevation-4);
-}
-
-[data-theme="dark"] .plan-usage-fill {
-  background: var(--green-400);
-}
-
-[data-theme="dark"] .plan-usage-fill-ai {
-  background: var(--green-400);
-}
-
-[data-theme="dark"] .billing-compare-table {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
-}
-
-[data-theme="dark"] .billing-compare-table th,
-[data-theme="dark"] .billing-compare-table td {
-  border-bottom-color: var(--dark-hairline);
-}
-
-[data-theme="dark"] .billing-compare-table thead th {
-  background: var(--dark-elevation-2);
-}
-
-[data-theme="dark"] .billing-faq-item {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
-}
-
-[data-theme="dark"] .billing-faq-question:hover {
-  background: var(--dark-elevation-3);
-}
-
-[data-theme="dark"] .billing-section-title {
-  color: var(--color-text-primary);
-}
-
-[data-theme="dark"] .limit-reached {
-  background: var(--dark-elevation-1);
-  border: 1px solid var(--dark-hairline);
-}
-
-[data-theme="dark"] .skel-billing-title,
-[data-theme="dark"] .skel-billing-sub {
-  background: var(--dark-elevation-2);
-}
-/* ── Loading skeletons ─────────────────────────────────────────────────── */
-.skel-billing-title {
-  width: 120px;
-  height: 26px;
-}
-
-.skel-billing-sub {
-  width: 320px;
-  height: 12px;
-}
-
-/* ── Limit reached: a calm, non-punitive moment with a clear next step. ── */
+/* ── Limit reached ────────────────────────────────────────────────────── */
 .limit-reached {
   display: flex;
   flex-wrap: wrap;
@@ -437,9 +373,9 @@
   width: 100%;
   margin-top: var(--space-8);
   padding: var(--space-5) var(--space-6);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
-  
+  border-radius: 14px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
 }
 
 .limit-reached-illo {
@@ -462,13 +398,12 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-text-primary);
 }
 
 .limit-reached-text {
   margin: 0;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   line-height: 1.6;
   max-width: 460px;
 }
@@ -477,11 +412,52 @@
   flex-shrink: 0;
 }
 
-@media (max-width: 640px) {
-  .limit-reached {
-    flex-wrap: wrap;
+/* ── Skeletons ────────────────────────────────────────────────────────── */
+.skel {
+  background: linear-gradient(90deg, var(--bg-elev) 0%, oklch(0.26 0.007 260) 50%, var(--bg-elev) 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: 6px;
+}
+
+.skel-settings-back {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.skel-billing-title {
+  width: 120px;
+  height: 26px;
+}
+
+.skel-billing-sub {
+  width: 320px;
+  height: 12px;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .billing-screen {
+    padding: var(--space-6) var(--space-4);
+    padding-bottom: calc(var(--space-8) + 64px);
   }
-  .limit-reached-cta {
-    margin-left: auto;
+
+  .billing-plans {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-usage {
+    flex-direction: column;
+  }
+
+  .billing-compare-table th,
+  .billing-compare-table td {
+    padding: 10px 12px;
+  }
+
+  .billing-compare-table thead th:first-child,
+  .billing-compare-table tbody th:first-child {
+    display: none;
   }
 }
