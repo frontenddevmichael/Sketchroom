@@ -293,7 +293,11 @@ export function Dashboard() {
           aria-label="Workspace info"
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setWsHover(!wsHover); }}
         >
-          S
+          <span className="sidebar-logo-icon">S</span>
+          <span className="sidebar-logo-info">
+            <span className="sidebar-logo-name">{workspaces?.[0]?.name || 'My Workspace'}</span>
+            <span className="sidebar-logo-meta">{rooms?.length || 0} rooms</span>
+          </span>
         </div>
 
         <button className="sidebar-item" title="Home" onClick={() => navigate('/dashboard')}>
