@@ -334,7 +334,12 @@ export function Dashboard() {
           aria-expanded={avatarOpen}
           aria-haspopup="true"
         >
-          {userInitials}
+          <span className="sidebar-avatar-initials">{userInitials}</span>
+          <span className="sidebar-avatar-info">
+            <span className="sidebar-avatar-name">{user?.name || 'User'}</span>
+            <span className="sidebar-avatar-email">{user?.email || ''}</span>
+            <span className="sidebar-avatar-role">Owner</span>
+          </span>
         </button>
       </nav>
 
