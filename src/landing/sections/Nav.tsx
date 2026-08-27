@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useConvexAuth } from '@convex-dev/auth/react';
 import { Menu, X } from 'lucide-react';
-import { useTheme } from '../../lib/useTheme';
 import './Nav.css';
 
 const LINKS = [
@@ -15,7 +14,6 @@ const LINKS = [
 
 export function Nav() {
   const { isAuthenticated } = useConvexAuth();
-  const { theme, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -64,14 +62,6 @@ export function Nav() {
         </nav>
 
         <div className="nav-actions">
-          <button
-            className="nav-theme"
-            onClick={toggleTheme}
-            aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          >
-            {theme === 'light' ? '🌙' : '☀️'}
-          </button>
-
           {isAuthenticated ? (
             <Link to="/dashboard" className="nav-cta">Open Sketchroom</Link>
           ) : (
@@ -105,9 +95,6 @@ export function Nav() {
             </a>
           ))}
           <div className="nav-mobile-divider" />
-          <button className="nav-mobile-theme" onClick={toggleTheme}>
-            {theme === 'light' ? '🌙 Dark mode' : '☀️ Light mode'}
-          </button>
           {isAuthenticated ? (
             <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="nav-mobile-cta">
               Open Sketchroom

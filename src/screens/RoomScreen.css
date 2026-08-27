@@ -936,17 +936,7 @@
   --tl-color-overlay: rgba(0, 0, 0, 0.55);
 }
 
-/* Light theme: a proper faint dot-grid on pure white, tuned below tldraw's
-   defaults (which ship a gray canvas and a much stronger grid). */
-[data-theme="light"] .room-tldraw,
-[data-theme="light"] .room-tldraw .tl-theme__light {
-  --tl-color-background: #FFFFFF;
-  --tl-color-grid: var(--line);
-  --tl-color-selected: var(--accent);
-  --tl-color-selection-stroke: var(--accent);
-  --tl-color-focus: var(--accent);
-  --tl-color-success: var(--accent);
-}
+
 
 /* Left tool rail: the design brief's tool surface — select, draw, sticky note,
    text, connector, shapes, divider, block-library trigger. Every slot is a

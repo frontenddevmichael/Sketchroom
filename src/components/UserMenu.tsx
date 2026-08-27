@@ -8,12 +8,9 @@ import {
   CreditCard,
   Settings,
   LogOut,
-  Moon,
-  Sun,
   Sparkles,
 } from 'lucide-react';
 import { useCurrentUser } from '../hooks/useCurrentUser';
-import { useTheme } from '../lib/useTheme';
 import { FREE_ROOM_LIMIT } from '../lib/plans';
 import './shared.css';
 
@@ -40,13 +37,12 @@ interface UserMenuProps {
  * (with a short grace period so moving the cursor into the popover doesn't
  * flash it closed) and toggles on click/tap, so it works for mouse, touch,
  * and keyboard alike. Shows the profile header, a live Free-plan meter with
- * an upgrade path, quick links to every dashboard destination, the theme
- * switch, and a prominent Sign out. Closes on outside pointer-down or Escape.
+ * an upgrade path, quick links to every dashboard destination,
+ * and a prominent Sign out. Closes on outside pointer-down or Escape.
  */
 export function UserMenu({ placement = 'down', size = 'sm', align = 'right' }: UserMenuProps) {
   const { user } = useCurrentUser();
   const { signOut: signOutAction } = useAuthActions();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -184,10 +180,6 @@ export function UserMenu({ placement = 'down', size = 'sm', align = 'right' }: U
 
           <div className="user-menu-sep" role="separator" />
 
-          <button className="user-menu-item" role="menuitem" onClick={() => toggleTheme()}>
-            {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
-            {theme === 'light' ? 'Dark mode' : 'Light mode'}
-          </button>
           <button
             className="user-menu-item user-menu-item-danger"
             role="menuitem"

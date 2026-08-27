@@ -36,13 +36,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Urbanist:wght@500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <script>
-      (function() {
-        var t = localStorage.getItem('theme');
-        if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', t);
-      })();
-    </script>
+    <script>document.documentElement.setAttribute('data-theme', 'dark');</script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

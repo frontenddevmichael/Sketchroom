@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from 'convex/react';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { api } from '../../convex/_generated/api';
-import { useTheme } from '../lib/useTheme';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { UserMenu } from '../components/UserMenu';
 import { AppTabBar } from '../components/AppTabBar';
@@ -11,7 +10,7 @@ import { usePageTitle } from '../lib/usePageTitle';
 import { useModalFocus } from '../lib/useModalFocus';
 import { FormSkeleton } from '../components/skeletons';
 import { FREE_ROOM_LIMIT, FREE_AI_LIMIT } from '../lib/plans';
-import { Moon, Sun, Trash2, ArrowLeft, Check, LogOut, Sparkles, X, TriangleAlert } from 'lucide-react';
+import { Trash2, ArrowLeft, Check, LogOut, Sparkles, X, TriangleAlert } from 'lucide-react';
 import '../components/shared.css';
 import '../components/skeletons.css';
 import './SettingsScreen.css';
@@ -25,7 +24,6 @@ export function SettingsScreen() {
   usePageTitle('Settings — Sketchroom');
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { theme, setTheme } = useTheme();
   const { signOut } = useAuthActions();
   const [tab, setTab] = useState<'workspace' | 'account'>('workspace');
   const [workspaceName, setWorkspaceName] = useState('');
@@ -241,29 +239,6 @@ export function SettingsScreen() {
                   value={user?.email || ''}
                   readOnly
                 />
-              </div>
-            </div>
-            <div className="settings-section">
-              <label className="settings-label">Appearance</label>
-              <div className="settings-theme-seg" role="radiogroup" aria-label="Theme">
-                <button
-                  className={`settings-theme-opt${theme === 'light' ? ' active' : ''}`}
-                  aria-checked={theme === 'light'}
-                  role="radio"
-                  onClick={() => setTheme('light')}
-                >
-                  <Sun size={15} />
-                  Light
-                </button>
-                <button
-                  className={`settings-theme-opt${theme === 'dark' ? ' active' : ''}`}
-                  aria-checked={theme === 'dark'}
-                  role="radio"
-                  onClick={() => setTheme('dark')}
-                >
-                  <Moon size={15} />
-                  Dark
-                </button>
               </div>
             </div>
             <div className="settings-section">

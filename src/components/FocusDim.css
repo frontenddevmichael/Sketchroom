@@ -12,9 +12,7 @@
   transition: clip-path var(--duration-base) var(--ease-spring);
 }
 
-[data-theme='light'] .focus-dim {
-  background: rgba(28, 28, 28, 0.32);
-}
+
 
 .focus-dim-ring {
   position: absolute;

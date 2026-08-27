@@ -169,38 +169,6 @@
   --dark-canvas-grid-dot: rgba(255, 255, 255, 0.05);
 }
 
-/* ── Light theme ── */
-[data-theme="light"] {
-  --bg: oklch(0.98 0.002 85);
-  --bg-elev: oklch(1.0 0 0);
-  --bg-sunken: oklch(0.95 0.003 85);
-  --ink: oklch(0.13 0.005 260);
-  --ink-2: oklch(0.35 0.008 260);
-  --ink-3: oklch(0.55 0.008 260);
-  --ink-4: oklch(0.75 0.008 260);
-  --line: oklch(0.90 0.003 85);
-  --line-2: oklch(0.85 0.003 85);
-
-  --accent-soft: oklch(0.92 0.06 148);
-
-  --p1: oklch(0.95 0.015 320);
-  --p2: oklch(0.95 0.02 220);
-  --p3: oklch(0.95 0.02 55);
-  --p4: oklch(0.95 0.015 85);
-  --p5: oklch(0.95 0.02 155);
-  --p6: oklch(0.95 0.015 260);
-
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-bg-dense: rgba(255, 255, 255, 0.92);
-  --glass-bg-fallback: rgba(255, 255, 255, 0.96);
-  --glass-border: rgba(0, 0, 0, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.6);
-  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-
-  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
-}
-
 * {
   box-sizing: border-box;
 }

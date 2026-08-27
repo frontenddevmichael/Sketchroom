@@ -7,8 +7,6 @@ import type { Id } from '../../convex/_generated/dataModel';
 import {
   Plus,
   Settings,
-  Moon,
-  Sun,
   Trash2,
   Search,
   MoreVertical,
@@ -68,7 +66,7 @@ export function Dashboard() {
   usePageTitle('Rooms — Sketchroom');
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { theme, toggleTheme } = useTheme();
+  useTheme();
   const [modal, setModal] = useState<Modal>(null);
   const modalRef = useModalFocus<HTMLDivElement>(() => setModal(null), !!modal);
   const [roomName, setRoomName] = useState('');
@@ -402,10 +400,6 @@ export function Dashboard() {
             </div>
           </div>
           <div className="user-popover-sep" />
-          <button className="user-popover-btn" role="menuitem" onClick={() => { setAvatarOpen(false); toggleTheme(); }}>
-            {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
-            <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
-          </button>
           <button className="user-popover-btn" role="menuitem" onClick={() => { setAvatarOpen(false); navigate('/settings'); }}>
             <Settings size={14} />
             <span>Settings</span>
@@ -443,9 +437,6 @@ export function Dashboard() {
             )}
           </div>
           <div className="topbar-actions">
-            <button className="btn" onClick={toggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>
-              {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
-            </button>
             <button className="btn primary" onClick={openCreate}>
               <Plus size={15} />New room<span className="kbd">N</span>
             </button>
