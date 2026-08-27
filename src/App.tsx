@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useConvexAuth } from '@convex-dev/auth/react';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ErrorScreen } from './components/ErrorScreen';
-import { LegalScreen } from './screens/LegalScreen';
 import { ScreenErrorBoundary } from './components/ScreenErrorBoundary';
 
 const AuthScreen = lazy(() => import('./screens/AuthScreen').then((m) => ({ default: m.AuthScreen })));
@@ -15,6 +14,7 @@ const SettingsScreen = lazy(() => import('./screens/SettingsScreen').then((m) =>
 const BillingScreen = lazy(() => import('./screens/BillingScreen').then((m) => ({ default: m.BillingScreen })));
 const InviteScreen = lazy(() => import('./screens/InviteScreen').then((m) => ({ default: m.InviteScreen })));
 const NotFoundScreen = lazy(() => import('./screens/NotFoundScreen').then((m) => ({ default: m.NotFoundScreen })));
+const LegalScreen = lazy(() => import('./screens/LegalScreen').then((m) => ({ default: m.LegalScreen })));
 
 const ALLOWED_NEXT_PREFIXES = ['/room/', '/dashboard', '/settings', '/billing'];
 

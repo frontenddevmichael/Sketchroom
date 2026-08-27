@@ -10,7 +10,9 @@ export function useModalFocus<T extends HTMLElement>(onClose: () => void, active
   const ref = useRef<T | null>(null);
   const trigger = useRef<Element | null>(null);
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!active) return;

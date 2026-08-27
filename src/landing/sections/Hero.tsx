@@ -10,13 +10,15 @@ const ease = [0.22, 1, 0.36, 1] as const;
 function useCounter(target: number, duration = 2000) {
   const [count, setCount] = useState(0);
   useEffect(() => {
+    let raf: number;
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min((now - start) / duration, 1);
       setCount(Math.floor(t * target));
-      if (t < 1) requestAnimationFrame(tick);
+      if (t < 1) raf = requestAnimationFrame(tick);
     };
-    requestAnimationFrame(tick);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [target, duration]);
   return count;
 }

@@ -61,7 +61,9 @@ export function CommentPins({ editor, roomId, commentMode, onExitCommentMode }: 
 
   // Register editor listener
   const editorRef = useRef(editor);
-  editorRef.current = editor;
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
   useEffect(() => {
     if (editor) return handleEditorMount(editor);
   }, [editor, handleEditorMount]);
