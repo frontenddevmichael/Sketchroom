@@ -30,7 +30,7 @@ function Cross() {
 
 export function ComparisonTable() {
   return (
-    <section className="comp" id="comparison">
+    <section className="comp" id="pricing">
       <Reveal>
         <div className="comp-head">
           <span className="comp-eyebrow">

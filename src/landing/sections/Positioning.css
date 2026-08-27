@@ -18,6 +18,10 @@
   opacity: 0.5;
 }
 
+[data-theme='dark'] .positioning-scribble path {
+  stroke: var(--neutral-600);
+}
+
 .positioning-head {
   margin-bottom: var(--space-10);
 }

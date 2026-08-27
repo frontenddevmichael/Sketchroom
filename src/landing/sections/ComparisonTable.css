@@ -58,7 +58,9 @@
   padding: 20px;
 }
 
-
+[data-theme='dark'] .comp-table-wrap {
+  border-color: var(--dark-hairline);
+}
 
 .comp-table {
   width: 100%;
@@ -73,7 +75,10 @@
   border-bottom: 1px solid var(--neutral-100);
 }
 
-
+[data-theme='dark'] .comp-th,
+[data-theme='dark'] .comp-td {
+  border-color: var(--dark-hairline);
+}
 
 .comp-th {
   font-size: 13px;
@@ -95,7 +100,10 @@
   background: var(--green-50);
 }
 
-
+[data-theme='dark'] .comp-th--highlight,
+[data-theme='dark'] .comp-td--highlight {
+  background: rgba(37, 211, 102, 0.08);
+}
 
 .comp-th--highlight {
   color: var(--green-600);

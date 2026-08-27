@@ -11,7 +11,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const toggleTheme = () => {};
-  const setTheme = () => {};
+  const setTheme = (_t: Theme) => {};
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>

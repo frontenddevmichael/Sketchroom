@@ -7,6 +7,11 @@
   border: 1px solid var(--neutral-100);
 }
 
+[data-theme='dark'] .wc-window {
+  background: var(--dark-elevation-2);
+  border-color: var(--dark-hairline);
+}
+
 .wc-topbar {
   display: flex;
   align-items: center;
@@ -17,6 +22,11 @@
   backdrop-filter: blur(var(--surface-blur));
   -webkit-backdrop-filter: blur(var(--surface-blur));
   border-bottom: 1px solid var(--neutral-100);
+}
+
+[data-theme='dark'] .wc-topbar {
+  background: var(--surface-translucency-dark);
+  border-bottom-color: var(--dark-hairline);
 }
 
 .wc-room {
@@ -68,6 +78,12 @@
     var(--color-bg-surface);
 }
 
+[data-theme='dark'] .wc-stage {
+  background:
+    radial-gradient(var(--dark-canvas-grid-dot) 1px, transparent 1px) 0 0 / 24px 24px,
+    var(--color-bg-surface);
+}
+
 .wc-empty-dot {
   position: absolute;
   width: 5px;
@@ -113,10 +129,19 @@
   border: 1.5px solid var(--neutral-150);
 }
 
+[data-theme='dark'] .wc-block-rect {
+  border-color: var(--neutral-500);
+}
+
 .wc-block-sticky {
   background: var(--green-50);
   border: 1.5px solid rgba(37, 211, 102, 0.35);
   color: var(--dark-hairline);
+}
+
+[data-theme='dark'] .wc-block-sticky {
+  background: rgba(37, 211, 102, 0.12);
+  color: var(--green-400);
 }
 
 .wc-block-ghost {
@@ -125,10 +150,19 @@
   color: var(--green-700);
 }
 
+[data-theme='dark'] .wc-block-ghost {
+  color: var(--green-400);
+}
+
 .wc-block-done {
   background: var(--green-50);
   border: 1.5px solid var(--green-500);
   color: var(--dark-hairline);
+}
+
+[data-theme='dark'] .wc-block-done {
+  background: rgba(37, 211, 102, 0.12);
+  color: var(--green-400);
 }
 
 .wc-sticky-fold {
@@ -160,6 +194,10 @@
 
 .wc-cursor-dark {
   color: var(--neutral-900);
+}
+
+[data-theme='dark'] .wc-cursor-dark {
+  color: var(--neutral-50-dark);
 }
 
 .wc-cursor svg {
@@ -198,6 +236,10 @@
   color: var(--color-text-secondary);
 }
 
+[data-theme='dark'] .wc-prompt {
+  border-color: var(--dark-hairline);
+}
+
 .wc-prompt-glyph {
   color: var(--green-500);
 }
@@ -230,3 +272,6 @@
   color: var(--color-text-primary);
 }
 
+[data-theme='dark'] .wc-bubble {
+  border-color: var(--dark-hairline);
+}

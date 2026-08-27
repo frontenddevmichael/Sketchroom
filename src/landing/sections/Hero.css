@@ -9,37 +9,6 @@
   padding-bottom: 60px;
 }
 
-/* ── Animated gradient mesh — Vercel-style glow ──────────────────────── */
-
-.hero::before {
-  content: '';
-  position: absolute;
-  top: -20%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(140vw, 1600px);
-  height: 800px;
-  background:
-    radial-gradient(ellipse 60% 50% at 30% 40%, oklch(0.25 0.08 155 / 0.5), transparent),
-    radial-gradient(ellipse 50% 45% at 70% 35%, oklch(0.22 0.06 200 / 0.35), transparent),
-    radial-gradient(ellipse 40% 40% at 50% 50%, oklch(0.28 0.1 148 / 0.25), transparent);
-  animation: hero-mesh-drift 20s ease-in-out infinite alternate;
-  pointer-events: none;
-  z-index: 0;
-}
-
-@keyframes hero-mesh-drift {
-  0% { transform: translateX(-50%) scale(1) rotate(0deg); }
-  50% { transform: translateX(-52%) scale(1.05) rotate(1deg); }
-  100% { transform: translateX(-48%) scale(1.02) rotate(-0.5deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero::before {
-    animation: none;
-  }
-}
-
 /* ── Concentric rings — Framer's signature background ────────────────── */
 
 .hero-rings {
@@ -69,7 +38,9 @@
   opacity: 0.5;
 }
 
-
+[data-theme='dark'] .hero-ring {
+  border-color: var(--dark-hairline);
+}
 
 /* ── Content ─────────────────────────────────────────────────────────── */
 
@@ -98,29 +69,6 @@
   margin: 0 0 24px;
   max-width: 900px;
   text-wrap: balance;
-}
-
-.hero-title::after {
-  content: '';
-  display: inline-block;
-  width: 3px;
-  height: 0.85em;
-  background: var(--green-500);
-  margin-left: 4px;
-  vertical-align: baseline;
-  animation: hero-cursor-blink 1s step-end infinite;
-}
-
-@keyframes hero-cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-title::after {
-    animation: none;
-    opacity: 0;
-  }
 }
 
 /* Subtitle */
@@ -170,7 +118,9 @@
   margin-bottom: 56px;
 }
 
-
+[data-theme='dark'] .hero-badge {
+  border-color: var(--dark-hairline);
+}
 
 .hero-badge-dot {
   width: 6px;
@@ -209,7 +159,13 @@
     0 24px 48px rgba(0, 0, 0, 0.04);
 }
 
-
+[data-theme='dark'] .hero-demo {
+  border-color: var(--dark-hairline);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 12px 24px rgba(0, 0, 0, 0.5),
+    0 24px 48px rgba(0, 0, 0, 0.3);
+}
 
 /* ── Reduced motion ──────────────────────────────────────────────────── */
 

@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useConvexAuth } from '@convex-dev/auth/react';
 import { Menu, X } from 'lucide-react';
 import './Nav.css';
 
 const LINKS = [
-  { href: '#positioning', label: 'Product' },
-  { href: '#features', label: 'Agents' },
-  { href: '#workflow', label: 'How it works' },
+  { href: '#product', label: 'Product' },
+  { href: '#agents', label: 'Agents' },
+  { href: '#performance', label: 'Performance' },
+  { href: '#community', label: 'Community' },
   { href: '#pricing', label: 'Pricing' },
 ];
 
@@ -15,35 +16,12 @@ export function Nav() {
   const { isAuthenticated } = useConvexAuth();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
-  const linkRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  // Scroll-spy: track which section is in view
-  useEffect(() => {
-    const sectionIds = LINKS.map((l) => l.href.replace('#', ''));
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        }
-      },
-      { rootMargin: '-20% 0px -60% 0px' }
-    );
-
-    for (const id of sectionIds) {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -54,10 +32,6 @@ export function Nav() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [menuOpen]);
-
-  const setLinkRef = useCallback((id: string) => (el: HTMLAnchorElement | null) => {
-    if (el) linkRefs.current.set(id, el);
-  }, []);
 
   return (
     <header className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
@@ -81,12 +55,7 @@ export function Nav() {
 
         <nav className="nav-links" aria-label="Primary">
           {LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              ref={setLinkRef(l.href.replace('#', ''))}
-              className={`nav-link${activeSection === l.href.replace('#', '') ? ' nav-link--active' : ''}`}
-            >
+            <a key={l.href} href={l.href} className="nav-link">
               {l.label}
             </a>
           ))}
