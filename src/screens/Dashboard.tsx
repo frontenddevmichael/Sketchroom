@@ -192,6 +192,23 @@ export function Dashboard() {
     return () => document.removeEventListener('pointerdown', onDown);
   }, [avatarOpen, wsHover]);
 
+  /* Hover timers for popover open/close */
+  const wsTimer = useRef<number | null>(null);
+  const avatarTimer = useRef<number | null>(null);
+
+  const clearWsTimer = () => { if (wsTimer.current) { clearTimeout(wsTimer.current); wsTimer.current = null; } };
+  const clearAvatarTimer = () => { if (avatarTimer.current) { clearTimeout(avatarTimer.current); avatarTimer.current = null; } };
+
+  const handleLogoEnter = () => { clearWsTimer(); setWsHover(true); };
+  const handleLogoLeave = () => { wsTimer.current = window.setTimeout(() => setWsHover(false), 120); };
+  const handleWsPopoverEnter = clearWsTimer;
+  const handleWsPopoverLeave = () => { setWsHover(false); };
+
+  const handleAvatarEnter = () => { clearAvatarTimer(); setAvatarOpen(true); };
+  const handleAvatarLeave = () => { avatarTimer.current = window.setTimeout(() => setAvatarOpen(false), 120); };
+  const handleUserPopoverEnter = clearAvatarTimer;
+  const handleUserPopoverLeave = () => { setAvatarOpen(false); };
+
   const handleSignOut = useCallback(() => {
     setAvatarOpen(false);
     signOut().catch(() => {});
@@ -286,8 +303,8 @@ export function Dashboard() {
         {/* Logo — hover opens workspace popover */}
         <div
           className="sidebar-logo"
-          onMouseEnter={() => setWsHover(true)}
-          onClick={() => setWsHover(!wsHover)}
+          onMouseEnter={handleLogoEnter}
+          onMouseLeave={handleLogoLeave}
           role="button"
           tabIndex={0}
           aria-label="Workspace info"
@@ -330,11 +347,12 @@ export function Dashboard() {
           <span className="sidebar-item-label">Settings</span>
         </button>
 
-        {/* Avatar — click opens user popover */}
+        {/* Avatar — hover opens user popover */}
         <button
           className="sidebar-avatar"
           title={user?.name || 'Account'}
-          onClick={() => setAvatarOpen(!avatarOpen)}
+          onMouseEnter={handleAvatarEnter}
+          onMouseLeave={handleAvatarLeave}
           aria-expanded={avatarOpen}
           aria-haspopup="true"
         >
@@ -349,7 +367,7 @@ export function Dashboard() {
 
       {/* Workspace popover — fixed position */}
       {wsHover && (
-        <div className="ws-popover" role="tooltip">
+        <div className="ws-popover" role="tooltip" onMouseEnter={handleWsPopoverEnter} onMouseLeave={handleWsPopoverLeave}>
           <div className="ws-popover-header">
             <div className="ws-popover-icon">S</div>
             <div className="ws-popover-info">
@@ -375,7 +393,7 @@ export function Dashboard() {
 
       {/* User popover — fixed position */}
       {avatarOpen && (
-        <div className="user-popover" role="menu">
+        <div className="user-popover" role="menu" onMouseEnter={handleUserPopoverEnter} onMouseLeave={handleUserPopoverLeave}>
           <div className="user-popover-header">
             <div className="user-popover-avatar">{userInitials}</div>
             <div className="user-popover-info">

@@ -33,7 +33,7 @@
 /* ── Logo ── */
 .sidebar-logo {
   position: relative;
-  width: 40px;
+  width: 100%;
   height: 40px;
   border-radius: 10px;
   background: var(--accent);
@@ -53,21 +53,14 @@
 }
 
 .sidebar:hover .sidebar-logo {
-  width: calc(90% - 28px);
-  height: auto;
-  border-radius: 12px;
-  padding: 10px 12px;
-  align-self: center;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 20px;
+  padding: 0 12px;
   justify-content: flex-start;
   gap: 10px;
 }
 
 .sidebar-logo-icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   background: var(--accent);
   color: var(--accent-ink);
@@ -76,15 +69,15 @@
   justify-content: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 15px;
   flex-shrink: 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar:hover .sidebar-logo-icon {
-  width: 40px;
-  height: 40px;
-  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
 }
 
 .sidebar-logo-info {
@@ -212,8 +205,8 @@
 
 /* ── Avatar ── */
 .sidebar-avatar {
-  width: 36px;
-  height: 36px;
+  width: 100%;
+  height: 40px;
   border-radius: 10px;
   background: var(--accent);
   color: var(--accent-ink);
@@ -234,21 +227,14 @@
 }
 
 .sidebar:hover .sidebar-avatar {
-  width: calc(90% - 28px);
-  height: auto;
-  border-radius: 12px;
-  padding: 10px 12px;
-  align-self: center;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 12px;
+  padding: 0 12px;
   justify-content: flex-start;
   gap: 10px;
 }
 
 .sidebar-avatar-initials {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   background: var(--accent);
   color: var(--accent-ink);
@@ -257,15 +243,15 @@
   justify-content: center;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   flex-shrink: 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar:hover .sidebar-avatar-initials {
-  width: 40px;
-  height: 40px;
-  font-size: 15px;
+  width: 30px;
+  height: 30px;
+  font-size: 12px;
 }
 
 .sidebar-avatar-info {
