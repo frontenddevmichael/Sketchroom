@@ -124,8 +124,11 @@ export function PresenceCursors({ editor, presence }: PresenceCursorsProps) {
 
   const fireReaction = (emoji: string) => {
     playPop(600);
+    // eslint-disable-next-line react-hooks/purity
     const id = `${Date.now()}-${Math.random()}`;
+    // eslint-disable-next-line react-hooks/purity
     const x = window.innerWidth / 2 + (Math.random() - 0.5) * 200;
+    // eslint-disable-next-line react-hooks/purity
     const y = window.innerHeight / 2 + (Math.random() - 0.5) * 100;
     setReactions((prev) => [...prev, { id, emoji, x, y }]);
     setTimeout(() => {

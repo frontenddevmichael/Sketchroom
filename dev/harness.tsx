@@ -289,7 +289,7 @@ function AppView() {
       getMutationCalls: (name) => __getMutationCalls(MUTATION_BY_NAME[name]),
       setSnapshots: (snapshots) => __setQueryResult(api.features.snapshots.listSnapshots, snapshots),
       setAiMessages: (messages) => __setQueryResult(api.features.ai.getAiMessages, messages),
-      setAuth: (authed) => { (window as any).__sketchroomAuth = { isAuthenticated: authed }; },
+      setAuth: (authed) => { (window as unknown as Record<string, unknown>).__sketchroomAuth = { isAuthenticated: authed }; },
     };
     return () => {
       delete window.__sketchroomHarness;
