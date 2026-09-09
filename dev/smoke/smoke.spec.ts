@@ -362,7 +362,7 @@ test.describe('auth flow', () => {
   test('sign up form submits and shows verification step', async ({ page }) => {
     // Inject unauthenticated state before the page loads so the first render sees it
     await page.addInitScript(() => {
-      (window as any).__sketchroomAuth = { isAuthenticated: false };
+      (window as unknown as Record<string, unknown>).__sketchroomAuth = { isAuthenticated: false };
     });
     await page.goto(appUrl('/auth'));
     await expect(page.locator('.auth-screen')).toBeVisible();
@@ -381,12 +381,12 @@ test.describe('auth flow', () => {
     await expect(page.getByText(/check your inbox/i)).toBeVisible();
 
     // Clear the override so subsequent tests default to authenticated
-    await page.evaluate(() => { delete (window as any).__sketchroomAuth; });
+    await page.evaluate(() => { delete (window as unknown as Record<string, unknown>).__sketchroomAuth; });
   });
 
   test('sign in form shows error on invalid credentials', async ({ page }) => {
     await page.addInitScript(() => {
-      (window as any).__sketchroomAuth = { isAuthenticated: false };
+      (window as unknown as Record<string, unknown>).__sketchroomAuth = { isAuthenticated: false };
     });
     await page.goto(appUrl('/auth'));
     await expect(page.locator('.auth-screen')).toBeVisible();
@@ -396,7 +396,7 @@ test.describe('auth flow', () => {
 
     // Set the error message before submitting
     await page.evaluate(() => {
-      (window as any).__sketchroomAuthError = 'invalid credentials';
+      (window as unknown as Record<string, unknown>).__sketchroomAuthError = 'invalid credentials';
     });
     await page.locator('button.auth-submit').click();
 
@@ -404,6 +404,6 @@ test.describe('auth flow', () => {
     await expect(page.locator('.auth-error')).toBeVisible();
     await expect(page.locator('.auth-error')).toContainText(/don't match/i);
 
-    await page.evaluate(() => { delete (window as any).__sketchroomAuth; });
+    await page.evaluate(() => { delete (window as unknown as Record<string, unknown>).__sketchroomAuth; });
   });
 });

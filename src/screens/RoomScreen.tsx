@@ -599,7 +599,7 @@ setSaveStatus('saved');
     if (room.onboardingCompleted) return;
     const t = window.setTimeout(() => setShowOnboarding(true), 2450);
     return () => window.clearTimeout(t);
-  }, [roomIdArg, room, canvas, isReadOnly, showOnboarding]);
+  }, [roomIdArg, room, canvas, isReadOnly, showOnboarding, completeOnboarding]);
 
   // Once the sketch has drawn itself in and its label has landed, the scene
   // hands off to the guided walkthrough: the canvas dims and the real tools
@@ -1018,19 +1018,20 @@ setSaveStatus('saved');
   const presenceList = presence || [];
   const previousPresenceRef = useRef<string[]>([]);
   useEffect(() => {
-    const currentIds = presenceList.map((p) => p.userId);
+    const currentIds = presenceList.map((p: { userId: string }) => p.userId);
     const previousIds = previousPresenceRef.current;
-    const joined = currentIds.filter((id) => !previousIds.includes(id));
-    const left = previousIds.filter((id) => !currentIds.includes(id));
-    joined.forEach((id) => {
-      const user = presenceList.find((p) => p.userId === id);
+    const joined = currentIds.filter((id: string) => !previousIds.includes(id));
+    const left = previousIds.filter((id: string) => !currentIds.includes(id));
+    joined.forEach((id: string) => {
+      const user = presenceList.find((p: { userId: string }) => p.userId === id);
       if (user) announce(`${user.name} joined the room`);
     });
     left.forEach(() => {
       announce('A collaborator left the room');
     });
     previousPresenceRef.current = currentIds;
-  }, [presenceList, announce]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presence, announce]);
 
   // Announce connection status changes
   useEffect(() => {
