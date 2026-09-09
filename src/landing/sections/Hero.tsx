@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { DemoCanvas } from '../demo/DemoCanvas';
+import { burstConfetti } from '../../utils/confetti';
 import './Hero.css';
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -41,6 +42,34 @@ export function Hero() {
       </div>
 
       <div className="hero-content">
+        {/* Floating playful stickers */}
+        <div className="hero-stickers" aria-hidden="true">
+          <motion.span
+            className="hero-sticker sticker-yellow"
+            initial={reduce ? false : { opacity: 0, scale: 0.5, rotate: -12 }}
+            animate={{ opacity: 1, scale: 1, rotate: -8 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            100% Real-time ⚡
+          </motion.span>
+          <motion.span
+            className="hero-sticker sticker-cyan"
+            initial={reduce ? false : { opacity: 0, scale: 0.5, rotate: 12 }}
+            animate={{ opacity: 1, scale: 1, rotate: 6 }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+          >
+            AI Magic ✦
+          </motion.span>
+          <motion.span
+            className="hero-sticker sticker-pink"
+            initial={reduce ? false : { opacity: 0, scale: 0.5, rotate: -6 }}
+            animate={{ opacity: 1, scale: 1, rotate: -4 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            Zero Async Lag 🚀
+          </motion.span>
+        </div>
+
         {/* Headline — the opening breath */}
         <motion.h1
           className="hero-title"
@@ -48,7 +77,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease }}
         >
-          The design agent for every step from idea to launch.
+          Where wild ideas become <span className="hero-title-highlight">actionable plans.</span>
         </motion.h1>
 
         {/* Subtitle */}
@@ -58,8 +87,8 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.25, ease }}
         >
-          Send ideas to your copilot. It sketches the first pass.
-          Your team refines it live. You leave with something you can act on.
+          Sketch architecture, flows, and ideas with your team in real time.
+          Send prompts to your AI copilot and watch it draw live on your canvas.
         </motion.p>
 
         {/* CTAs */}
@@ -69,8 +98,14 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease }}
         >
-          <Link to="/auth" className="btn btn-primary hero-primary">
-            Get started free
+          <Link
+            to="/auth"
+            className="btn btn-primary hero-primary"
+            onClick={(e) => {
+              burstConfetti(e.clientX, e.clientY, 50);
+            }}
+          >
+            Get started free ✦
           </Link>
           <Link to="/auth" className="btn btn-secondary hero-secondary">
             Download app

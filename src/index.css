@@ -120,10 +120,19 @@
   --scrollbar-track: transparent;
 
   /* Typography */
-  --font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Urbanist", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: "Nunito", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-handwriting: "Caveat", cursive, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
   --font-family: var(--font-body);
+
+  /* Playful 10k vibe palette */
+  --playful-yellow: #FFE600;
+  --playful-coral: #FF5A5F;
+  --playful-cyan: #00F2FE;
+  --playful-violet: #9B51E0;
+  --playful-pink: #FF6584;
+  --playful-lime: #25D366;
 
   /* Font sizes */
   --fs-display: clamp(34px, 5.2vw, 64px);

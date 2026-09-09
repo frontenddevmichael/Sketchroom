@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from 'tldraw';
+import { playPop } from '../utils/sound';
 import './PresenceCursors.css';
 
 interface PresencePerson {
@@ -30,8 +31,18 @@ interface PresenceCursorsProps {
 const INTERP = 0.3;
 const SNAP_EPSILON = 0.6;
 
+interface ReactionParticle {
+  id: string;
+  emoji: string;
+  x: number;
+  y: number;
+}
+
+const EMOJIS = ['🚀', '🎉', '🔥', '💡', '❤️', '✦'];
+
 export function PresenceCursors({ editor, presence }: PresenceCursorsProps) {
   const [camera, setCamera] = useState<CameraState>({ x: 0, y: 0, z: 1 });
+  const [reactions, setReactions] = useState<ReactionParticle[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [positions, setPositions] = useState<Record<string, Point>>({});
   // Latest screen-space targets + the live people list, kept for the rAF loop.
@@ -111,8 +122,45 @@ export function PresenceCursors({ editor, presence }: PresenceCursorsProps) {
     return () => cancelAnimationFrame(raf);
   }, [people, camera.x, camera.y, camera.z]);
 
+  const fireReaction = (emoji: string) => {
+    playPop(600);
+    const id = `${Date.now()}-${Math.random()}`;
+    const x = window.innerWidth / 2 + (Math.random() - 0.5) * 200;
+    const y = window.innerHeight / 2 + (Math.random() - 0.5) * 100;
+    setReactions((prev) => [...prev, { id, emoji, x, y }]);
+    setTimeout(() => {
+      setReactions((prev) => prev.filter((r) => r.id !== id));
+    }, 1500);
+  };
+
   return (
-    <div className="presence-layer" aria-hidden="true">
+    <div className="presence-layer">
+      {/* Emoji reaction picker strip */}
+      <div className="presence-emoji-bar" role="toolbar" aria-label="Emoji reactions">
+        {EMOJIS.map((emoji) => (
+          <button
+            key={emoji}
+            className="presence-emoji-btn"
+            onClick={() => fireReaction(emoji)}
+            title={`Send ${emoji} reaction`}
+            aria-label={`Send ${emoji} reaction`}
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+
+      {/* Floating emoji reactions */}
+      {reactions.map((r) => (
+        <span
+          key={r.id}
+          className="presence-reaction-particle"
+          style={{ left: r.x, top: r.y }}
+        >
+          {r.emoji}
+        </span>
+      ))}
+
       {people.map((p) => {
         const pos = positions[p.userId];
         if (!pos) return null;

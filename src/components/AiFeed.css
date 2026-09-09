@@ -169,9 +169,19 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   color: var(--color-text-primary);
+}
+
+.ai-persona-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--green-500-12);
+  color: var(--green-500);
+  margin-left: 4px;
 }
 
 .ai-feed-icon {

@@ -115,7 +115,7 @@ export const AiFeed = memo(function AiFeed({
           <header className="ai-chat-header">
             <div className="ai-feed-title">
               <Sparkles size={15} className="ai-feed-icon" />
-              <span>AI Copilot</span>
+              <span>Sketchy ✦ <small className="ai-persona-tag">Copilot Persona</small></span>
             </div>
             <button className="ai-feed-close" onClick={copilot.closeFeed} aria-label="Collapse AI chat">
               <X size={16} />
@@ -321,7 +321,7 @@ export const AiFeed = memo(function AiFeed({
 function AiThinking() {
   const { phrase } = useLongLoad(
     true,
-    ['Thinking…', 'Sketching it out…', 'Almost there…'],
+    ['Sketchy is thinking… 💭', 'Drafting shapes & edges… ✏️', 'Auto-laying out nodes… ✦'],
     4000
   );
   return (

@@ -58,6 +58,46 @@
   gap: 0;
 }
 
+/* Floating playful stickers */
+.hero-stickers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.hero-sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  user-select: none;
+}
+
+.sticker-yellow {
+  background: var(--playful-yellow);
+  color: #121212;
+}
+
+.sticker-cyan {
+  background: var(--playful-cyan);
+  color: #121212;
+}
+
+.sticker-pink {
+  background: var(--playful-pink);
+  color: #ffffff;
+}
+
 /* Headline — the opening breath */
 .hero-title {
   font-family: var(--font-display);
@@ -69,6 +109,13 @@
   margin: 0 0 24px;
   max-width: 900px;
   text-wrap: balance;
+}
+
+.hero-title-highlight {
+  background: linear-gradient(135deg, var(--playful-lime) 0%, var(--playful-cyan) 50%, var(--playful-yellow) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
 }
 
 /* Subtitle */

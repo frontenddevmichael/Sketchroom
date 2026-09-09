@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { burstConfetti } from '../../utils/confetti';
+import { playPop } from '../../utils/sound';
 import './DemoCanvas.css';
 
 /**
@@ -13,7 +15,7 @@ import './DemoCanvas.css';
  */
 interface Block {
   id: string;
-  kind: 'sticky' | 'rect';
+  kind: 'sticky' | 'rect' | 'sticker';
   x: number;
   y: number;
   w: number;
@@ -42,13 +44,15 @@ interface Connector {
 const START_BLOCKS: Block[] = [
   { id: 'b1', kind: 'rect', x: 12, y: 30, w: 26, h: 18, text: 'Flow', rot: 0 },
   { id: 'b2', kind: 'rect', x: 60, y: 30, w: 26, h: 18, text: 'Review', rot: 0 },
-  { id: 's1', kind: 'sticky', x: 30, y: 56, w: 18, h: 13, text: 'Ship it', rot: -2 },
+  { id: 's1', kind: 'sticky', x: 30, y: 56, w: 18, h: 13, text: 'Ship it 🚀', rot: -2 },
 ];
 
-const SAMPLE_THOUGHTS = ['What about offline mode?', 'Auth edge case here', 'Add analytics'];
+const SAMPLE_THOUGHTS = ['What about offline mode?', 'Auth edge case here', 'Add analytics 📊'];
 
-// A small palette so the visitor chooses WHAT they drop — a sticky thought or
-// a real flow block — and the copilot reacts to either.
+const SAMPLE_STICKERS = ['LGTM 🚀', 'Chaos Zone 💥', 'Big Brain 🧠', 'Ship It ⚡', 'Magic ✦'];
+
+// A small palette so the visitor chooses WHAT they drop — a sticky thought,
+// a sticker, or a real flow block — and the copilot reacts to either.
 const SAMPLE_BLOCKS = ['API', 'Service', 'Database', 'Queue', 'Client', 'Cache'];
 
 let uid = 0;
@@ -74,7 +78,7 @@ export function DemoCanvas() {
   const [bubble, setBubble] = useState<string | null>(null);
   const [hint, setHint] = useState(true);
   const [live, setLive] = useState('');
-  const [dropKind, setDropKind] = useState<'sticky' | 'block'>('sticky');
+  const [dropKind, setDropKind] = useState<'sticky' | 'block' | 'sticker'>('sticky');
   const running = useRef(true);
 
   const setCopilotPos = useCallback((x: number, y: number) => {
@@ -156,7 +160,21 @@ export function DemoCanvas() {
       setPromptBusy(true);
       setHint(false);
       const isBlock = dropKind === 'block';
-      if (isBlock) {
+      playPop();
+      if (dropKind === 'sticker') {
+        const stickerText = SAMPLE_STICKERS[Math.floor(Math.random() * SAMPLE_STICKERS.length)];
+        setBlocks((b) => [
+          ...b,
+          { id: nextId(), kind: 'sticker', x, y, w: 18, h: 10, text: stickerText, rot: (Math.random() - 0.5) * 12 },
+        ]);
+        burstConfetti((x / 100) * window.innerWidth, (y / 62.5) * 400 + 100, 25);
+        setCursor(null);
+        setCopilotPos(Math.min(96, x + 6), Math.min(55, y + 5));
+        await new Promise((r) => setTimeout(r, 500));
+        if (!running.current) return;
+        setPromptBusy(false);
+        setBubble(`Love that sticker! ✦`);
+      } else if (isBlock) {
         const label = SAMPLE_BLOCKS[Math.floor(Math.random() * SAMPLE_BLOCKS.length)];
         setBlocks((b) => [
           ...b,
@@ -321,14 +339,20 @@ export function DemoCanvas() {
             {blocks.map((b) => (
               <motion.div
                 key={b.id}
-                className={`demo-block ${b.kind === 'sticky' ? 'demo-block-sticky' : 'demo-block-rect'}`}
+                className={`demo-block ${
+                  b.kind === 'sticky'
+                    ? 'demo-block-sticky'
+                    : b.kind === 'sticker'
+                      ? 'demo-block-sticker'
+                      : 'demo-block-rect'
+                }`}
                 style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%`, transform: `rotate(${b.rot ?? 0}deg)` }}
                 initial={b.id.startsWith('d') ? { opacity: 0, scale: 0.7 } : false}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
               >
                 {b.kind === 'sticky' && <span className="demo-block-sticky-fold" aria-hidden="true" />}
-                <span>{b.text}</span>
+                <span className={b.kind === 'sticky' ? 'demo-block-handwriting' : undefined}>{b.text}</span>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -385,22 +409,29 @@ export function DemoCanvas() {
             </span>
           </div>
 
-          {/* Block palette: choose what the click drops — a thought or a flow
-              block — and the copilot reacts to either. */}
+          {/* Block palette: choose what the click drops — a sticky thought,
+              a sticker, or a flow block — and the copilot reacts. */}
           <div className="demo-palette" role="group" aria-label="Choose what to drop">
             <button
               className={`demo-palette-chip ${dropKind === 'sticky' ? 'active' : ''}`}
               onClick={() => setDropKind('sticky')}
               aria-pressed={dropKind === 'sticky'}
             >
-              Sticky
+              Sticky 📝
+            </button>
+            <button
+              className={`demo-palette-chip ${dropKind === 'sticker' ? 'active' : ''}`}
+              onClick={() => setDropKind('sticker')}
+              aria-pressed={dropKind === 'sticker'}
+            >
+              Sticker 🚀
             </button>
             <button
               className={`demo-palette-chip ${dropKind === 'block' ? 'active' : ''}`}
               onClick={() => setDropKind('block')}
               aria-pressed={dropKind === 'block'}
             >
-              Block
+              Block 📦
             </button>
           </div>
 
@@ -408,7 +439,9 @@ export function DemoCanvas() {
             <span className="demo-hint">
               {dropKind === 'sticky'
                 ? 'Click anywhere to drop your thought'
-                : 'Click anywhere to drop a block'}
+                : dropKind === 'sticker'
+                  ? 'Click anywhere to drop a sticker'
+                  : 'Click anywhere to drop a block'}
             </span>
           )}
 
