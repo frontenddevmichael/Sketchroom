@@ -10,7 +10,8 @@ import { createTLStore, setUserPreferences } from 'tldraw';
 import { Tldraw } from 'tldraw';
 import type { Editor, TLRecord, TLStore } from 'tldraw';
 import 'tldraw/tldraw.css';
-import { Blocks, History, Download, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, HelpCircle, X, ArrowLeft, Pencil, User, MoreHorizontal, MessageSquare } from 'lucide-react';
+import { Blocks, History, Download, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, HelpCircle, X, ArrowLeft, Pencil, User, MoreHorizontal, MessageSquare, Volume2, VolumeX } from 'lucide-react';
+import { playPop, toggleSound, isSoundEnabled } from '../utils/sound';
 import { useLongLoad } from '../hooks/useLongLoad';
 import { useModalFocus } from '../lib/useModalFocus';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -849,6 +850,7 @@ setSaveStatus('saved');
       if (editor) editor.setCurrentTool(cfg.tool);
       setActiveTool(id);
       setCanvasTouched(true);
+      playPop(380);
     },
     [isReadOnly]
   );
@@ -1171,6 +1173,17 @@ setSaveStatus('saved');
         </div>
 
         <div className="room-topbar-right">
+          <button
+            className="room-icon-btn room-topbar-hideable"
+            title={isSoundEnabled() ? 'Mute sound' : 'Enable sound'}
+            aria-label={isSoundEnabled() ? 'Mute sound' : 'Enable sound'}
+            onClick={() => {
+              const updated = toggleSound();
+              if (updated) playPop(520);
+            }}
+          >
+            {isSoundEnabled() ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
           <button className="room-icon-btn room-topbar-hideable" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" onClick={() => setShowShortcuts(true)}>
             <HelpCircle size={18} />
           </button>

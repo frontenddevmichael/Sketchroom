@@ -216,6 +216,26 @@
   color: var(--dark-hairline);
 }
 
+.demo-block-handwriting {
+  font-family: var(--font-handwriting);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.demo-block-sticker {
+  background: var(--playful-yellow);
+  color: #121212;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: 2px solid #ffffff;
+}
+
 [data-theme='dark'] .demo-block-sticky {
   background: rgba(37, 211, 102, 0.12);
   color: var(--green-400);

@@ -4,6 +4,8 @@ import { jsPDF } from 'jspdf';
 import type { Editor } from 'tldraw';
 import { Spinner } from './Spinner';
 import { useModalFocus } from '../lib/useModalFocus';
+import { burstConfetti } from '../utils/confetti';
+import { playChime } from '../utils/sound';
 import './ExportDialog.css';
 
 interface ExportDialogProps {
@@ -109,6 +111,8 @@ export function ExportDialog({ onClose, editor }: ExportDialogProps) {
         pdf.save(`sketchroom-${Date.now()}.pdf`);
       }
       setExporting(false);
+      burstConfetti();
+      playChime();
       window.setTimeout(onClose, 400);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Export failed');
