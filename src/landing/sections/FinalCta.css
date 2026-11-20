@@ -33,7 +33,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--green-600);
+  color: var(--ink);
   margin-bottom: 20px;
 }
 
@@ -41,23 +41,23 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--green-500);
+  background: var(--ink);
 }
 
 .final-cta-title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: clamp(36px, 5vw, 56px);
   font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.035em;
-  color: var(--color-text-primary);
+  color: var(--ink);
   margin: 0 0 20px;
 }
 
 .final-cta-lead {
   font-size: 18px;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   max-width: 520px;
   margin: 0 0 40px;
   text-wrap: pretty;
@@ -76,28 +76,28 @@
   align-items: center;
   gap: 10px;
   padding: 6px 6px 6px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--neutral-150);
-  background: var(--color-bg-surface);
+  border-radius: var(--r-3);
+  border: 1px solid var(--hair-strong);
+  background: var(--surface);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .final-cta-input:focus-within {
-  border-color: var(--green-500);
+  border-color: var(--ink);
   box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.12);
 }
 
 [data-theme='dark'] .final-cta-input {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }
 
 [data-theme='dark'] .final-cta-input:focus-within {
-  border-color: var(--green-500);
+  border-color: var(--ink);
 }
 
 .final-cta-input-icon {
   flex-shrink: 0;
-  color: var(--color-text-tertiary);
+  color: var(--ink-3);
 }
 
 .final-cta-field {
@@ -106,14 +106,14 @@
   background: transparent;
   font: inherit;
   font-size: 15px;
-  color: var(--color-text-primary);
+  color: var(--ink);
   outline: none;
   min-width: 0;
   padding: 10px 0;
 }
 
 .final-cta-field::placeholder {
-  color: var(--color-text-tertiary);
+  color: var(--ink-3);
 }
 
 .final-cta-send {
@@ -123,15 +123,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
-  background: var(--green-500);
+  border-radius: var(--r-2);
+  background: var(--ink);
   color: #fff;
   text-decoration: none;
   transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .final-cta-send:hover {
-  background: var(--green-600);
+  background: var(--ink);
   transform: scale(1.05);
 }
 
@@ -147,23 +147,23 @@
 .final-cta-chip {
   padding: 8px 16px;
   border-radius: 999px;
-  border: 1px solid var(--neutral-150);
+  border: 1px solid var(--hair-strong);
   background: transparent;
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   text-decoration: none;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 [data-theme='dark'] .final-cta-chip {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }
 
 .final-cta-chip:hover {
-  border-color: var(--green-500);
-  color: var(--green-600);
+  border-color: var(--ink);
+  color: var(--ink);
   background: rgba(37, 211, 102, 0.06);
 }
 

@@ -18,19 +18,19 @@
 
 /* ── Quick styles strip (bottom center, above the AI bar) ─────────────── */
 .quick-styles {
-  width: min(440px, calc(100vw - var(--space-6)));
-  border-radius: var(--radius-lg);
-  padding: var(--space-2) var(--space-4);
+  width: min(440px, calc(100vw - var(--sp-6)));
+  border-radius: var(--r-3);
+  padding: var(--sp-2) var(--sp-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  animation: tool-pill-in var(--duration-fast) var(--ease-spring);
+  gap: var(--sp-2);
+  animation: tool-pill-in var(--t-fast) var(--ease-out);
 }
 
 .quick-styles-swatches {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--sp-1);
 }
 
 .quick-styles-swatch-row {
@@ -45,8 +45,8 @@
   height: 20px;
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.12);
-  transition: transform var(--duration-fast) var(--ease-spring),
-    box-shadow var(--duration-fast) var(--ease-spring);
+  transition: transform var(--t-fast) var(--ease-out),
+    box-shadow var(--t-fast) var(--ease-out);
 }
 
 .quick-styles-swatch:hover {
@@ -54,7 +54,7 @@
 }
 
 .quick-styles-swatch.active {
-  box-shadow: 0 0 0 2px var(--color-bg-surface), 0 0 0 3.5px var(--green-500);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--ink);
 }
 
 [data-theme="dark"] .quick-styles-swatch {
@@ -65,7 +65,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
+  gap: var(--sp-3);
 }
 
 .quick-styles-primary-control {
@@ -81,82 +81,82 @@
   gap: 5px;
   height: 30px;
   padding: 0 12px;
-  border-radius: var(--radius-full);
-  background: var(--color-selected-bg);
-  border: 1px solid var(--neutral-150);
+  border-radius: var(--r-pill);
+  background: var(--fill-2);
+  border: 1px solid var(--hair-strong);
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   white-space: nowrap;
-  transition: background var(--duration-fast) var(--ease-spring),
-    color var(--duration-fast) var(--ease-spring),
-    border-color var(--duration-fast) var(--ease-spring);
+  transition: background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out);
 }
 
 [data-theme='dark'] .quick-styles-focus,
 [data-theme='dark'] .tool-options-focus {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }
 
 .quick-styles-focus:hover,
 .tool-options-focus:hover {
-  background: var(--neutral-100);
-  color: var(--color-text-primary);
+  background: var(--hair);
+  color: var(--ink);
 }
 
 .quick-styles-focus.active,
 .tool-options-focus.active {
   background: rgba(37, 211, 102, 0.12);
-  border-color: var(--green-500);
-  color: var(--green-600);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 [data-theme='dark'] .quick-styles-focus.active,
 [data-theme='dark'] .tool-options-focus.active {
-  color: var(--green-400);
+  color: var(--ink-2);
 }
 
 /* ── Extended rail (right dock) ───────────────────────────────────────── */
 .tool-options-rail {
   position: absolute;
-  right: var(--room-gutter);
-  top: var(--room-panel-top);
-  bottom: var(--room-gutter);
+  right: var(--sp-4);
+  top: calc(var(--sp-4) + 56px);
+  bottom: var(--sp-4);
   height: fit-content;
   /* The exact vertical budget between panel-top and the bottom gutter — never
      larger, or auto margins would go negative and push the rail off-screen. */
-  max-height: calc(100svh - var(--room-topbar-h) - var(--room-panel-top) - var(--room-gutter));
+  max-height: calc(100svh - 61px - calc(var(--sp-4) + 56px) - var(--sp-4));
   margin: auto 0;
-  z-index: var(--room-z-rail);
+  z-index: var(--z-sheet);
   width: 236px;
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-3);
   overflow: hidden;
-  animation: tool-pill-in var(--duration-fast) var(--ease-spring);
+  animation: tool-pill-in var(--t-fast) var(--ease-out);
 }
 
 .tool-options-rail-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--neutral-100);
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--hair);
   flex-shrink: 0;
 }
 
 [data-theme="dark"] .tool-options-rail-header {
-  border-bottom-color: var(--dark-hairline);
+  border-bottom-color: var(--hair);
 }
 
 .tool-options-rail-title {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--sp-2);
   font-weight: 600;
   font-size: 13px;
-  color: var(--color-text-primary);
+  color: var(--ink);
   white-space: nowrap;
 }
 
@@ -167,11 +167,11 @@
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-selected-bg);
+  border-radius: var(--r-pill);
+  background: var(--fill-2);
   font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 .tool-options-mode {
@@ -182,22 +182,22 @@
 
 .tool-options-mode-btn {
   padding: 5px 10px;
-  border-radius: var(--radius-full);
+  border-radius: var(--r-pill);
   font-size: 11px;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   background: transparent;
-  transition: background var(--duration-fast) var(--ease-spring),
-    color var(--duration-fast) var(--ease-spring);
+  transition: background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
 }
 
 .tool-options-mode-btn:hover:not(:disabled) {
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .tool-options-mode-btn.active {
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  color: var(--ink);
 }
 
 .tool-options-mode-btn:disabled {
@@ -209,16 +209,16 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--space-4);
+  padding: var(--sp-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--sp-3);
 }
 
 .tool-options-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .tool-options-section-title {
@@ -227,7 +227,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 /* Small group labels inside a section (e.g. Align/Distribute/Order). */
@@ -236,34 +236,34 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--color-text-tertiary);
-  margin-top: var(--space-2);
+  color: var(--ink-3);
+  margin-top: var(--sp-2);
 }
 
 .tool-options-segmented {
   display: flex;
   gap: 2px;
-  background: var(--color-selected-bg);
+  background: var(--fill-2);
   padding: 3px;
-  border-radius: var(--radius-full);
+  border-radius: var(--r-pill);
 }
 
 .tool-options-seg-btn {
   flex: 1;
   padding: 5px 6px;
-  border-radius: var(--radius-full);
+  border-radius: var(--r-pill);
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   white-space: nowrap;
-  transition: background var(--duration-fast) var(--ease-spring),
-    color var(--duration-fast) var(--ease-spring);
+  transition: background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
 }
 
 .tool-options-seg-btn.active {
-  background: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-card-rest);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-sheet);
 }
 
 .tool-options-seg-btn:disabled {
@@ -274,58 +274,58 @@
 .tool-options-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-1);
+  gap: var(--sp-1);
 }
 
 .tool-options-grid-btn {
   padding: 5px 2px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   font-size: 11px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   border: 1px solid transparent;
-  transition: background var(--duration-fast) var(--ease-spring),
-    color var(--duration-fast) var(--ease-spring),
-    border-color var(--duration-fast) var(--ease-spring);
+  transition: background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out);
 }
 
 .tool-options-grid-btn:hover {
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  color: var(--ink);
 }
 
 .tool-options-grid-btn.active {
-  background: var(--color-selected-bg);
-  border-color: var(--green-500);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .tool-options-icon-grid {
   display: flex;
-  gap: var(--space-1);
+  gap: var(--sp-1);
   flex-wrap: wrap;
 }
 
 .tool-options-icon-btn {
   width: 28px;
   height: 28px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-secondary);
-  transition: background var(--duration-fast) var(--ease-spring),
-    color var(--duration-fast) var(--ease-spring),
-    border-color var(--duration-fast) var(--ease-spring);
+  color: var(--ink-2);
+  transition: background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out);
 }
 
 .tool-options-icon-btn:hover:not(:disabled) {
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  color: var(--ink);
 }
 
 .tool-options-icon-btn.active {
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  color: var(--ink);
 }
 
 .tool-options-icon-btn:disabled {
@@ -336,7 +336,7 @@
 .tool-options-color-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .tool-options-color {
@@ -344,8 +344,8 @@
   height: 22px;
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.12);
-  transition: transform var(--duration-fast) var(--ease-spring),
-    box-shadow var(--duration-fast) var(--ease-spring);
+  transition: transform var(--t-fast) var(--ease-out),
+    box-shadow var(--t-fast) var(--ease-out);
 }
 
 .tool-options-color:hover {
@@ -353,7 +353,7 @@
 }
 
 .tool-options-color.active {
-  box-shadow: 0 0 0 2px var(--color-bg-surface), 0 0 0 3.5px var(--green-500);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--ink);
 }
 
 [data-theme="dark"] .tool-options-color {
@@ -362,7 +362,7 @@
 
 .tool-options-row {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .tool-options-paint-btn {
@@ -372,25 +372,25 @@
   justify-content: center;
   gap: 6px;
   padding: 7px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-text-primary);
-  background: var(--color-selected-bg);
-  transition: background var(--duration-fast) var(--ease-spring),
-    opacity var(--duration-fast) var(--ease-spring);
+  color: var(--ink);
+  background: var(--fill-2);
+  transition: background var(--t-fast) var(--ease-out),
+    opacity var(--t-fast) var(--ease-out);
 }
 
 .tool-options-paint-btn:hover:not(:disabled) {
-  background: var(--neutral-150);
+  background: var(--hair-strong);
 }
 
 [data-theme="dark"] .tool-options-paint-btn {
-  background: var(--dark-elevation-4);
+  background: var(--fill-4);
 }
 
 [data-theme="dark"] .tool-options-paint-btn:hover:not(:disabled) {
-  background: var(--dark-elevation-3);
+  background: var(--fill-3);
 }
 
 .tool-options-paint-btn:disabled {
@@ -401,17 +401,17 @@
 .tool-options-hint {
   margin: 0;
   font-size: 11px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 .tool-options-rail-footer {
-  border-top: 1px solid var(--neutral-100);
-  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--hair);
+  padding: var(--sp-2) var(--sp-4);
   flex-shrink: 0;
 }
 
 [data-theme="dark"] .tool-options-rail-footer {
-  border-top-color: var(--dark-hairline);
+  border-top-color: var(--hair);
 }
 
 .tool-options-reset {
@@ -419,16 +419,16 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   padding: 4px 6px;
-  border-radius: var(--radius-sm);
-  transition: background var(--duration-fast) var(--ease-spring),
-    color var(--duration-fast) var(--ease-spring);
+  border-radius: var(--r-2);
+  transition: background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
 }
 
 .tool-options-reset:hover {
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  color: var(--ink);
 }
 
 /* Medium/narrow screens: the extended rail yields to the quick strip — below

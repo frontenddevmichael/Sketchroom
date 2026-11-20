@@ -3,8 +3,8 @@
   align-items: center;
   gap: 6px;
   padding: 2px;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
+  border-radius: var(--r-2);
+  color: var(--ink-2);
   flex-shrink: 0;
 }
 
@@ -12,21 +12,21 @@
   display: inline-flex;
   align-items: center;
   padding: 3px 4px;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
+  border-radius: var(--r-2);
+  color: var(--ink-2);
   opacity: 0.35;
   cursor: grab;
   touch-action: none;
-  transition: opacity var(--duration-fast) var(--ease-spring),
-    background var(--duration-fast) var(--ease-spring),
-    color var(--duration-fast) var(--ease-spring);
+  transition: opacity var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
 }
 
 .smart-float-grip:hover,
 .smart-float-grip:active {
   opacity: 1;
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  color: var(--ink);
 }
 
 .smart-float-grip:active {
@@ -38,15 +38,15 @@
   align-items: center;
   justify-content: center;
   padding: 4px;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  transition: background var(--duration-fast) var(--ease-spring),
-    color var(--duration-fast) var(--ease-spring);
+  border-radius: var(--r-2);
+  color: var(--ink-2);
+  transition: background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
 }
 
 .smart-float-reset:hover {
-  color: var(--color-text-primary);
-  background: var(--color-selected-bg);
+  color: var(--ink);
+  background: var(--fill-2);
 }
 
 /* Panels adopt smart-float: inline left/top take over, entry transforms are
@@ -55,9 +55,9 @@
   transform: none;
   left: auto;
   top: auto;
-  transition: left var(--duration-base) var(--ease-spring),
-    top var(--duration-base) var(--ease-spring),
-    opacity var(--duration-base) var(--ease-spring);
+  transition: left var(--t-panel) var(--ease-out),
+    top var(--t-panel) var(--ease-out),
+    opacity var(--t-panel) var(--ease-out);
 }
 
 [data-float="active"][data-dragging="true"] {

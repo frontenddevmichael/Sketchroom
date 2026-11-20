@@ -5,38 +5,38 @@
 .export-formats {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-bottom: var(--space-6);
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-6);
 }
 
 .export-scope {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-bottom: var(--space-6);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--neutral-100);
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-6);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--hair);
 }
 
 .export-format {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-3);
   cursor: pointer;
   border: 1px solid transparent;
-  transition: background var(--duration-fast) var(--ease-spring),
-    border-color var(--duration-fast) var(--ease-spring);
+  transition: background var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out);
 }
 
 .export-format:hover {
-  background: var(--color-selected-bg);
+  background: var(--fill-2);
 }
 
 .export-format.checked {
-  background: var(--color-selected-bg);
-  border-color: var(--neutral-150);
+  background: var(--fill-2);
+  border-color: var(--hair-strong);
 }
 
 .export-format.disabled {
@@ -54,14 +54,14 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  border: 1.5px solid var(--neutral-400);
+  border: 1.5px solid var(--ink-3);
   flex-shrink: 0;
   position: relative;
-  transition: border-color var(--duration-fast) var(--ease-spring);
+  transition: border-color var(--t-fast) var(--ease-out);
 }
 
 .export-format.checked .export-radio {
-  border-color: var(--green-500);
+  border-color: var(--ink);
 }
 
 .export-format.checked .export-radio::after {
@@ -69,13 +69,13 @@
   position: absolute;
   inset: 3px;
   border-radius: 50%;
-  background: var(--green-500);
+  background: var(--ink);
 }
 
 .export-format-label {
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .export-button {
@@ -83,22 +83,22 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .export-error {
-  margin: 0 0 var(--space-4);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-3);
+  border-radius: var(--r-3);
   background: rgba(239, 68, 68, 0.12);
   color: #ef4444;
   font-size: 13px;
 }
 
 [data-theme="dark"] .export-scope {
-  border-top-color: var(--dark-hairline);
+  border-top-color: var(--hair);
 }
 
 [data-theme="dark"] .export-format.checked {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }

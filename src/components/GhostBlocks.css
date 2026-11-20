@@ -12,14 +12,14 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  border: 1.5px dashed var(--green-500-45);
+  border-radius: var(--r-2);
+  border: 1.5px dashed var(--hair-strong);
   background: rgba(13, 24, 18, 0.82);
   color: #e5f6ec;
-  font-size: var(--fs-sm, 14px);
+  font-size: var(--fs-sm);
   font-weight: 600;
   letter-spacing: 0.02em;
-  backdrop-filter: blur(var(--glass-blur, 20px));
+  backdrop-filter: blur(0px);
   box-sizing: border-box;
   white-space: nowrap;
   overflow: hidden;
@@ -28,9 +28,9 @@
 }
 
 .ghost-block.ghost-focused {
-  border-color: var(--green-500);
+  border-color: var(--ink);
   border-style: solid;
-  box-shadow: 0 0 0 3px var(--green-500-25), 0 8px 24px var(--green-500-28);
+  box-shadow: 0 0 0 3px var(--hair-strong), 0 8px 24px var(--hair-strong);
   transform: scale(1.04);
 }
 
@@ -48,28 +48,28 @@
 
 /* Every tone reads from the --ghost-* semantic tokens (index.css) — no raw
    hue lives in this file, so the AI palette changes in one place. */
-.ghost-tone-blue { border-color: var(--ghost-blue-border); color: var(--ghost-blue-ink); }
-.ghost-tone-blue .ghost-icon { color: var(--ghost-blue); }
-.ghost-tone-purple { border-color: var(--ghost-purple-border); color: var(--ghost-purple-ink); }
-.ghost-tone-purple .ghost-icon { color: var(--ghost-purple); }
-.ghost-tone-green { border-color: var(--ghost-green-border); color: var(--ghost-green-ink); }
-.ghost-tone-green .ghost-icon { color: var(--ghost-green); }
-.ghost-tone-orange { border-color: var(--ghost-orange-border); color: var(--ghost-orange-ink); }
-.ghost-tone-orange .ghost-icon { color: var(--ghost-orange); }
-.ghost-tone-teal { border-color: var(--ghost-teal-border); color: var(--ghost-teal-ink); }
-.ghost-tone-teal .ghost-icon { color: var(--ghost-teal); }
-.ghost-tone-yellow { border-color: var(--ghost-yellow-border); color: var(--ghost-yellow-ink); }
-.ghost-tone-yellow .ghost-icon { color: var(--ghost-yellow); }
-.ghost-tone-gray { border-color: var(--ghost-gray-border); color: var(--ghost-gray-ink); }
-.ghost-tone-gray .ghost-icon { color: var(--ghost-gray); }
+.ghost-tone-blue { border-color: var(--hair-strong); color: var(--ink-2); }
+.ghost-tone-blue .ghost-icon { color: var(--ink-3); }
+.ghost-tone-purple { border-color: var(--hair-strong); color: var(--ink-2); }
+.ghost-tone-purple .ghost-icon { color: var(--ink-3); }
+.ghost-tone-green { border-color: var(--hair-strong); color: var(--ink-2); }
+.ghost-tone-green .ghost-icon { color: var(--ink-3); }
+.ghost-tone-orange { border-color: var(--hair-strong); color: var(--ink-2); }
+.ghost-tone-orange .ghost-icon { color: var(--ink-3); }
+.ghost-tone-teal { border-color: var(--hair-strong); color: var(--ink-2); }
+.ghost-tone-teal .ghost-icon { color: var(--ink-3); }
+.ghost-tone-yellow { border-color: var(--hair-strong); color: var(--ink-2); }
+.ghost-tone-yellow .ghost-icon { color: var(--ink-3); }
+.ghost-tone-gray { border-color: var(--hair-strong); color: var(--ink-2); }
+.ghost-tone-gray .ghost-icon { color: var(--ink-3); }
 
-.ghost-block.ghost-focused.ghost-tone-blue { border-color: var(--ghost-blue); box-shadow: 0 0 0 3px var(--ghost-blue-shadow), 0 8px 24px var(--ghost-blue-shadow); }
-.ghost-block.ghost-focused.ghost-tone-purple { border-color: var(--ghost-purple); box-shadow: 0 0 0 3px var(--ghost-purple-shadow), 0 8px 24px var(--ghost-purple-shadow); }
-.ghost-block.ghost-focused.ghost-tone-green { border-color: var(--ghost-green); box-shadow: 0 0 0 3px var(--ghost-green-shadow), 0 8px 24px var(--ghost-green-shadow); }
-.ghost-block.ghost-focused.ghost-tone-orange { border-color: var(--ghost-orange); box-shadow: 0 0 0 3px var(--ghost-orange-shadow), 0 8px 24px var(--ghost-orange-shadow); }
-.ghost-block.ghost-focused.ghost-tone-teal { border-color: var(--ghost-teal); box-shadow: 0 0 0 3px var(--ghost-teal-shadow), 0 8px 24px var(--ghost-teal-shadow); }
-.ghost-block.ghost-focused.ghost-tone-yellow { border-color: var(--ghost-yellow); box-shadow: 0 0 0 3px var(--ghost-yellow-shadow), 0 8px 24px var(--ghost-yellow-shadow); }
-.ghost-block.ghost-focused.ghost-tone-gray { border-color: var(--ghost-gray); box-shadow: 0 0 0 3px var(--ghost-gray-shadow), 0 8px 24px var(--ghost-gray-shadow); }
+.ghost-block.ghost-focused.ghost-tone-blue { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
+.ghost-block.ghost-focused.ghost-tone-purple { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
+.ghost-block.ghost-focused.ghost-tone-green { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
+.ghost-block.ghost-focused.ghost-tone-orange { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
+.ghost-block.ghost-focused.ghost-tone-teal { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
+.ghost-block.ghost-focused.ghost-tone-yellow { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
+.ghost-block.ghost-focused.ghost-tone-gray { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
 
 /* Dark-mode ghost blocks — these float over the canvas, so the base
    already uses a dark semi-transparent background. In light mode the
@@ -77,16 +77,16 @@
    so contrast stays above 4.5:1 against the dark background. */
 [data-theme='dark'] .ghost-block {
   background: rgba(13, 24, 18, 0.7);
-  border-color: var(--green-500-50);
+  border-color: var(--hair-strong);
 }
 
-[data-theme='dark'] .ghost-tone-blue { color: var(--ghost-blue-ink-dark); }
-[data-theme='dark'] .ghost-tone-purple { color: var(--ghost-purple-ink-dark); }
-[data-theme='dark'] .ghost-tone-green { color: var(--ghost-green-ink-dark); }
-[data-theme='dark'] .ghost-tone-orange { color: var(--ghost-orange-ink-dark); }
-[data-theme='dark'] .ghost-tone-teal { color: var(--ghost-teal-ink-dark); }
-[data-theme='dark'] .ghost-tone-yellow { color: var(--ghost-yellow-ink-dark); }
-[data-theme='dark'] .ghost-tone-gray { color: var(--ghost-gray-ink-dark); }
+[data-theme='dark'] .ghost-tone-blue { color: var(--ink-2); }
+[data-theme='dark'] .ghost-tone-purple { color: var(--ink-2); }
+[data-theme='dark'] .ghost-tone-green { color: var(--ink-2); }
+[data-theme='dark'] .ghost-tone-orange { color: var(--ink-2); }
+[data-theme='dark'] .ghost-tone-teal { color: var(--ink-2); }
+[data-theme='dark'] .ghost-tone-yellow { color: var(--ink-2); }
+[data-theme='dark'] .ghost-tone-gray { color: var(--ink-2); }
 
 .ghost-edges {
   position: absolute;
@@ -94,14 +94,14 @@
 }
 
 .ghost-edge-line {
-  stroke: var(--green-500-50);
+  stroke: var(--hair-strong);
   stroke-width: 1.5;
   stroke-dasharray: 5 4;
   fill: none;
 }
 
 .ghost-edge-arrow {
-  fill: var(--green-500-60);
+  fill: var(--hair-strong);
 }
 
 .ghost-edge-label {
@@ -119,5 +119,5 @@
 }
 .ai-ghost-discard:hover {
   opacity: 1;
-  color: var(--red-400, #f87171) !important;
+  color: var(--danger) !important;
 }

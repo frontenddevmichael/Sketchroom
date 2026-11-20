@@ -1,14 +1,14 @@
 .history-panel {
   position: absolute;
-  top: var(--room-panel-top);
-  right: var(--room-gutter);
+  top: calc(var(--sp-4) + 56px);
+  right: var(--sp-4);
   bottom: auto;
   width: 320px;
-  max-height: min(440px, calc(100svh - var(--room-panel-top) - var(--room-gutter)));
-  z-index: var(--room-z-panels);
+  max-height: min(440px, calc(100svh - calc(var(--sp-4) + 56px) - var(--sp-4)));
+  z-index: var(--z-sheet);
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-3);
   overflow: hidden;
 }
 
@@ -16,7 +16,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-4) var(--space-6);
+  padding: var(--sp-4) var(--sp-6);
   flex-shrink: 0;
 }
 
@@ -24,7 +24,7 @@
   font-size: 15px;
   font-weight: 600;
   margin: 0;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .history-actions {
@@ -36,26 +36,26 @@
 .history-close {
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-secondary);
-  transition: background var(--duration-fast) var(--ease-spring);
+  color: var(--ink-2);
+  transition: background var(--t-fast) var(--ease-out);
 }
 
 .history-close:hover {
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  color: var(--ink);
 }
 
 .history-feed {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-2) var(--space-6) var(--space-6);
+  padding: var(--sp-2) var(--sp-6) var(--sp-6);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sp-2);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -67,19 +67,19 @@
 .history-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--neutral-100);
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  border: 1px solid var(--hair);
 }
 
 .history-row-thumb {
   width: 56px;
   height: 40px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   overflow: hidden;
-  background: var(--neutral-150);
+  background: var(--hair-strong);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -89,7 +89,7 @@
 .history-thumb-placeholder {
   width: 100%;
   height: 100%;
-  background-image: radial-gradient(var(--neutral-400) 1px, transparent 1px);
+  background-image: radial-gradient(var(--ink-3) 1px, transparent 1px);
   background-size: 8px 8px;
   opacity: 0.4;
 }
@@ -110,12 +110,12 @@
 .history-row-time {
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .history-row-desc {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -124,9 +124,9 @@
 .history-restore {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--sp-1);
   font-size: 12px;
-  color: var(--color-text-primary);
+  color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 3px;
   padding: 4px;
@@ -144,34 +144,34 @@
 .history-feed-skel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .history-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-8) var(--space-4);
+  gap: var(--sp-2);
+  padding: var(--sp-8) var(--sp-4);
   text-align: center;
 }
 
 .history-empty .illo {
   width: 96px;
   height: 72px;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--sp-2);
 }
 
 .history-empty-title {
   font-size: 15px;
   font-weight: 600;
   margin: 0;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .history-empty-text {
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   line-height: 1.6;
   margin: 0;
   max-width: 240px;
@@ -179,7 +179,7 @@
 
 /* Staggered reveal when real rows replace skeletons. */
 .history-row {
-  animation: history-row-in calc(var(--duration-base) * 1.1) var(--ease-spring) both;
+  animation: history-row-in calc(var(--t-panel) * 1.1) var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 45ms);
 }
 
@@ -198,14 +198,14 @@
 @media (max-width: 640px) {
   .history-panel {
     position: fixed;
-    left: var(--space-2);
-    right: var(--space-2);
+    left: var(--sp-2);
+    right: var(--sp-2);
     top: auto;
-    bottom: calc(var(--room-bar-h) + var(--room-gutter) + var(--space-2));
+    bottom: calc(56px + var(--sp-4) + var(--sp-2));
     width: auto;
     max-height: min(
       480px,
-      calc(100svh - var(--room-topbar-h) - var(--room-bar-h) - var(--room-gutter) - var(--space-6))
+      calc(100svh - 61px - 56px - var(--sp-4) - var(--sp-6))
     );
   }
 

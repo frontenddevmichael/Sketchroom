@@ -8,12 +8,12 @@
   display: block;
   position: relative;
   overflow: hidden;
-  border-radius: var(--radius-sm);
-  background: var(--color-selected-bg);
+  border-radius: var(--r-2);
+  background: var(--fill-2);
 }
 
 [data-theme='dark'] .skel {
-  background: var(--dark-elevation-3);
+  background: var(--fill-3);
 }
 
 /* The moving band: gradients only read as "shimmer" when the band color is
@@ -63,7 +63,7 @@
 .skel-tile,
 .skel-form,
 .skel-plan-card {
-  animation: skel-in calc(var(--duration-base) * 1.15) var(--ease-spring) both;
+  animation: skel-in calc(var(--t-panel) * 1.15) var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 45ms);
 }
 
@@ -82,28 +82,28 @@
 .skel-room-card {
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-3);
   overflow: hidden;
-  background: var(--color-bg-surface);
-  border: 1px solid var(--neutral-100);
+  background: var(--surface);
+  border: 1px solid var(--hair);
 }
 
 [data-theme='dark'] .skel-room-card {
-  background: var(--dark-elevation-2);
-  border-color: var(--dark-hairline);
+  background: var(--fill-2);
+  border-color: var(--hair);
 }
 
 .skel-room-thumb {
   aspect-ratio: 16 / 9;
-  margin: var(--space-2);
-  border-radius: var(--radius-md);
+  margin: var(--sp-2);
+  border-radius: var(--r-3);
 }
 
 .skel-room-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: 0 var(--space-4) var(--space-4);
+  gap: var(--sp-2);
+  padding: 0 var(--sp-4) var(--sp-4);
 }
 
 .skel-line-title {
@@ -119,7 +119,7 @@
 .skel-room-avatars {
   display: flex;
   gap: 6px;
-  margin-top: var(--space-1);
+  margin-top: var(--sp-1);
 }
 
 .skel-avatar {
@@ -132,22 +132,22 @@
 .skel-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--neutral-100);
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  border: 1px solid var(--hair);
 }
 
 [data-theme='dark'] .skel-row {
-  background: var(--dark-elevation-2);
-  border-color: var(--dark-hairline);
+  background: var(--fill-2);
+  border-color: var(--hair);
 }
 
 .skel-row-thumb {
   width: 56px;
   height: 40px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   flex-shrink: 0;
 }
 
@@ -172,29 +172,29 @@
 .skel-row-action {
   width: 52px;
   height: 22px;
-  border-radius: var(--radius-full);
+  border-radius: var(--r-pill);
   flex-shrink: 0;
 }
 
 /* ── Block library tiles ─────────────────────────────────────────────── */
 .skel-tile-grid {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .skel-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-md);
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-2);
+  border-radius: var(--r-3);
 }
 
 .skel-tile-icon {
   width: 22px;
   height: 22px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
 }
 
 .skel-line-tile-label {
@@ -206,13 +206,13 @@
 .skel-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--sp-6);
 }
 
 .skel-form-row {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .skel-line-label {
@@ -222,23 +222,23 @@
 
 .skel-field {
   height: 42px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
 }
 
 /* ── Billing plan card ───────────────────────────────────────────────── */
 .skel-plan-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--neutral-100);
+  gap: var(--sp-3);
+  padding: var(--sp-6);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  border: 1px solid var(--hair);
 }
 
 [data-theme='dark'] .skel-plan-card {
-  background: var(--dark-elevation-2);
-  border-color: var(--dark-hairline);
+  background: var(--fill-2);
+  border-color: var(--hair);
 }
 
 .skel-line-plan-name {
@@ -264,8 +264,8 @@
 .skel-plan-cta {
   width: 100%;
   height: 40px;
-  border-radius: var(--radius-full);
-  margin-top: var(--space-2);
+  border-radius: var(--r-pill);
+  margin-top: var(--sp-2);
 }
 
 @media (prefers-reduced-motion: reduce) {

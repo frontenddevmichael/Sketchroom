@@ -3,7 +3,7 @@
 .auth-screen {
   display: flex;
   min-height: 100svh;
-  color: var(--color-text-primary);
+  color: var(--ink);
   background: #0a0a0a;
 }
 
@@ -15,7 +15,7 @@
   flex-direction: column;
   min-width: 0;
   background: #000;
-  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  padding: clamp(var(--sp-4), 4vw, var(--sp-8));
   position: relative;
   overflow-y: auto;
 }
@@ -51,13 +51,13 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: #fff;
   text-decoration: none;
-  margin-bottom: var(--space-10);
+  margin-bottom: var(--sp-8);
 }
 
 .auth-wordmark svg {
@@ -81,7 +81,7 @@
 /* ── Typography ──────────────────────────────────────────────────────── */
 
 .auth-card-title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.4px;
@@ -93,7 +93,7 @@
   font-size: 15px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.5);
-  margin: 0 0 var(--space-6);
+  margin: 0 0 var(--sp-6);
 }
 
 /* ── Form wrapper ────────────────────────────────────────────────────── */
@@ -110,20 +110,20 @@
   grid-template-columns: 1fr 1fr;
   gap: 2px;
   padding: 3px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   background: rgba(255, 255, 255, 0.06);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--sp-6);
 }
 
 .auth-tab {
   padding: 9px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   background: transparent;
   color: rgba(255, 255, 255, 0.45);
-  font: 600 13px var(--font-family);
+  font: 600 13px var(--font-sans);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-spring);
+  transition: all var(--t-fast) var(--ease-out);
 }
 
 .auth-tab.active {
@@ -133,7 +133,7 @@
 }
 
 .auth-tab:focus-visible {
-  outline: 2px solid var(--green-500);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
@@ -144,15 +144,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
+  gap: var(--sp-3);
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   padding: 13px 20px;
-  font: 500 14px var(--font-family);
+  font: 500 14px var(--font-sans);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: all var(--t-fast);
 }
 
 .auth-google-btn:hover {
@@ -169,12 +169,12 @@
 .auth-card-divider {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--sp-3);
   color: rgba(255, 255, 255, 0.3);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin: var(--space-5) 0;
+  margin: var(--sp-4) 0;
 }
 
 .auth-card-divider::before,
@@ -190,7 +190,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--sp-4);
   text-align: left;
 }
 
@@ -208,13 +208,13 @@
 
 .auth-input {
   width: 100%;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   padding: 12px 14px;
   font-size: 14px;
   background: rgba(255, 255, 255, 0.05);
   border: 1.5px solid rgba(255, 255, 255, 0.08);
   color: #fff;
-  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
 }
 
 .auth-input::placeholder {
@@ -223,7 +223,7 @@
 
 .auth-input:focus {
   outline: none;
-  border-color: var(--green-500);
+  border-color: var(--ink);
   box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
 }
 
@@ -248,11 +248,11 @@
   width: 32px;
   height: 32px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   background: transparent;
   color: rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  transition: color var(--duration-fast), background var(--duration-fast);
+  transition: color var(--t-fast), background var(--t-fast);
   overflow: hidden;
 }
 
@@ -262,13 +262,13 @@
 }
 
 .auth-password-toggle:focus-visible {
-  outline: 2px solid var(--green-500);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
 .auth-icon-pop {
   display: inline-flex;
-  animation: auth-icon-pop-in 0.18s var(--ease-spring);
+  animation: auth-icon-pop-in 0.18s var(--ease-out);
 }
 
 @keyframes auth-icon-pop-in {
@@ -292,10 +292,10 @@
   line-height: 1.5;
   color: #ff8a7a;
   background: rgba(255, 99, 71, 0.1);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   padding: 10px 12px;
   margin: 0;
-  animation: auth-error-in var(--duration-fast) var(--ease-spring);
+  animation: auth-error-in var(--t-fast) var(--ease-out);
 }
 
 @keyframes auth-error-in {
@@ -315,8 +315,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  border-radius: var(--radius-sm);
+  gap: var(--sp-2);
+  border-radius: var(--r-2);
   font-weight: 600;
   font-size: 14px;
   padding: 13px 24px;
@@ -324,7 +324,7 @@
   cursor: pointer;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
-  transition: all var(--duration-fast);
+  transition: all var(--t-fast);
 }
 
 .btn:active {
@@ -332,24 +332,24 @@
 }
 
 .btn-primary {
-  background: var(--green-500);
+  background: var(--ink);
   color: #fff;
   box-shadow: 0 1px 2px rgba(37, 211, 102, 0.25);
 }
 
 .btn-primary:hover {
-  background: var(--green-600);
+  background: var(--ink);
   box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
 }
 
 .btn-primary:active {
-  background: var(--green-700);
+  background: var(--ink-2);
   transform: scale(0.98);
 }
 
 .auth-submit {
   width: 100%;
-  margin-top: var(--space-1);
+  margin-top: var(--sp-1);
 }
 
 /* ── Link buttons ────────────────────────────────────────────────────── */
@@ -361,26 +361,26 @@
   border: none;
   background: none;
   padding: 4px 0;
-  font: 500 13px var(--font-family);
-  color: var(--green-400);
+  font: 500 13px var(--font-sans);
+  color: var(--ink-2);
   cursor: pointer;
   align-self: flex-start;
-  transition: color var(--duration-fast);
+  transition: color var(--t-fast);
 }
 
 .auth-link-btn:hover {
-  color: var(--green-500);
+  color: var(--ink);
   text-decoration: underline;
 }
 
 .auth-link-btn:focus-visible {
-  outline: 2px solid var(--green-500);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
 .auth-back {
   color: rgba(255, 255, 255, 0.4);
-  margin-top: var(--space-4);
+  margin-top: var(--sp-4);
 }
 
 .auth-back:hover {
@@ -412,11 +412,11 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--sp-4);
   border-radius: 50%;
   background: rgba(37, 211, 102, 0.12);
-  color: var(--green-400);
-  animation: auth-done-pop 0.4s var(--ease-spring) both;
+  color: var(--ink-2);
+  animation: auth-done-pop 0.4s var(--ease-out) both;
 }
 
 @keyframes auth-done-pop {
@@ -430,7 +430,7 @@
   font-size: 12px;
   color: rgba(255, 255, 255, 0.3);
   line-height: 1.7;
-  margin-top: var(--space-8);
+  margin-top: var(--sp-8);
 }
 
 .auth-card-small a {
@@ -499,18 +499,18 @@
   bottom: 72px;
   left: 0;
   right: 0;
-  padding: 0 var(--space-10);
+  padding: 0 var(--sp-8);
   z-index: 2;
 }
 
 .auth-carousel-slide {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--sp-4);
 }
 
 .auth-carousel-headline {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 56px;
   font-weight: 800;
   letter-spacing: -1px;
@@ -529,7 +529,7 @@
 .auth-carousel-dots {
   position: absolute;
   bottom: 24px;
-  left: var(--space-10);
+  left: var(--sp-8);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -543,14 +543,14 @@
   border: none;
   background: rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: all var(--t-fast);
   padding: 0;
 }
 
 .auth-carousel-dot.active {
-  background: var(--green-500);
+  background: var(--ink);
   width: 28px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
 }
 
 .auth-carousel-dot:hover:not(.active) {
@@ -575,7 +575,7 @@
 
 @media (max-width: 480px) {
   .auth-left {
-    padding: var(--space-5);
+    padding: var(--sp-4);
   }
 
   .auth-card-title {
@@ -584,7 +584,7 @@
 
   .auth-wordmark {
     font-size: 20px;
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--sp-8);
   }
 }
 

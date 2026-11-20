@@ -2,22 +2,22 @@
   display: flex;
   flex-direction: column;
   min-height: 100svh;
-  background: var(--bg);
+  background: var(--paper);
 }
 
 /* ── Top bar ─────────────────────────────────────────────────────────── */
 .settings-topbar {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--line);
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-6);
+  border-bottom: 1px solid var(--hair);
 }
 
 .settings-back {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-btn);
+  border-radius: var(--r-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -30,7 +30,7 @@
 }
 
 .settings-back:hover {
-  background: var(--bg-sunken);
+  background: var(--fill-2);
   color: var(--ink);
 }
 
@@ -38,14 +38,14 @@
 .settings-tabs {
   display: flex;
   gap: 2px;
-  padding: 0 var(--space-6);
-  border-bottom: 1px solid var(--line);
+  padding: 0 var(--sp-6);
+  border-bottom: 1px solid var(--hair);
 }
 
 .settings-tab {
   padding: 12px 20px;
-  border-radius: var(--radius-btn) var(--radius-btn) 0 0;
-  font-family: var(--font-body);
+  border-radius: var(--r-2) var(--r-2) 0 0;
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
   color: var(--ink-2);
@@ -58,12 +58,12 @@
 
 .settings-tab:hover {
   color: var(--ink);
-  background: var(--bg-sunken);
+  background: var(--fill-2);
 }
 
 .settings-tab.active {
   color: var(--ink);
-  background: var(--bg-elev);
+  background: var(--surface);
 }
 
 .settings-tab.active::after {
@@ -73,22 +73,22 @@
   left: 12px;
   right: 12px;
   height: 2px;
-  background: var(--accent);
+  background: var(--ink);
   border-radius: 2px 2px 0 0;
 }
 
 /* ── Main content ────────────────────────────────────────────────────── */
 .settings-main {
   flex: 1;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--sp-8) var(--sp-6);
   max-width: 640px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--sp-6);
 }
 
 .settings-title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 24px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -97,17 +97,17 @@
 
 /* ── Card sections ───────────────────────────────────────────────────── */
 .settings-card {
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
+  background: var(--surface);
+  border: 1px solid var(--hair);
   border-radius: 14px;
-  padding: var(--space-6);
+  padding: var(--sp-6);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--sp-4);
 }
 
 .settings-card-header {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 600;
   margin: 0;
@@ -123,11 +123,11 @@
 /* ── Form elements ───────────────────────────────────────────────────── */
 .input {
   height: 44px;
-  border: 1px solid var(--line-2);
+  border: 1px solid var(--hair-strong);
   border-radius: 10px;
-  background: var(--bg-sunken);
+  background: var(--fill-2);
   padding: 0 14px;
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   font-size: 14px;
   color: var(--ink);
   outline: none;
@@ -136,7 +136,7 @@
 }
 
 .input:focus {
-  border-color: var(--accent);
+  border-color: var(--ink);
 }
 
 .settings-label {
@@ -151,9 +151,9 @@
 .settings-save {
   align-self: flex-start;
   padding: 8px 20px;
-  border-radius: var(--radius-btn);
-  background: var(--accent);
-  color: var(--accent-ink);
+  border-radius: var(--r-2);
+  background: var(--ink);
+  color: var(--paper);
   font-weight: 600;
   font-size: 13px;
   border: none;
@@ -176,7 +176,7 @@
 .settings-inline-save {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--sp-3);
 }
 
 .settings-inline-save .input {
@@ -191,16 +191,16 @@
 .settings-usage {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
+  gap: var(--sp-3);
+  padding: var(--sp-4);
   border-radius: 10px;
-  background: var(--bg-sunken);
+  background: var(--fill-2);
 }
 
 .settings-usage-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--sp-3);
   font-size: 13px;
   color: var(--ink-2);
 }
@@ -213,7 +213,7 @@
   flex: 1;
   height: 6px;
   border-radius: 3px;
-  background: var(--bg-elev);
+  background: var(--surface);
   overflow: hidden;
 }
 
@@ -221,12 +221,12 @@
   display: block;
   height: 100%;
   border-radius: 3px;
-  background: var(--ink-4);
-  transition: width 0.3s var(--ease-spring);
+  background: var(--ink-3);
+  transition: width 0.3s var(--ease-out);
 }
 
 .settings-usage-fill-ai {
-  background: var(--accent);
+  background: var(--ink);
 }
 
 .settings-usage-count {
@@ -244,8 +244,8 @@
   padding: 6px 10px;
   border-radius: 8px;
   background: none;
-  color: var(--accent);
-  font: 500 13px var(--font-body);
+  color: var(--ink);
+  font: 500 13px var(--font-sans);
   cursor: pointer;
   transition: background 0.12s;
 }
@@ -258,16 +258,16 @@
 .settings-members {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--sp-3);
 }
 
 .settings-member {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
+  gap: var(--sp-3);
+  padding: var(--sp-3);
   border-radius: 10px;
-  background: var(--bg-sunken);
+  background: var(--fill-2);
 }
 
 .settings-member-info {
@@ -289,14 +289,14 @@
 .settings-account-row {
   flex-direction: row;
   align-items: flex-start;
-  gap: var(--space-6);
+  gap: var(--sp-6);
 }
 
 .settings-account-fields {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--sp-3);
 }
 
 /* ── Sign out ─────────────────────────────────────────────────────────── */
@@ -305,11 +305,11 @@
   align-items: center;
   gap: 8px;
   padding: 9px 18px;
-  border-radius: var(--radius-btn);
+  border-radius: var(--r-2);
   background: transparent;
   border: 1px solid oklch(0.68 0.19 25 / 0.3);
   color: var(--danger);
-  font: 500 13px var(--font-body);
+  font: 500 13px var(--font-sans);
   cursor: pointer;
   transition: background 0.12s;
 }
@@ -320,19 +320,19 @@
 
 /* ── Danger zone ──────────────────────────────────────────────────────── */
 .danger-zone {
-  margin-top: var(--space-4);
-  padding: var(--space-6);
+  margin-top: var(--sp-4);
+  padding: var(--sp-6);
   border: 1px solid oklch(0.68 0.19 25 / 0.25);
   border-radius: 14px;
-  background: var(--bg-elev);
+  background: var(--surface);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-3);
+  gap: var(--sp-3);
 }
 
 .danger-zone-title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 600;
   color: var(--danger);
@@ -342,7 +342,7 @@
 .danger-zone-text {
   font-size: 13px;
   color: var(--ink-2);
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--sp-2);
   line-height: 1.5;
 }
 
@@ -351,11 +351,11 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  border-radius: var(--radius-btn);
+  border-radius: var(--r-2);
   background: transparent;
   border: 1px solid var(--danger);
   color: var(--danger);
-  font: 500 13px var(--font-body);
+  font: 500 13px var(--font-sans);
   cursor: pointer;
   transition: background 0.12s;
 }
@@ -369,17 +369,17 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  border-radius: var(--radius-btn);
+  border-radius: var(--r-2);
   background: transparent;
-  border: 1px solid var(--line);
+  border: 1px solid var(--hair);
   color: var(--ink);
-  font: 500 13px var(--font-body);
+  font: 500 13px var(--font-sans);
   cursor: pointer;
   transition: background 0.12s;
 }
 
 .btn-ghost:hover {
-  background: var(--bg-sunken);
+  background: var(--fill-2);
 }
 
 /* ── Error ────────────────────────────────────────────────────────────── */
@@ -405,11 +405,11 @@
   width: 100%;
   max-width: 400px;
   border-radius: 14px;
-  padding: var(--space-6);
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
+  padding: var(--sp-6);
+  background: var(--surface);
+  border: 1px solid var(--hair);
   box-shadow: 0 40px 100px -20px oklch(0 0 0 / 0.6);
-  animation: settings-modal-in 0.2s var(--ease-spring);
+  animation: settings-modal-in 0.2s var(--ease-out);
 }
 
 @keyframes settings-modal-in {
@@ -427,14 +427,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--sp-3);
 }
 
 .settings-confirm-title {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-family: var(--font-display);
+  gap: var(--sp-2);
+  font-family: var(--font-sans);
   font-size: 18px;
   font-weight: 600;
   margin: 0;
@@ -460,7 +460,7 @@
 }
 
 .settings-confirm-close:hover {
-  background: var(--bg-sunken);
+  background: var(--fill-2);
   color: var(--ink);
 }
 
@@ -468,19 +468,19 @@
   font-size: 14px;
   line-height: 1.6;
   color: var(--ink-2);
-  margin: var(--space-4) 0 0;
+  margin: var(--sp-4) 0 0;
 }
 
 .settings-confirm-actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-2);
-  margin-top: var(--space-6);
+  gap: var(--sp-2);
+  margin-top: var(--sp-6);
 }
 
 /* ── Skeletons ────────────────────────────────────────────────────────── */
 .skel {
-  background: linear-gradient(90deg, var(--bg-elev) 0%, oklch(0.26 0.007 260) 50%, var(--bg-elev) 100%);
+  background: linear-gradient(90deg, var(--surface) 0%, oklch(0.26 0.007 260) 50%, var(--surface) 100%);
   background-size: 800px 100%;
   animation: shimmer 1.6s infinite linear;
   border-radius: 6px;
@@ -495,13 +495,13 @@
 .skel-settings-title {
   width: 240px;
   height: 24px;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--sp-4);
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 720px) {
   .settings-tabs {
-    padding: 0 var(--space-4);
+    padding: 0 var(--sp-4);
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -516,8 +516,8 @@
   }
 
   .settings-main {
-    padding: var(--space-6) var(--space-4);
-    padding-bottom: calc(var(--space-8) + 64px);
+    padding: var(--sp-6) var(--sp-4);
+    padding-bottom: calc(var(--sp-8) + 64px);
     max-width: none;
     width: 100%;
   }

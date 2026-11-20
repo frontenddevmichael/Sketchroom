@@ -9,7 +9,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--green-500);
+  background: var(--ink);
   color: #fff;
   border: 2px solid rgba(255, 255, 255, 0.3);
   display: flex;
@@ -22,7 +22,7 @@
 
 .comment-pin-dot:hover {
   transform: scale(1.15);
-  box-shadow: 0 0 0 3px var(--green-500-25);
+  box-shadow: 0 0 0 3px var(--hair-strong);
 }
 
 .comment-pin-count {
@@ -32,14 +32,14 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--surface-2, #1a1a2e);
-  color: var(--green-500);
+  background: var(--fill-2);
+  color: var(--ink);
   font-size: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--green-500);
+  border: 1.5px solid var(--ink);
 }
 
 /* Thread panel */
@@ -50,7 +50,7 @@
   width: 280px;
   max-height: 400px;
   overflow-y: auto;
-  border-radius: var(--radius-md);
+  border-radius: var(--r-3);
   padding: 0;
   z-index: 20;
 }
@@ -60,30 +60,30 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--hair);
 }
 
 .comment-thread-title {
   font-size: var(--fs-sm);
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--ink);
 }
 
 .comment-thread-close {
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: var(--ink-2);
   cursor: pointer;
   padding: 2px;
   display: flex;
   align-items: center;
 }
-.comment-thread-close:hover { color: var(--text-primary); }
+.comment-thread-close:hover { color: var(--ink); }
 
 /* Comment items */
 .comment-item {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--hair);
 }
 
 .comment-item:last-child {
@@ -96,8 +96,8 @@
 }
 
 .comment-item-body {
-  font-size: var(--fs-sm, 13px);
-  color: var(--text-primary);
+  font-size: var(--fs-sm);
+  color: var(--ink);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -109,13 +109,13 @@
   justify-content: space-between;
   margin-top: 4px;
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--ink-3);
 }
 
 .comment-action-btn {
   background: none;
   border: none;
-  color: var(--text-tertiary);
+  color: var(--ink-3);
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -124,7 +124,7 @@
   transition: opacity 120ms;
 }
 .comment-item:hover .comment-action-btn { opacity: 1; }
-.comment-action-btn:hover { color: var(--red-400, #f87171); }
+.comment-action-btn:hover { color: var(--danger); }
 
 /* Reply button */
 .comment-reply-btn {
@@ -133,14 +133,14 @@
   padding: 8px 12px;
   background: none;
   border: none;
-  border-top: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  font-size: var(--fs-sm, 13px);
+  border-top: 1px solid var(--hair);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
   cursor: pointer;
   text-align: left;
 }
 .comment-reply-btn:hover {
-  color: var(--green-500);
+  color: var(--ink);
   background: rgba(37, 211, 102, 0.05);
 }
 
@@ -153,13 +153,13 @@
   padding: 8px 12px;
   background: none;
   border: none;
-  border-top: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  font-size: var(--fs-sm, 13px);
+  border-top: 1px solid var(--hair);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
   cursor: pointer;
 }
 .comment-resolve-btn:hover {
-  color: var(--green-500);
+  color: var(--ink);
   background: rgba(37, 211, 102, 0.05);
 }
 
@@ -167,17 +167,17 @@
 .comment-input {
   width: 100%;
   padding: 8px 10px;
-  background: var(--surface-1, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-size: var(--fs-sm, 13px);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-2);
+  color: var(--ink);
+  font-size: var(--fs-sm);
   font-family: inherit;
   resize: none;
   outline: none;
 }
 .comment-input:focus {
-  border-color: var(--green-500);
+  border-color: var(--ink);
 }
 .comment-input-sm {
   font-size: 12px;
@@ -196,7 +196,7 @@
   position: absolute;
   width: 260px;
   padding: 10px;
-  border-radius: var(--radius-md);
+  border-radius: var(--r-3);
   z-index: 25;
 }
 

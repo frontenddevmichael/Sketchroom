@@ -11,7 +11,7 @@
   stroke-dashoffset: 12;
   transform-origin: 50% 50%;
   animation: spinner-hop 1.3s infinite;
-  animation-timing-function: var(--ease-spring);
+  animation-timing-function: var(--ease-out);
 }
 
 @keyframes spinner-hop {

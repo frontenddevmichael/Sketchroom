@@ -1,234 +1,48 @@
+/* Sketchroom Blueprint tokens. Single source of truth. Delete all legacy tokens in index.css. */
+/* Sketchroom Blueprint tokens. Single source of truth. Delete all legacy tokens in index.css. */
 :root {
-  /* Neutrals — dark theme (near-black, subtly warm) */
-  --bg: oklch(0.16 0.005 260);
-  --bg-elev: oklch(0.20 0.006 260);
-  --bg-sunken: oklch(0.13 0.005 260);
-  --ink: oklch(0.98 0.003 85);
-  --ink-2: oklch(0.75 0.008 250);
-  --ink-3: oklch(0.62 0.008 250);
-  --ink-4: oklch(0.38 0.008 250);
-  --line: oklch(0.28 0.006 260);
-  --line-2: oklch(0.34 0.008 260);
+  --paper: #FAFAFA;
+  --surface: #FFFFFF;
+  --tile: #EDEDED;
+  --ink: #0A0A0A;
+  --ink-2: #3F3F3F;
+  --ink-3: #8A8A8A;   /* sub-copy on paper: 3.4:1, use >=18px only; body copy uses --ink-2 */
+  --hair: #E4E4E4;    /* 1px rules */
+  --hair-strong: #CFCFCF;
+  --guide: #D4D4D4;   /* dashed guides */
+  --fill-1: #FFFFFF; --fill-2: #F2F2F2; --fill-3: #E2E2E2; --fill-4: #CFCFCF;
+  --danger: #B42318; --focus: var(--ink);
+  --dot: rgb(10 10 10 / .08);
 
-  /* Single accent — signature emerald/lime */
-  --accent: oklch(0.78 0.19 148);
-  --accent-ink: oklch(0.16 0.03 148);
-  --accent-soft: oklch(0.35 0.09 148);
+  --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
 
-  /* State colors */
-  --live: oklch(0.78 0.19 148);
-  --warn: oklch(0.78 0.14 70);
-  --danger: oklch(0.68 0.19 25);
+  --fs-hero: clamp(2.75rem, 6.2vw, 4.5rem);
+  --fs-h2: clamp(1.75rem, 3vw, 2.5rem);
+  --fs-h3: 1.5rem; --fs-lead: 1.125rem; --fs-body: .9375rem; --fs-sm: .8125rem; --fs-tag: .6875rem;
+  --track-hero: -0.035em; --track-h: -0.02em;
 
-  /* Room preview backdrops (dark, distinct hue tints) */
-  --p1: oklch(0.22 0.02 320);
-  --p2: oklch(0.22 0.025 220);
-  --p3: oklch(0.22 0.025 55);
-  --p4: oklch(0.22 0.02 85);
-  --p5: oklch(0.22 0.025 155);
-  --p6: oklch(0.22 0.02 260);
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px; --sp-24: 96px;
+  --r-1: 4px; --r-2: 8px; --r-3: 12px; --r-pill: 999px;
+  --stroke: 1.25px; --stroke-ghost: 1px; --dash: 3 4;
+  --col: 1120px; --gutter: clamp(16px, 4vw, 48px);
 
-  /* Legacy tokens — kept for backward compatibility */
-  --green-50: #E9FBF0;
-  --green-400: #3DD877;
-  --green-500: #25D366;
-  --green-600: #1DA851;
-  --green-700: #16803D;
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --t-fast: 160ms; --t-panel: 280ms;
+  --shadow-sheet: 0 1px 2px rgb(0 0 0 / .06);
 
-  /* Green alpha variants — focus rings, ghost accents, glows */
-  --green-500-10: rgba(37, 211, 102, 0.10);
-  --green-500-12: rgba(37, 211, 102, 0.12);
-  --green-500-25: rgba(37, 211, 102, 0.25);
-  --green-500-28: rgba(37, 211, 102, 0.28);
-  --green-500-45: rgba(37, 211, 102, 0.45);
-  --green-500-50: rgba(37, 211, 102, 0.50);
-  --green-500-60: rgba(37, 211, 102, 0.60);
-
-  /* Legacy neutral tokens */
-  --neutral-0: #FFFFFF;
-  --neutral-25: #FBFBFB;
-  --neutral-100: #EFEFEF;
-  --neutral-150: #E8E8E8;
-  --neutral-500: #6B6B6B;
-  --neutral-900: #1E1E1E;
-  --neutral-850: #242424;
-  --neutral-700: #333333;
-  --neutral-600: #2A2A2A;
-  --neutral-400: #9A9A9A;
-  --neutral-50-dark: #F2F2F2;
-
-  /* Semantic color aliases */
-  --color-bg-canvas: var(--bg);
-  --color-bg-surface: var(--bg-elev);
-  --color-text-primary: var(--ink);
-  --color-text-secondary: var(--ink-2);
-  --color-text-tertiary: var(--ink-3);
-  --color-selected-bg: var(--bg-sunken);
-  --color-cta-default: var(--accent);
-  --color-cta-hover: oklch(0.82 0.2 148);
-  --color-cta-active: oklch(0.65 0.16 148);
-
-  /* Spacing */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-14: 56px;
-  --space-20: 80px;
-
-  /* Radius */
-  --radius-card: 14px;
-  --radius-btn: 8px;
-  --radius-pill: 999px;
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-full: 999px;
-
-  /* Animation */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --duration-fast: 180ms;
-  --duration-base: 320ms;
-  --duration-pulse: 2500ms;
-
-  /* Surface effects */
-  --surface-blur: 20px;
-  --surface-translucency-light: rgba(255, 255, 255, 0.72);
-  --surface-translucency-dark: rgba(20, 20, 20, 0.75);
-  --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.10);
-  --shadow-card-rest: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.08);
-
-  /* Glass surface system */
-  --glass-bg: rgba(18, 18, 18, 0.62);
-  --glass-bg-dense: rgba(18, 18, 18, 0.92);
-  --glass-bg-fallback: rgba(18, 18, 18, 0.96);
-  --glass-blur: 20px;
-  --glass-saturation: 1.4;
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
-
-  /* Scrollbar */
-  --scrollbar-size: 10px;
-  --scrollbar-thumb: rgba(255, 255, 255, 0.18);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
-  --scrollbar-track: transparent;
-
-  /* Typography */
-  --font-display: "Urbanist", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: "Nunito", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-handwriting: "Caveat", cursive, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
-  --font-family: var(--font-body);
-
-  /* Global z-scale — the only place stacking order is decided outside the
-     room, which owns its own documented --room-z-* band. */
-  --z-base: 0;
-  --z-raised: 10;
-  --z-sticky: 60;
-  --z-nav: 100;
-  --z-overlay: 200;
-  --z-modal: 300;
-  --z-toast: 400;
-  --z-skip-link: 10000;
-
-  /* AI ghost-block tones — a semantic set, not a second accent ramp.
-     The translucent dashed shape is the primary "this is AI" signal;
-     these hues only tint it. */
-  --ghost-blue: #5b8cff;
-  --ghost-blue-border: rgba(70, 137, 255, 0.5);
-  --ghost-blue-ink: #dbe7ff;
-  --ghost-blue-shadow: rgba(91, 140, 255, 0.25);
-  --ghost-purple: #a96bff;
-  --ghost-purple-border: rgba(165, 100, 255, 0.5);
-  --ghost-purple-ink: #eee0ff;
-  --ghost-purple-shadow: rgba(169, 107, 255, 0.25);
-  --ghost-green: #25d366;
-  --ghost-green-border: rgba(37, 211, 102, 0.5);
-  --ghost-green-ink: #d9ffe6;
-  --ghost-green-shadow: rgba(37, 211, 102, 0.25);
-  --ghost-orange: #ff9548;
-  --ghost-orange-border: rgba(255, 149, 56, 0.5);
-  --ghost-orange-ink: #ffe7d2;
-  --ghost-orange-shadow: rgba(255, 149, 72, 0.25);
-  --ghost-teal: #2cc7be;
-  --ghost-teal-border: rgba(44, 199, 190, 0.5);
-  --ghost-teal-ink: #d4fffb;
-  --ghost-teal-shadow: rgba(44, 199, 190, 0.25);
-  --ghost-yellow: #ffcd42;
-  --ghost-yellow-border: rgba(255, 205, 66, 0.5);
-  --ghost-yellow-ink: #fff3cf;
-  --ghost-yellow-shadow: rgba(255, 205, 66, 0.25);
-  --ghost-gray: #a0a0aa;
-  --ghost-gray-border: rgba(160, 160, 170, 0.5);
-  --ghost-gray-ink: #e6e6ea;
-  --ghost-gray-shadow: rgba(160, 160, 170, 0.25);
-  /* Brighter text variants for ghost blocks floated over the dark canvas. */
-  --ghost-blue-ink-dark: #b3ccff;
-  --ghost-purple-ink-dark: #d4b8ff;
-  --ghost-green-ink-dark: #b3ffcc;
-  --ghost-orange-ink-dark: #ffd4a8;
-  --ghost-teal-ink-dark: #b3fffa;
-  --ghost-yellow-ink-dark: #ffe8a8;
-  --ghost-gray-ink-dark: #d0d0d4;
-
-  /* Playful 10k vibe palette */
-  --playful-yellow: #FFE600;
-  --playful-coral: #FF5A5F;
-  --playful-cyan: #00F2FE;
-  --playful-violet: #9B51E0;
-  --playful-pink: #FF6584;
-  --playful-lime: #25D366;
-
-  /* Font sizes */
-  --fs-display: clamp(34px, 5.2vw, 64px);
-  --fs-title: clamp(28px, 3.6vw, 44px);
-  --fs-h3: clamp(20px, 2.4vw, 26px);
-  --fs-body: 16px;
-  --fs-sm: 14px;
-  --fs-xs: 13px;
-
-  /* Room chrome geometry */
-  --room-gutter: var(--space-4);
-  --room-rail-w: 52px;
-  --room-bar-h: 56px;
-  --room-topbar-h: 61px;
-  --room-btn: 40px;
-  --room-btn-sm: 36px;
-  --room-panel-top: calc(var(--room-gutter) + 56px);
-
-  /* Room z-layers */
-  --room-z-overlays: 5;
-  --room-z-panels: 30;
-  --room-z-rail: 35;
-  --room-z-context: 40;
-  --room-z-menu: 45;
-  --room-z-modal: 60;
-  --room-z-coachmarks: 55;
-
-  /* Semantic status colors */
-  --color-status-ok-bg: rgba(37, 211, 102, 0.12);
-  --color-status-ok-text: #4ADE80;
-  --color-status-warn-bg: rgba(255, 214, 102, 0.12);
-  --color-status-warn-text: #E6B45A;
-  --color-status-danger-bg: rgba(255, 99, 71, 0.12);
-  --color-status-danger-text: #FF8A7A;
-
-  /* Dark elevation system */
-  --dark-elevation-0: #000000;
-  --dark-elevation-1: #0D0D0D;
-  --dark-elevation-2: #161616;
-  --dark-elevation-3: #1F1F1F;
-  --dark-elevation-4: #262626;
-  --dark-hairline: rgba(255, 255, 255, 0.06);
-  --dark-canvas-grid-dot: rgba(255, 255, 255, 0.05);
+  /* z-panel = persistent app chrome (topbar, tool rail, controls).
+     z-sheet = floating panels/drawers that open OVER that chrome. */
+  --z-canvas: 0; --z-panel: 20; --z-sheet: 30; --z-modal: 40; --z-toast: 60; --z-tldraw: 100;
 }
+[data-theme="dark"] {
+  --paper: #0A0A0A; --surface: #141414; --tile: #1C1C1C;
+  --ink: #F5F5F5; --ink-2: #C9C9C9; --ink-3: #8F8F8F;
+  --hair: rgb(255 255 255 / .14); --hair-strong: rgb(255 255 255 / .24); --guide: rgb(255 255 255 / .18);
+  --fill-1: #141414; --fill-2: #1C1C1C; --fill-3: #262626; --fill-4: #333;
+  --dot: rgb(255 255 255 / .07); --danger: #F97066; --shadow-sheet: none;
+}
+@media (prefers-reduced-motion: reduce) { :root { --t-fast: 0ms; --t-panel: 0ms; } }
 
 * {
   box-sizing: border-box;
@@ -241,11 +55,11 @@ html, body, #root {
 }
 
 body {
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.5;
   color: var(--ink);
-  background: var(--bg);
+  background: var(--paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -255,26 +69,26 @@ body {
 /* Thin, quiet scrollbars everywhere */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-color: var(--hair-strong) transparent;
 }
 
 *::-webkit-scrollbar {
-  width: var(--scrollbar-size);
-  height: var(--scrollbar-size);
+  width: 10px;
+  height: 10px;
 }
 
 *::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: transparent;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: var(--radius-full);
-  border: 3px solid var(--scrollbar-track);
+  background: var(--hair-strong);
+  border-radius: var(--r-pill);
+  border: 3px solid transparent;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: var(--ink-3);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -289,11 +103,11 @@ body {
 }
 
 ::selection {
-  background: var(--accent-soft);
+  background: var(--fill-3);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
@@ -328,10 +142,10 @@ img {
   top: -100%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: var(--z-skip-link);
+  z-index: var(--z-toast);
   padding: 12px 24px;
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--ink);
+  color: var(--paper);
   font-weight: 700;
   font-size: 14px;
   border-radius: 0 0 8px 8px;

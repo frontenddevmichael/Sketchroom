@@ -13,20 +13,20 @@
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: var(--radius-xs);
-  border: 2px solid var(--neutral-400);
+  border-radius: var(--r-1);
+  border: 2px solid var(--ink-3);
   opacity: 0;
   transform-origin: 50% 50%;
-  animation: pulse-in 340ms var(--ease-spring) forwards;
+  animation: pulse-in 340ms var(--ease-out) forwards;
 }
 
 .placement-pulse-ai {
-  border-color: var(--green-500);
+  border-color: var(--ink);
   box-shadow: 0 0 0 6px rgba(37, 211, 102, 0.14);
 }
 
 .placement-pulse.leaving {
-  animation: pulse-out 540ms var(--ease-spring) forwards;
+  animation: pulse-out 540ms var(--ease-out) forwards;
 }
 
 @keyframes pulse-in {

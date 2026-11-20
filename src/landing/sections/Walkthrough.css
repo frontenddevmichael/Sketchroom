@@ -7,45 +7,45 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  background: var(--color-bg-surface);
-  border-top: 1px solid var(--neutral-100);
-  border-bottom: 1px solid var(--neutral-100);
+  background: var(--surface);
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
 }
 
 [data-theme='dark'] .wt-pinned {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
+  background: var(--surface);
+  border-color: var(--hair);
 }
 
 .wt-grid {
   width: 100%;
   max-width: 1160px;
   margin: 0 auto;
-  padding: 0 var(--space-6);
+  padding: 0 var(--sp-6);
   display: grid;
   grid-template-columns: 72px 1fr 1.15fr;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--sp-8);
   position: relative;
 }
 
 .wt-rail {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--sp-3);
 }
 
 .wt-rail-item {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--neutral-400);
+  color: var(--ink-3);
   position: relative;
-  padding-left: var(--space-6);
+  padding-left: var(--sp-6);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  transition: color var(--duration-base) var(--ease-spring);
+  gap: var(--sp-2);
+  transition: color var(--t-panel) var(--ease-out);
 }
 
 .wt-rail-dot {
@@ -54,11 +54,11 @@
   border-radius: 50%;
   position: absolute;
   left: 0;
-  transition: background-color var(--duration-base) var(--ease-spring);
+  transition: background-color var(--t-panel) var(--ease-out);
 }
 
 .wt-rail-active {
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .wt-copy {
@@ -73,8 +73,8 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--green-600);
-  margin-bottom: var(--space-3);
+  color: var(--ink);
+  margin-bottom: var(--sp-3);
 }
 
 .wt-title {
@@ -82,37 +82,37 @@
   line-height: 1.12;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: var(--color-text-primary);
-  margin: 0 0 var(--space-4);
+  color: var(--ink);
+  margin: 0 0 var(--sp-4);
   text-wrap: balance;
 }
 
 .wt-body {
   font-size: 15px;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   margin: 0;
   text-wrap: pretty;
 }
 
 .wt-progress {
-  margin-top: var(--space-8);
+  margin-top: var(--sp-8);
   height: 2px;
   width: 100%;
   max-width: 260px;
-  background: var(--neutral-100);
-  border-radius: var(--radius-full);
+  background: var(--hair);
+  border-radius: var(--r-pill);
   overflow: hidden;
 }
 
 [data-theme='dark'] .wt-progress {
-  background: var(--neutral-600);
+  background: var(--ink-2);
 }
 
 .wt-progress-bar {
   height: 100%;
-  background: var(--green-500);
-  border-radius: var(--radius-full);
+  background: var(--ink);
+  border-radius: var(--r-pill);
   transition: width 0.25s ease;
 }
 
@@ -126,35 +126,35 @@
 /* Scroll-to-explore affordance, shown at the first step. */
 .wt-scroll-hint {
   position: absolute;
-  right: var(--space-6);
-  bottom: var(--space-6);
+  right: var(--sp-6);
+  bottom: var(--sp-6);
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-full);
-  background: var(--surface-translucency-light);
-  backdrop-filter: blur(var(--surface-blur));
-  -webkit-backdrop-filter: blur(var(--surface-blur));
-  border: 1px solid var(--neutral-100);
-  box-shadow: var(--shadow-card-hover);
-  color: var(--color-text-secondary);
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border: 1px solid var(--hair);
+  box-shadow: var(--shadow-sheet);
+  color: var(--ink-2);
   font-size: 12px;
   font-weight: 500;
   pointer-events: none;
 }
 
 [data-theme='dark'] .wt-scroll-hint {
-  background: var(--surface-translucency-dark);
-  border-color: var(--dark-hairline);
+  background: var(--surface);
+  border-color: var(--hair);
 }
 
 .wt-scroll-wheel {
   width: 22px;
   height: 34px;
-  border: 1.5px solid var(--color-text-secondary);
-  border-radius: var(--radius-md);
+  border: 1.5px solid var(--ink-2);
+  border-radius: var(--r-3);
   display: flex;
   justify-content: center;
   padding-top: 5px;
@@ -163,8 +163,8 @@
 .wt-scroll-wheel-dot {
   width: 4px;
   height: 8px;
-  border-radius: var(--radius-full);
-  background: var(--green-500);
+  border-radius: var(--r-pill);
+  background: var(--ink);
   animation: wt-wheel 1.6s ease-in-out infinite;
 }
 
@@ -187,62 +187,62 @@
   }
 }
 .wt-static {
-  padding-top: var(--space-20);
-  padding-bottom: var(--space-20);
+  padding-top: var(--sp-16);
+  padding-bottom: var(--sp-16);
 }
 
 .wt-static-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--space-6);
-  margin-top: var(--space-10);
+  gap: var(--sp-6);
+  margin-top: var(--sp-8);
 }
 
 .wt-static-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .wt-static-num {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--green-600);
+  color: var(--ink);
 }
 
 .wt-static-title {
   font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--color-text-primary);
+  color: var(--ink);
   margin: 0;
 }
 
 .wt-static-body {
   font-size: 14px;
   line-height: 1.55;
-  color: var(--color-text-secondary);
-  margin: 0 0 var(--space-3);
+  color: var(--ink-2);
+  margin: 0 0 var(--sp-3);
   text-wrap: pretty;
 }
 
 @media (max-width: 900px) {
   .wt-grid {
     grid-template-columns: 1fr;
-    gap: var(--space-6);
-    padding: 0 var(--space-6);
+    gap: var(--sp-6);
+    padding: 0 var(--sp-6);
   }
 
   .wt-rail {
     flex-direction: row;
     justify-content: center;
     order: 2;
-    margin-top: var(--space-6);
+    margin-top: var(--sp-6);
   }
 
   .wt-rail-item {
-    padding-left: var(--space-2);
+    padding-left: var(--sp-2);
   }
 
   .wt-rail-item::before {
@@ -258,6 +258,6 @@
   }
 
   .wt-canvas {
-    margin-top: var(--space-6);
+    margin-top: var(--sp-6);
   }
 }

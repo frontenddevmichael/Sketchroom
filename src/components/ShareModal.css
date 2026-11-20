@@ -7,20 +7,20 @@
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: var(--space-6);
+  padding: var(--sp-6);
 }
 
 .modal-card {
   width: 100%;
   max-width: 520px;
-  background: var(--glass-bg-dense);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-shadow);
-  padding: var(--space-8);
-  animation: modal-in var(--duration-base) var(--ease-spring);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(0px) saturate(1);
+  backdrop-filter: blur(0px) saturate(1);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-3);
+  box-shadow: inset 0 1px 0 var(--surface), var(--shadow-sheet);
+  padding: var(--sp-8);
+  animation: modal-in var(--t-panel) var(--ease-out);
   max-height: 82svh;
   overflow-y: auto;
   scrollbar-width: none;
@@ -33,7 +33,7 @@
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .modal-card {
-    background: var(--glass-bg-fallback);
+    background: var(--surface);
   }
 }
 
@@ -52,36 +52,36 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--sp-6);
 }
 
 .modal-title {
   font-size: 20px;
   font-weight: 600;
   margin: 0;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .modal-close {
   width: 34px;
   height: 34px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-secondary);
-  transition: background var(--duration-fast) var(--ease-spring);
+  color: var(--ink-2);
+  transition: background var(--t-fast) var(--ease-out);
 }
 
 .modal-close:hover {
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  color: var(--ink);
 }
 
 .share-link-row {
   display: flex;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
 }
 
 .share-link-row .input {
@@ -91,7 +91,7 @@
 
 .share-link-actions {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--sp-2);
   flex-shrink: 0;
 }
 
@@ -102,18 +102,18 @@
 
 .share-copy {
   flex-shrink: 0;
-  padding: 0 var(--space-4);
+  padding: 0 var(--sp-4);
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--sp-2);
   font-size: 13px;
 }
 
 .share-invite-row {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--sp-3);
   align-items: center;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--sp-4);
 }
 
 .share-invite-input-wrap {
@@ -126,7 +126,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   pointer-events: none;
 }
 
@@ -143,36 +143,36 @@
 .share-error {
   font-size: 13px;
   color: #c0392b;
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--sp-3);
 }
 
 .share-members {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--neutral-100);
-  padding-top: var(--space-4);
-  gap: var(--space-1);
+  border-top: 1px solid var(--hair);
+  padding-top: var(--sp-4);
+  gap: var(--sp-1);
 }
 
 .share-member {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2);
-  border-radius: var(--radius-sm);
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  border-radius: var(--r-2);
 }
 
 .share-member:hover {
-  background: var(--color-selected-bg);
+  background: var(--fill-2);
 }
 
 .share-member-avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--neutral-150);
-  color: var(--color-text-primary);
-  border: 1.5px solid var(--neutral-500);
+  background: var(--hair-strong);
+  color: var(--ink);
+  border: 1.5px solid var(--ink-3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,7 +198,7 @@
 .share-member-name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -206,7 +206,7 @@
 
 .share-member-email {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -214,14 +214,14 @@
 
 .share-member-owner {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   flex-shrink: 0;
 }
 
 .share-member-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--sp-2);
   flex-shrink: 0;
 }
 
@@ -232,7 +232,7 @@
 
 .share-remove {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   text-decoration: underline;
   text-underline-offset: 3px;
   padding: 4px;
@@ -245,7 +245,7 @@
 .share-remove-confirm {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .share-remove-confirm .share-remove-danger {
@@ -255,23 +255,23 @@
 
 .share-remove-cancel {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   text-decoration: underline;
   text-underline-offset: 3px;
   padding: 4px;
 }
 
 .share-remove-cancel:hover {
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .share-pending {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  border-top: 1px solid var(--neutral-100);
-  padding-top: var(--space-4);
-  margin-bottom: var(--space-4);
+  gap: var(--sp-1);
+  border-top: 1px solid var(--hair);
+  padding-top: var(--sp-4);
+  margin-bottom: var(--sp-4);
 }
 
 .share-pending-title {
@@ -279,27 +279,27 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: var(--color-text-secondary);
-  margin: 0 0 var(--space-2);
+  color: var(--ink-2);
+  margin: 0 0 var(--sp-2);
 }
 
 .share-pending-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2);
-  border-radius: var(--radius-sm);
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  border-radius: var(--r-2);
 }
 
 .share-pending-row:hover {
-  background: var(--color-selected-bg);
+  background: var(--fill-2);
 }
 
 .share-pending-email {
   flex: 1;
   min-width: 0;
   font-size: 13px;
-  color: var(--color-text-primary);
+  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -308,7 +308,7 @@
 .share-pending-role,
 .share-pending-status {
   font-size: 11px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   text-transform: capitalize;
   flex-shrink: 0;
 }
@@ -321,11 +321,11 @@
 }
 
 [data-theme="dark"] .share-members {
-  border-top-color: var(--dark-hairline);
+  border-top-color: var(--hair);
 }
 
 [data-theme="dark"] .share-pending {
-  border-top-color: var(--dark-hairline);
+  border-top-color: var(--hair);
 }
 
 [data-theme="dark"] .share-error {
@@ -343,34 +343,34 @@
 .share-members-skel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .share-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-8) var(--space-4);
+  gap: var(--sp-2);
+  padding: var(--sp-8) var(--sp-4);
   text-align: center;
 }
 
 .share-empty .illo {
   width: 96px;
   height: 72px;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--sp-2);
 }
 
 .share-empty-title {
   font-size: 15px;
   font-weight: 600;
   margin: 0;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .share-empty-text {
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   line-height: 1.6;
   margin: 0;
   max-width: 280px;
@@ -378,7 +378,7 @@
 
 /* Staggered reveal when real member rows replace skeletons. */
 .share-member {
-  animation: share-member-in calc(var(--duration-base) * 1.1) var(--ease-spring) both;
+  animation: share-member-in calc(var(--t-panel) * 1.1) var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 45ms);
 }
 

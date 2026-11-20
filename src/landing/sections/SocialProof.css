@@ -19,7 +19,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--green-600);
+  color: var(--ink);
   margin-bottom: 16px;
 }
 
@@ -27,16 +27,16 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--green-500);
+  background: var(--ink);
 }
 
 .social-title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.1;
-  color: var(--color-text-primary);
+  color: var(--ink);
   margin: 0 0 16px;
   text-wrap: balance;
 }
@@ -44,7 +44,7 @@
 .social-sub {
   font-size: 18px;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   max-width: 520px;
   margin: 0 auto;
   text-wrap: pretty;
@@ -68,25 +68,25 @@
   display: flex;
   flex-direction: column;
   padding: 28px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--neutral-100);
-  background: var(--color-bg-surface);
+  border-radius: var(--r-3);
+  border: 1px solid var(--hair);
+  background: var(--surface);
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 [data-theme='dark'] .social-card {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }
 
 .social-card:hover {
-  border-color: var(--neutral-300);
+  border-color: var(--hair-strong);
   transform: translateY(-2px);
 }
 
 .social-quote {
   font-size: 15px;
   line-height: 1.65;
-  color: var(--color-text-primary);
+  color: var(--ink);
   margin: 0 0 24px;
   text-wrap: pretty;
   flex: 1;
@@ -102,13 +102,13 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--color-selected-bg);
+  background: var(--fill-2);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   flex-shrink: 0;
 }
 
@@ -120,12 +120,12 @@
 .social-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .social-role {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 /* ── Logo bar ─────────────────────────────────────────────────────────── */
@@ -140,7 +140,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--ink-3);
   margin-bottom: 28px;
 }
 
@@ -153,10 +153,10 @@
 }
 
 .social-logo {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 16px;
   font-weight: 700;
-  color: var(--color-text-tertiary);
+  color: var(--ink-3);
   opacity: 0.4;
   transition: opacity 0.2s ease;
 }

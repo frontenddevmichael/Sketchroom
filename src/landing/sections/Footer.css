@@ -1,14 +1,14 @@
 /* ── Framer-style mega footer ─────────────────────────────────────────── */
 
 .footer {
-  background: var(--color-bg-surface);
-  border-top: 1px solid var(--neutral-100);
+  background: var(--surface);
+  border-top: 1px solid var(--hair);
   padding: 80px 32px 40px;
 }
 
 [data-theme='dark'] .footer {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
+  background: var(--surface);
+  border-color: var(--hair);
 }
 
 .footer-inner {
@@ -24,26 +24,26 @@
   justify-content: space-between;
   gap: 24px;
   padding-bottom: 40px;
-  border-bottom: 1px solid var(--neutral-100);
+  border-bottom: 1px solid var(--hair);
   margin-bottom: 24px;
 }
 
 [data-theme='dark'] .footer-top {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }
 
 .footer-top-headline {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: clamp(24px, 3vw, 40px);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.1;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .footer-top-highlight {
-  color: var(--green-500);
+  color: var(--ink);
 }
 
 .footer-top-cta {
@@ -52,8 +52,8 @@
   gap: 8px;
   flex-shrink: 0;
   padding: 12px 24px;
-  border-radius: var(--radius-sm);
-  background: var(--green-500);
+  border-radius: var(--r-2);
+  background: var(--ink);
   color: #fff;
   font-size: 15px;
   font-weight: 600;
@@ -83,14 +83,14 @@
   gap: 8px;
   padding: 12px 0 40px;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 .footer-counter-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--green-500);
+  background: var(--ink);
   flex-shrink: 0;
   animation: footer-counter-pulse 2.2s ease-out infinite;
 }
@@ -102,7 +102,7 @@
 }
 
 .footer-counter-text strong {
-  color: var(--color-text-primary);
+  color: var(--ink);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -120,12 +120,12 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 40px;
   padding-bottom: 60px;
-  border-bottom: 1px solid var(--neutral-100);
+  border-bottom: 1px solid var(--hair);
   margin-bottom: 48px;
 }
 
 [data-theme='dark'] .footer-columns {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }
 
 .footer-col {
@@ -139,7 +139,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   margin: 0;
 }
 
@@ -154,13 +154,13 @@
 
 .footer-link {
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
 .footer-link:hover {
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 /* ── Wordmark ───────────────────────────────────────────────────────── */
@@ -168,12 +168,12 @@
 .footer-wordmark {
   text-align: center;
   padding: 48px 0;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: clamp(48px, 10vw, 120px);
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1;
-  color: var(--color-text-primary);
+  color: var(--ink);
   opacity: 0.06;
   user-select: none;
 }
@@ -186,18 +186,18 @@
   align-items: center;
   gap: 16px;
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 .footer-bottom-tagline {
-  color: var(--color-text-tertiary);
+  color: var(--ink-3);
 }
 
 .footer-top-btn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   background: none;
   border: none;
   padding: 0;
@@ -208,7 +208,7 @@
 }
 
 .footer-top-btn:hover {
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .footer-top-btn svg {
@@ -223,7 +223,7 @@
 .footer-top-cta:focus-visible,
 .footer-link:focus-visible,
 .footer-top-btn:focus-visible {
-  outline: 2px solid var(--green-500);
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
   border-radius: 2px;
 }

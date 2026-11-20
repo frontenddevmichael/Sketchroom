@@ -30,7 +30,7 @@
   gap: 5px;
   margin-top: 9px;
   padding: 2px 8px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   font-size: 11px;
   font-weight: 700;
   color: #fff;
@@ -55,18 +55,18 @@
 /* Emoji reaction picker strip */
 .presence-emoji-bar {
   position: absolute;
-  bottom: calc(var(--room-bar-h) + 24px);
-  right: var(--room-gutter);
+  bottom: calc(56px + 24px);
+  right: var(--sp-4);
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  border-radius: var(--radius-full);
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border: 1px solid var(--hair);
+  box-shadow: var(--shadow-sheet);
   z-index: 30;
   pointer-events: auto;
 }
@@ -75,7 +75,7 @@
   font-size: 16px;
   padding: 4px 6px;
   border-radius: 50%;
-  transition: transform var(--duration-fast) var(--ease-spring);
+  transition: transform var(--t-fast) var(--ease-out);
 }
 
 .presence-emoji-btn:hover {

@@ -17,7 +17,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--green-600);
+  color: var(--ink);
   margin-bottom: 16px;
 }
 
@@ -25,16 +25,16 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--green-500);
+  background: var(--ink);
 }
 
 .comp-title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.1;
-  color: var(--color-text-primary);
+  color: var(--ink);
   margin: 0 0 16px;
   text-wrap: balance;
 }
@@ -42,7 +42,7 @@
 .comp-sub {
   font-size: 18px;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   max-width: 560px;
   margin: 0 auto;
   text-wrap: pretty;
@@ -52,14 +52,14 @@
 
 .comp-table-wrap {
   overflow-x: auto;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--neutral-100);
-  background: var(--color-bg-surface);
+  border-radius: var(--r-3);
+  border: 1px solid var(--hair);
+  background: var(--surface);
   padding: 20px;
 }
 
 [data-theme='dark'] .comp-table-wrap {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }
 
 .comp-table {
@@ -72,12 +72,12 @@
 .comp-td {
   padding: 16px 24px;
   text-align: center;
-  border-bottom: 1px solid var(--neutral-100);
+  border-bottom: 1px solid var(--hair);
 }
 
 [data-theme='dark'] .comp-th,
 [data-theme='dark'] .comp-td {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }
 
 .comp-th {
@@ -85,19 +85,19 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 .comp-th-feature,
 .comp-td-feature {
   text-align: left;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .comp-th--highlight,
 .comp-td--highlight {
-  background: var(--green-50);
+  background: var(--fill-2);
 }
 
 [data-theme='dark'] .comp-th--highlight,
@@ -106,7 +106,7 @@
 }
 
 .comp-th--highlight {
-  color: var(--green-600);
+  color: var(--ink);
   font-weight: 700;
 }
 

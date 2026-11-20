@@ -8,7 +8,7 @@
 .trust-avatars {
   display: none;
   align-items: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--sp-6);
 }
 
 .trust-avatar {
@@ -21,9 +21,9 @@
   font-size: 14px;
   font-weight: 700;
   color: #fff;
-  border: 2px solid var(--color-bg-canvas);
+  border: 2px solid var(--paper);
   /* Each avatar springs in, one after the other — the room filling up. */
-  animation: trust-avatar-in var(--duration-base) var(--ease-spring) backwards;
+  animation: trust-avatar-in var(--t-panel) var(--ease-out) backwards;
 }
 
 .trust-avatar:nth-child(1) { animation-delay: 0s; }
@@ -55,7 +55,7 @@
   inset: -3px;
   border-radius: 50%;
   box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4);
-  animation: trust-copilot-ping 2.6s var(--ease-spring) 0.8s infinite;
+  animation: trust-copilot-ping 2.6s var(--ease-out) 0.8s infinite;
   pointer-events: none;
 }
 
@@ -83,26 +83,26 @@
 }
 
 .t-a1 {
-  background: var(--green-500);
+  background: var(--ink);
   color: #fff;
 }
 
 .t-a2 {
-  background: var(--neutral-500);
+  background: var(--ink-3);
 }
 
 .t-a3 {
-  background: var(--dark-hairline);
+  background: var(--hair);
 }
 
 .t-a4 {
-  background: var(--neutral-500);
+  background: var(--ink-3);
 }
 
 .trust-avatar-empty {
   background: transparent;
-  border: 1.5px dashed var(--neutral-400);
-  color: var(--neutral-400);
+  border: 1.5px dashed var(--ink-3);
+  color: var(--ink-3);
 }
 
 .trust-title {
@@ -117,21 +117,21 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: var(--space-3);
-  margin-top: var(--space-8);
+  gap: var(--sp-3);
+  margin-top: var(--sp-8);
 }
 
 .trust-slot {
   padding: 10px 18px;
-  border-radius: var(--radius-full);
-  border: 1.5px dashed var(--neutral-400);
-  color: var(--neutral-400);
+  border-radius: var(--r-pill);
+  border: 1.5px dashed var(--ink-3);
+  color: var(--ink-3);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
 
 [data-theme='dark'] .trust-slot {
-  border-color: var(--dark-hairline);
-  color: var(--neutral-500);
+  border-color: var(--hair);
+  color: var(--ink-3);
 }

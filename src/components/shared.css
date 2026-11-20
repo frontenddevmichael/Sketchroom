@@ -5,8 +5,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-5);
-  background: var(--color-bg-canvas);
+  gap: var(--sp-4);
+  background: var(--paper);
   overflow: hidden;
 }
 
@@ -17,7 +17,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(var(--color-text-tertiary) 1px, transparent 1px);
+  background-image: radial-gradient(var(--ink-3) 1px, transparent 1px);
   background-size: 26px 26px;
   opacity: 0.26;
   pointer-events: none;
@@ -35,7 +35,7 @@
   pointer-events: none;
   /* The glow breathes on a long cycle — the room feels alive while it loads,
      not pinned. */
-  animation: loader-glow-breathe 4.5s var(--ease-spring) infinite;
+  animation: loader-glow-breathe 4.5s var(--ease-out) infinite;
 }
 
 @keyframes loader-glow-breathe {
@@ -77,7 +77,7 @@
 }
 
 .loader-ring {
-  stroke: var(--color-text-tertiary);
+  stroke: var(--ink-3);
   stroke-width: 1.5;
   stroke-dasharray: 2 6;
   stroke-linecap: round;
@@ -87,16 +87,16 @@
 }
 
 .loader-star {
-  stroke: var(--green-500);
+  stroke: var(--ink);
   stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  fill: var(--green-500);
+  fill: var(--ink);
   fill-opacity: 0;
   animation:
-    loader-draw 1.3s var(--ease-spring) forwards,
+    loader-draw 1.3s var(--ease-out) forwards,
     loader-fill 0.5s ease 1.05s forwards;
 }
 
@@ -130,14 +130,14 @@
   font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .loader-letter {
   display: inline-block;
   opacity: 0;
   transform: translateY(6px);
-  animation: loader-letter-in var(--duration-base) var(--ease-spring) forwards;
+  animation: loader-letter-in var(--t-panel) var(--ease-out) forwards;
   animation-delay: calc(0.28s + var(--i) * 45ms);
 }
 
@@ -152,16 +152,16 @@
    stroke technique as the star, tying the mark together. */
 .loader-underline {
   display: block;
-  margin-top: var(--space-1);
+  margin-top: var(--sp-1);
 }
 
 .loader-underline path {
-  stroke: var(--green-500);
+  stroke: var(--ink);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: loader-underline-draw 0.7s var(--ease-spring) 0.5s forwards;
+  animation: loader-underline-draw 0.7s var(--ease-out) 0.5s forwards;
 }
 
 @keyframes loader-underline-draw {
@@ -173,16 +173,16 @@
 .loader-label {
   margin: 0;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--sp-2);
   animation: loader-fade-in 0.6s ease 0.6s both;
 }
 
 .loader-sub {
   font-size: 12px;
-  color: var(--color-text-tertiary);
+  color: var(--ink-3);
 }
 
 @keyframes loader-fade-in {
@@ -231,26 +231,26 @@
    by all floating tool chrome (dock, rail, topbar, panels, modals). Falls back
    to a near-opaque surface when backdrop-filter is unavailable. */
 .glass {
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  border: 1px solid var(--glass-border);
-  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-shadow);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(0px) saturate(1);
+  backdrop-filter: blur(0px) saturate(1);
+  border: 1px solid var(--hair);
+  box-shadow: inset 0 1px 0 var(--surface), var(--shadow-sheet);
 }
 
 /* Denser glass for text-heavy surfaces (modals) where legibility wins. */
 .glass-dense {
-  background: var(--glass-bg-dense);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  border: 1px solid var(--glass-border);
-  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-shadow);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(0px) saturate(1);
+  backdrop-filter: blur(0px) saturate(1);
+  border: 1px solid var(--hair);
+  box-shadow: inset 0 1px 0 var(--surface), var(--shadow-sheet);
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass,
   .glass-dense {
-    background: var(--glass-bg-fallback);
+    background: var(--surface);
   }
 }
 
@@ -271,15 +271,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg-canvas);
-  padding: var(--space-6);
+  background: var(--paper);
+  padding: var(--sp-6);
   overflow: hidden;
 }
 
 .error-grid-bg {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(var(--neutral-100) 1px, transparent 1px);
+  background-image: radial-gradient(var(--hair) 1px, transparent 1px);
   background-size: 24px 24px;
   opacity: 0.5;
 }
@@ -292,12 +292,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--sp-4);
 }
 
 .error-icon {
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-2);
+  color: var(--ink-2);
+  margin-bottom: var(--sp-2);
 }
 
 .error-title {
@@ -305,34 +305,34 @@
   font-weight: 600;
   letter-spacing: -0.5px;
   margin: 0;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .error-message {
   font-size: 15px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   line-height: 1.6;
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--sp-4);
 }
 
 .btn-outline {
   background: transparent;
-  color: var(--color-text-primary);
-  border: 1px solid var(--neutral-150);
+  color: var(--ink);
+  border: 1px solid var(--hair-strong);
 }
 
 .btn-outline:hover {
-  background: var(--color-selected-bg);
+  background: var(--fill-2);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 .btn-ghost:hover {
-  background: var(--color-selected-bg);
-  color: var(--color-text-primary);
+  background: var(--fill-2);
+  color: var(--ink);
 }
 
 .btn-danger {
@@ -350,15 +350,15 @@
 }
 
 [data-theme="dark"] .error-grid-bg {
-  background-image: radial-gradient(var(--dark-canvas-grid-dot) 1px, transparent 1px);
+  background-image: radial-gradient(var(--dot) 1px, transparent 1px);
 }
 
 [data-theme="dark"] .btn-outline {
-  border-color: var(--dark-hairline);
+  border-color: var(--hair);
 }
 
 [data-theme="dark"] .btn-ghost:hover {
-  background: var(--dark-elevation-3);
+  background: var(--fill-3);
 }
 
 [data-theme="dark"] .btn-danger {
@@ -371,16 +371,16 @@
 }
 
 [data-theme="dark"] .user-menu-avatar {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
+  background: var(--surface);
+  border-color: var(--hair);
 }
 
 [data-theme="dark"] .user-menu-avatar:hover {
-  border-color: var(--color-text-secondary);
+  border-color: var(--ink-2);
 }
 
 [data-theme="dark"] .user-menu-item:hover {
-  background: var(--dark-elevation-3);
+  background: var(--fill-3);
 }
 
 [data-theme="dark"] .user-menu-item-danger:hover {
@@ -401,9 +401,9 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: var(--z-sticky);
-    background: var(--color-bg-surface);
-    border-top: 1px solid var(--neutral-100);
+    z-index: var(--z-panel);
+    background: var(--surface);
+    border-top: 1px solid var(--hair);
     padding-bottom: env(safe-area-inset-bottom);
   }
 
@@ -416,19 +416,19 @@
     padding: 10px 4px 12px;
     font-size: 11px;
     font-weight: 500;
-    color: var(--color-text-secondary);
-    transition: color var(--duration-fast) var(--ease-spring),
-      background var(--duration-fast) var(--ease-spring);
+    color: var(--ink-2);
+    transition: color var(--t-fast) var(--ease-out),
+      background var(--t-fast) var(--ease-out);
   }
 
   .app-tab.active {
-    color: var(--color-text-primary);
-    background: var(--color-selected-bg);
+    color: var(--ink);
+    background: var(--fill-2);
   }
 }
 
 [data-theme='dark'] .app-tabbar {
-  border-top-color: var(--dark-hairline);
+  border-top-color: var(--hair);
   background: #000;
 }
 
@@ -446,23 +446,23 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid var(--glass-border);
-  background: var(--color-bg-surface);
-  color: var(--color-text-primary);
+  border: 1px solid var(--hair);
+  background: var(--surface);
+  color: var(--ink);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   padding: 0;
-  transition: border-color var(--duration-fast) var(--ease-spring),
-    box-shadow var(--duration-fast) var(--ease-spring);
+  transition: border-color var(--t-fast) var(--ease-out),
+    box-shadow var(--t-fast) var(--ease-out);
 }
 
 .user-menu-avatar:hover {
-  border-color: var(--color-text-secondary);
+  border-color: var(--ink-2);
 }
 
 .user-menu-avatar:focus-visible {
-  outline: 2px solid var(--green-500);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
@@ -470,7 +470,7 @@
 .user-menu-lg .user-menu-avatar {
   width: 64px;
   height: 64px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-3);
   font-size: 22px;
   border-width: 2px;
 }
@@ -492,19 +492,19 @@
   position: absolute;
   top: calc(100% + 10px);
   right: -8px;
-  z-index: var(--z-raised);
+  z-index: var(--z-panel);
   width: 264px;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: var(--space-2);
-  border-radius: var(--radius-md);
-  background: var(--glass-bg-dense);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  border: 1px solid var(--glass-border);
-  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-shadow);
-  animation: menu-in var(--duration-fast) var(--ease-spring);
+  padding: var(--sp-2);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(0px) saturate(1);
+  backdrop-filter: blur(0px) saturate(1);
+  border: 1px solid var(--hair);
+  box-shadow: inset 0 1px 0 var(--surface), var(--shadow-sheet);
+  animation: menu-in var(--t-fast) var(--ease-out);
 }
 
 /* Up placement (sidebar, settings rows): open above the avatar, growing over
@@ -522,7 +522,7 @@
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .user-menu-popover {
-    background: var(--glass-bg-fallback);
+    background: var(--surface);
   }
 }
 
@@ -535,9 +535,9 @@
   width: 12px;
   height: 12px;
   transform: rotate(45deg);
-  background: var(--glass-bg-dense);
-  border-right: 1px solid var(--glass-border);
-  border-bottom: 1px solid var(--glass-border);
+  background: var(--surface);
+  border-right: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
   border-radius: 0 0 3px 0;
   pointer-events: none;
 }
@@ -548,8 +548,8 @@
   right: 14px;
   transform: rotate(45deg);
   border: none;
-  border-left: 1px solid var(--glass-border);
-  border-top: 1px solid var(--glass-border);
+  border-left: 1px solid var(--hair);
+  border-top: 1px solid var(--hair);
   border-radius: 3px 0 0 0;
 }
 
@@ -563,14 +563,14 @@
 .user-menu-head {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-2) var(--space-3);
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-2) var(--sp-3);
 }
 
 .user-menu-head-avatar {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-md);
+  border-radius: var(--r-3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -579,7 +579,7 @@
   font-size: 15px;
   font-weight: 700;
   color: #fff;
-  background: var(--neutral-400);
+  background: var(--ink-3);
 }
 
 .user-menu-head-avatar img {
@@ -598,7 +598,7 @@
 .user-menu-head-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -606,7 +606,7 @@
 
 .user-menu-head-email {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -617,45 +617,45 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin: 0 var(--space-1) var(--space-1);
-  padding: var(--space-2) var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--neutral-100);
+  margin: 0 var(--sp-1) var(--sp-1);
+  padding: var(--sp-2) var(--sp-2) var(--sp-3);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  border: 1px solid var(--hair);
 }
 
 .user-menu-plan-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .user-menu-plan-name {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--ink);
 }
 
 .user-menu-plan-count {
   font-size: 11.5px;
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
 }
 
 .user-menu-plan-bar {
   height: 5px;
-  border-radius: var(--radius-full);
-  background: var(--neutral-100);
+  border-radius: var(--r-pill);
+  background: var(--hair);
   overflow: hidden;
 }
 
 .user-menu-plan-fill {
   display: block;
   height: 100%;
-  border-radius: var(--radius-full);
-  background: var(--green-500);
-  transition: width var(--duration-base) var(--ease-spring);
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  transition: width var(--t-panel) var(--ease-out);
 }
 
 .user-menu-plan-upgrade {
@@ -665,26 +665,26 @@
   align-self: flex-start;
   padding: 3px 6px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   background: transparent;
-  color: var(--green-700);
-  font: 600 12px var(--font-family);
+  color: var(--ink-2);
+  font: 600 12px var(--font-sans);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-spring);
+  transition: background var(--t-fast) var(--ease-out);
 }
 
 .user-menu-plan-upgrade:hover {
-  background: var(--green-500-12);
+  background: var(--hair);
 }
 
 [data-theme='dark'] .user-menu-plan-upgrade {
-  color: var(--green-400);
+  color: var(--ink-2);
 }
 
 .user-menu-sep {
   height: 1px;
   margin: 2px 0 4px;
-  background: var(--glass-border);
+  background: var(--hair);
 }
 
 .user-menu-item {
@@ -694,45 +694,45 @@
   width: 100%;
   padding: 8px 10px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   background: transparent;
-  color: var(--color-text-primary);
+  color: var(--ink);
   font: inherit;
   font-size: 13px;
   text-align: left;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-spring);
+  transition: background var(--t-fast) var(--ease-out);
 }
 
 .user-menu-item:hover {
-  background: var(--color-selected-bg);
+  background: var(--fill-2);
 }
 
 .user-menu-item:focus-visible {
-  outline: 2px solid var(--green-500);
+  outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
 
 /* Sign out is the terminal action — the one destructive row in the modal. */
 .user-menu-item-danger {
-  color: var(--color-status-danger-text);
+  color: var(--danger);
 }
 
 .user-menu-item-danger:hover {
-  background: var(--color-status-danger-bg);
+  background: var(--danger);
 }
 
 [data-theme='dark'] .user-menu-plan {
-  background: var(--dark-elevation-1);
-  border-color: var(--dark-hairline);
+  background: var(--surface);
+  border-color: var(--hair);
 }
 
 [data-theme='dark'] .user-menu-plan-bar {
-  background: var(--dark-elevation-4);
+  background: var(--fill-4);
 }
 
 [data-theme='dark'] .user-menu-head-avatar {
-  background: var(--dark-elevation-4);
+  background: var(--fill-4);
 }
 
 /* On phones the modal centers under the header avatar instead of hugging the
@@ -757,8 +757,8 @@
     right: 14px;
     transform: rotate(45deg);
     border: none;
-    border-right: 1px solid var(--glass-border);
-    border-bottom: 1px solid var(--glass-border);
+    border-right: 1px solid var(--hair);
+    border-bottom: 1px solid var(--hair);
     border-radius: 0 0 3px 0;
   }
 }
@@ -767,8 +767,8 @@
   .user-menu-popover,
   .user-menu-up .user-menu-popover {
     position: fixed;
-    right: var(--space-3);
-    left: var(--space-3);
+    right: var(--sp-3);
+    left: var(--sp-3);
     width: auto;
     transform: none;
   }
