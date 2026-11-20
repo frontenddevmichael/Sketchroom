@@ -731,3 +731,24 @@
     display: none;
   }
 }
+
+/* ── Skip link ────────────────────────────────────────────────────────── */
+.lp-skip {
+  position: absolute;
+  left: var(--sp-4);
+  top: -60px;
+  z-index: var(--z-toast);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--r-1);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+  transition: top var(--t-fast) var(--ease-out);
+}
+
+.lp-skip:focus-visible {
+  top: var(--sp-3);
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}

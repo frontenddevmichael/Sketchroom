@@ -116,6 +116,9 @@ export function Landing() {
 
   return (
     <div className="lp">
+      <a href="#main" className="lp-skip">
+        Skip to content
+      </a>
       <header className="lp-nav">
         <div className="lp-shell lp-nav__inner">
           <Link to="/" className="lp-wordmark" aria-label="Sketchroom home">
@@ -166,7 +169,7 @@ export function Landing() {
         )}
       </header>
 
-      <main>
+      <main id="main">
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <section className="lp-hero">
           <div className="lp-shell">
