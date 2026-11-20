@@ -17,7 +17,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import type { CanvasApi } from '../canvas/api';
-import { INK } from '../canvas/ink';
+import { INK, OBJECT_COLORS, fillForWeight } from '../canvas/ink';
 import { FONT_FAMILY_ID, boundTextOf } from '../canvas/elements';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import './ToolOptions.css';
@@ -36,22 +36,26 @@ const TOOL_TITLES: Record<string, string> = {
 const DEFAULTS_KEY = 'sketchroom.toolDefaults.v2.';
 
 /**
- * The ink ramp, not a colour picker. Darker swatches are heavier line weight in
- * the eye, which is the whole grammar of the board: line weight is state.
+ * Objects on the board carry their own colour: that is the user's content, and
+ * a diagram is easier to read in colour. The ink ramp is only for text, which
+ * stays monochrome along with the rest of the interface.
  */
-const INKS: { value: string; label: string }[] = [
+const OBJECT_SWATCHES = OBJECT_COLORS;
+
+/** Text ink: a step of the ramp, never a hue. */
+const TEXT_INKS: { value: string; label: string }[] = [
   { value: INK.ink, label: 'Ink' },
   { value: INK.ink2, label: 'Ink 2' },
   { value: INK.ink3, label: 'Ink 3' },
   { value: INK.ink4, label: 'Ink 4' },
-  { value: INK.rule, label: 'Rule' },
 ];
 
+/** Fill is a weight of wash over the object's own colour, not a separate palette. */
 const FILLS: { value: string; label: string }[] = [
-  { value: 'transparent', label: 'None' },
-  { value: INK.fill1, label: 'Paper' },
-  { value: INK.fill2, label: 'Mid' },
-  { value: INK.fill3, label: 'Heavy' },
+  { value: 'none', label: 'None' },
+  { value: 'wash', label: 'Wash' },
+  { value: 'tint', label: 'Tint' },
+  { value: 'solid', label: 'Solid' },
 ];
 
 const DASHES: { value: string; label: string }[] = [
@@ -115,6 +119,7 @@ const ALIGN_OPS_V: { value: 'top' | 'center-vertical' | 'bottom'; label: string;
 
 type StyleKey =
   | 'stroke'
+  | 'textInk'
   | 'fill'
   | 'strokeWidth'
   | 'strokeStyle'
@@ -128,6 +133,11 @@ type StyleKey =
 /** Which element types a key can actually be written to. */
 function applies(key: StyleKey, element: ExcalidrawElement): boolean {
   switch (key) {
+    case 'stroke':
+      // A hue never lands on text: text is ink-only.
+      return element.type !== 'text';
+    case 'textInk':
+      return element.type === 'text';
     case 'fontFamily':
     case 'fontSize':
     case 'textAlign':
@@ -143,12 +153,22 @@ function applies(key: StyleKey, element: ExcalidrawElement): boolean {
   }
 }
 
-function patchFor(key: StyleKey, value: string): Record<string, unknown> {
+function patchFor(
+  key: StyleKey,
+  value: string,
+  element?: ExcalidrawElement,
+): Record<string, unknown> {
   switch (key) {
     case 'stroke':
+    case 'textInk':
       return { strokeColor: value };
     case 'fill':
-      return { backgroundColor: value };
+      return {
+        backgroundColor: fillForWeight(
+          value as 'none' | 'wash' | 'tint' | 'solid',
+          element?.strokeColor ?? INK.ink,
+        ),
+      };
     case 'strokeWidth':
       return { strokeWidth: Number(value) };
     case 'strokeStyle':
@@ -173,6 +193,7 @@ function patchFor(key: StyleKey, value: string): Record<string, unknown> {
 function defaultsFor(key: StyleKey, value: string): Record<string, unknown> {
   switch (key) {
     case 'stroke':
+    case 'textInk':
       return { currentItemStrokeColor: value };
     case 'fill':
       return { currentItemBackgroundColor: value };
@@ -197,6 +218,30 @@ function defaultsFor(key: StyleKey, value: string): Record<string, unknown> {
   }
 }
 
+/** Which app-state field each key arms for the next stroke. */
+const NEXT_KEY: Record<StyleKey, string> = {
+  stroke: 'currentItemStrokeColor',
+  textInk: 'currentItemStrokeColor',
+  fill: 'currentItemFillWeight',
+  strokeWidth: 'currentItemStrokeWidth',
+  strokeStyle: 'currentItemStrokeStyle',
+  fontFamily: 'currentItemFontFamily',
+  fontSize: 'currentItemFontSize',
+  textAlign: 'currentItemTextAlign',
+  roundness: 'currentItemRoundness',
+  startArrowhead: 'currentItemArrowType',
+  endArrowhead: 'currentItemArrowType',
+};
+
+/** A background colour read back as one of the four fill weights. */
+function weightOf(background: string, stroke: string): string {
+  if (!background || background === 'transparent') return 'none';
+  for (const weight of ['wash', 'tint', 'solid'] as const) {
+    if (sameColor(background, fillForWeight(weight, stroke))) return weight;
+  }
+  return 'solid';
+}
+
 function loadDefaults(tool: string): Record<string, string> {
   try {
     const raw = localStorage.getItem(DEFAULTS_KEY + tool);
@@ -206,6 +251,15 @@ function loadDefaults(tool: string): Record<string, string> {
   } catch {
     return {};
   }
+}
+
+/**
+ * The engine normalises hex to lower case, so a swatch has to compare
+ * case-insensitively or the colour you just picked looks unpicked.
+ */
+function sameColor(a: string | 'mixed', b: string): boolean {
+  if (a === 'mixed') return false;
+  return a.toLowerCase() === b.toLowerCase();
 }
 
 function shared<T>(values: readonly T[]): T | 'mixed' {
@@ -232,6 +286,17 @@ function useToolStyles(api: CanvasApi | null, tool: string, mode: ToolStyleMode)
     const saved = loadDefaults(tool);
     const patch: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(saved)) {
+      if (key === 'fill') {
+        // Fill is stored as a weight and armed against this tool's stroke.
+        Object.assign(patch, {
+          currentItemBackgroundColor: fillForWeight(
+            value as 'none' | 'wash' | 'tint' | 'solid',
+            saved.stroke ?? INK.ink,
+          ),
+          currentItemFillWeight: value,
+        });
+        continue;
+      }
       Object.assign(patch, defaultsFor(key as StyleKey, value));
     }
     if (Object.keys(patch).length > 0) api.setCurrentStyle(patch);
@@ -244,13 +309,25 @@ function useToolStyles(api: CanvasApi | null, tool: string, mode: ToolStyleMode)
 
   const read = (key: StyleKey): string | 'mixed' => {
     if (!api) return 'mixed';
+    if (key === 'fill') {
+      if (isSelectionMode) {
+        const values = selection
+          .filter((element) => element.type !== 'text')
+          .map((element) => weightOf(element.backgroundColor, element.strokeColor));
+        return values.length === 0 ? 'mixed' : shared(values);
+      }
+      const armed = api.nextStyle.currentItemFillWeight;
+      if (typeof armed === 'string') return armed;
+      const stroke =
+        (api.nextStyle.currentItemStrokeColor as string | undefined) ?? appState?.currentItemStrokeColor ?? INK.ink;
+      return weightOf(appState?.currentItemBackgroundColor ?? 'transparent', stroke);
+    }
     if (isSelectionMode) {
       const values = selection.filter((element) => applies(key, element)).map((element) => {
         switch (key) {
           case 'stroke':
+          case 'textInk':
             return element.strokeColor;
-          case 'fill':
-            return element.backgroundColor;
           case 'strokeWidth':
             return String(element.strokeWidth);
           case 'strokeStyle':
@@ -275,11 +352,14 @@ function useToolStyles(api: CanvasApi | null, tool: string, mode: ToolStyleMode)
       return shared(values);
     }
     if (!appState) return 'mixed';
+    // The rail prefers what it just armed: an app-state-only update is not
+    // always reflected back by the engine (see CanvasApi.setCurrentStyle).
+    const armed = api.nextStyle[NEXT_KEY[key]];
+    if (armed !== undefined && armed !== null && armed !== '') return String(armed);
     switch (key) {
       case 'stroke':
+      case 'textInk':
         return appState.currentItemStrokeColor;
-      case 'fill':
-        return appState.currentItemBackgroundColor;
       case 'strokeWidth':
         return String(appState.currentItemStrokeWidth);
       case 'strokeStyle':
@@ -323,19 +403,33 @@ function useToolStyles(api: CanvasApi | null, tool: string, mode: ToolStyleMode)
           for (const element of current) {
             for (const text of boundTextOf(api.elements, element)) {
               ids.add(text.id);
-              api.updateElements([text.id], () => patchFor(key, value));
+              api.updateElements([text.id], (el) => patchFor(key, value, el));
             }
           }
         }
         api.updateElements([...ids], (element) =>
-          applies(key, element) ? patchFor(key, value) : null,
+          applies(key, element) ? patchFor(key, value, element) : null,
         );
       } else {
-        api.setCurrentStyle(defaultsFor(key, value));
+        if (key === 'fill') {
+          const stroke =
+            (api.nextStyle.currentItemStrokeColor as string | undefined) ??
+            api.appState.currentItemStrokeColor ??
+            INK.ink;
+          api.setCurrentStyle({
+            currentItemBackgroundColor: fillForWeight(
+              value as 'none' | 'wash' | 'tint' | 'solid',
+              stroke,
+            ),
+            currentItemFillWeight: value,
+          });
+        } else {
+          api.setCurrentStyle(defaultsFor(key, value));
+        }
         saveDefault(key, value);
-        if (key === 'stroke' || key === 'fill') {
-          // A pick on the ink ramp or the paper fills arms the tool for the
-          // next stroke; the engine reads these two as the current item.
+        if (key === 'stroke' || key === 'fill' || key === 'textInk') {
+          // A colour or fill pick arms the tool for the next stroke; the engine
+          // reads these as the current item, so no extra bookkeeping is needed.
         }
       }
     },
@@ -397,6 +491,7 @@ function useToolStyles(api: CanvasApi | null, tool: string, mode: ToolStyleMode)
     hasSelection: selection.length > 0,
     selectionCount: selection.length,
     stroke: read('stroke'),
+    textInk: read('textInk'),
     fill: read('fill'),
     strokeWidth: read('strokeWidth'),
     strokeStyle: read('strokeStyle'),
@@ -426,23 +521,57 @@ interface ToolOptionsRailProps {
 export function ToolOptionsRail({ api, tool, mode, onModeChange }: ToolOptionsRailProps) {
   const s = useToolStyles(api, tool, mode);
   const ids = s.selection.map((element) => element.id);
+  const [pickedFill, setPickedFill] = useState<string | null>(null);
 
-  const renderInkRow = (label: string) => (
+  /** The object palette: full colour for shapes, blocks and strokes. */
+  const renderColourRow = (label: string) => (
     <Section label={label}>
       <div className="tool-options-color-row" role="group" aria-label={label}>
-        {INKS.map((ink) => (
+        {OBJECT_SWATCHES.map((swatch) => (
           <button
-            key={ink.value}
-            className={`tool-options-color ${s.stroke === ink.value ? 'active' : ''}`}
-            style={{ background: ink.value }}
-            title={ink.label}
-            aria-label={`${label}: ${ink.label}`}
-            onClick={() => s.apply('stroke', ink.value)}
+            key={swatch.value}
+            className={`tool-options-color ${sameColor(s.stroke, swatch.value) ? 'active' : ''}`}
+            style={{ background: swatch.value }}
+            title={swatch.name}
+            aria-label={`${label}: ${swatch.name}`}
+            onClick={() => s.apply('stroke', swatch.value)}
           />
         ))}
       </div>
     </Section>
   );
+
+  /** Text ink: the monochrome ramp, applied to text elements only. */
+  const renderTextInkRow = (label: string) => (
+    <Section label={label}>
+      <div className="tool-options-color-row" role="group" aria-label={label}>
+        {TEXT_INKS.map((ink) => (
+          <button
+            key={ink.value}
+            className={`tool-options-color ${sameColor(s.textInk, ink.value) ? 'active' : ''}`}
+            style={{ background: ink.value }}
+            title={ink.label}
+            aria-label={`${label}: ${ink.label}`}
+            onClick={() => s.apply('textInk', ink.value)}
+          />
+        ))}
+      </div>
+    </Section>
+  );
+
+  /**
+   * Fill is the weight itself. While arming (no selection) the rail remembers
+   * the pick locally: the engine's background colour is not guaranteed to read
+   * back after an app-state-only update, and a pill that forgets your choice is
+   * worse than one that trusts the last pick.
+   */
+  const fillActive = (weight: string) =>
+    s.isSelectionMode ? s.fill === weight : (pickedFill ?? (s.fill === 'mixed' ? 'none' : s.fill)) === weight;
+
+  const pickFill = (weight: string) => {
+    setPickedFill(weight);
+    s.apply('fill', weight);
+  };
 
   return (
     <div
@@ -503,13 +632,14 @@ export function ToolOptionsRail({ api, tool, mode, onModeChange }: ToolOptionsRa
               </div>
             </Section>
 
-            {renderInkRow('Ink')}
+            {renderColourRow('Colour')}
             <Section label="Fill">
               <Segmented
-                options={FILLS.map((o) => ({ ...o, active: s.fill === o.value }))}
-                onPick={(v) => s.apply('fill', v)}
+                options={FILLS.map((o) => ({ ...o, active: fillActive(o.value) }))}
+                onPick={pickFill}
               />
             </Section>
+            {renderTextInkRow('Text ink')}
             <Section label="Weight">
               <Segmented
                 options={SIZES.map((o) => ({ ...o, active: s.strokeWidth === o.value }))}
@@ -592,11 +722,11 @@ export function ToolOptionsRail({ api, tool, mode, onModeChange }: ToolOptionsRa
 
         {tool === 'shapes' && (
           <>
-            {renderInkRow('Ink')}
+            {renderColourRow('Colour')}
             <Section label="Fill">
               <Segmented
-                options={FILLS.map((o) => ({ ...o, active: s.fill === o.value }))}
-                onPick={(v) => s.apply('fill', v)}
+                options={FILLS.map((o) => ({ ...o, active: fillActive(o.value) }))}
+                onPick={pickFill}
               />
             </Section>
             <Section label="Weight">
@@ -638,7 +768,7 @@ export function ToolOptionsRail({ api, tool, mode, onModeChange }: ToolOptionsRa
 
         {tool === 'draw' && (
           <>
-            {renderInkRow('Ink')}
+            {renderColourRow('Colour')}
             <Section label="Weight">
               <Segmented
                 options={SIZES.map((o) => ({ ...o, active: s.strokeWidth === o.value }))}
@@ -656,13 +786,14 @@ export function ToolOptionsRail({ api, tool, mode, onModeChange }: ToolOptionsRa
 
         {tool === 'sticky' && (
           <>
-            {renderInkRow('Ink')}
+            {renderColourRow('Colour')}
             <Section label="Paper">
               <Segmented
-                options={FILLS.map((o) => ({ ...o, active: s.fill === o.value }))}
-                onPick={(v) => s.apply('fill', v)}
+                options={FILLS.map((o) => ({ ...o, active: fillActive(o.value) }))}
+                onPick={pickFill}
               />
             </Section>
+            {renderTextInkRow('Text ink')}
             <Section label="Type">
               <Segmented
                 options={FONT_SIZES.map((o) => ({ ...o, active: s.fontSize === o.value }))}
@@ -680,7 +811,7 @@ export function ToolOptionsRail({ api, tool, mode, onModeChange }: ToolOptionsRa
 
         {tool === 'text' && (
           <>
-            {renderInkRow('Ink')}
+            {renderTextInkRow('Ink')}
             <Section label="Font">
               <Segmented
                 options={FONTS.map((o) => ({ ...o, active: s.fontFamily === o.value }))}
@@ -708,7 +839,7 @@ export function ToolOptionsRail({ api, tool, mode, onModeChange }: ToolOptionsRa
 
         {tool === 'connector' && (
           <>
-            {renderInkRow('Ink')}
+            {renderColourRow('Colour')}
             <Section label="Weight">
               <Segmented
                 options={SIZES.map((o) => ({ ...o, active: s.strokeWidth === o.value }))}

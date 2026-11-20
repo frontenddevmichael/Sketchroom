@@ -2,7 +2,7 @@ import type { BlockDef } from './types';
 import type { CanvasApi, CanvasBounds } from '../canvas/api';
 import { INK } from '../canvas/ink';
 import { createShapeElements } from '../canvas/elements';
-import { kindInk } from '../lib/blockKinds';
+import { kindFill, kindStroke } from '../lib/blockKinds';
 import { emitPlacementPulse } from '../components/placementPulse';
 
 // ── Shared constants ──────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ export function insertBlock(
     width: BLOCK_W,
     height: BLOCK_H,
     label: block.role ?? block.label,
-    style: { stroke: kindInk(block.code), fill: INK.fill1, strokeWidth: 1.25 },
+    style: { stroke: kindStroke(block.code), fill: kindFill(block.code), strokeWidth: 1.25 },
     labelStyle: { stroke: INK.ink },
   });
 

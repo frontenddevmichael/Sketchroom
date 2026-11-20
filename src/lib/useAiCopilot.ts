@@ -11,7 +11,7 @@ import {
   createTextElement,
 } from '../canvas/elements';
 import { INK } from '../canvas/ink';
-import { kindInk, BLOCK_H } from './blockKinds';
+import { BLOCK_H, kindFill, kindStroke } from './blockKinds';
 
 export interface AiGhostBlock {
   label: string;
@@ -215,7 +215,7 @@ function insertGhost(
     width: blockW,
     height: BLOCK_H,
     label: block.label,
-    style: { stroke: kindInk(block.kind), fill: INK.fill1, strokeWidth: 1.25 },
+    style: { stroke: kindStroke(block.kind), fill: kindFill(block.kind), strokeWidth: 1.25 },
     labelStyle: { stroke: INK.ink },
   });
 
@@ -282,7 +282,7 @@ function insertDiagram(api: CanvasApi, diagram: AiGhostDiagram, onInserted: () =
       width: bw,
       height: BLOCK_H,
       label: block.label,
-      style: { stroke: kindInk(block.kind), fill: INK.fill1, strokeWidth: 1.25 },
+      style: { stroke: kindStroke(block.kind), fill: kindFill(block.kind), strokeWidth: 1.25 },
       labelStyle: { stroke: INK.ink },
     });
     elements.push(...built);

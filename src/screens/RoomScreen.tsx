@@ -171,6 +171,7 @@ export function RoomScreen() {
   // Guided walkthrough: which of the three real actions (a pencil stroke, a
   // sticky note, a connector) the user has completed. Null = not active.
   const [walkthrough, setWalkthrough] = useState<{ pencil: boolean; note: boolean; connector: boolean } | null>(null);
+  const [wtDismissed, setWtDismissed] = useState(false);
   const [wtClosing, setWtClosing] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [commentMode, setCommentMode] = useState(false);
@@ -231,6 +232,9 @@ export function RoomScreen() {
   // Ends the guide with a short fade; idempotent and safe to call repeatedly.
   const dismissWalkthrough = useCallback(() => {
     setWtClosing(true);
+    // Sticky: the auto-start effect below must not re-arm a guide the user
+    // has already closed, or "Skip" would only postpone it by a few seconds.
+    setWtDismissed(true);
     window.setTimeout(() => {
       setWalkthrough(null);
       setWtClosing(false);
@@ -574,13 +578,13 @@ export function RoomScreen() {
   // glow one at a time. Any stroke before then still retires the whole thing
   // (the start timer is cleaned up when showOnboarding flips false).
   useEffect(() => {
-    if (!showOnboarding || walkthrough) return;
+    if (!showOnboarding || walkthrough || wtDismissed) return;
     const t = window.setTimeout(() => {
       setWalkthrough({ pencil: false, note: false, connector: false });
       armWalkthroughTool(0);
     }, 2700);
     return () => window.clearTimeout(t);
-  }, [showOnboarding, walkthrough, armWalkthroughTool]);
+  }, [showOnboarding, walkthrough, wtDismissed, armWalkthroughTool]);
 
   // Auto version snapshot: every 45s while there are unsaved-snapshot edits,
   // capture a version the user can restore from history.

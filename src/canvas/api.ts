@@ -548,6 +548,8 @@ export class CanvasApi {
     }, HISTORY_DEBOUNCE);
   }
 
+  private stylePrefs: Record<string, unknown> = {};
+
   /** Called by the surface on every engine change. */
   handleChange(elements: readonly ExcalidrawElement[]): void {
     this.scheduleHistory(elements);
@@ -561,10 +563,21 @@ export class CanvasApi {
    * arms a tool: the picker edits the state the next stroke is drawn with.
    */
   setCurrentStyle(patch: Record<string, unknown>): void {
+    // The engine's current-item fields are the arming mechanism for the next
+    // stroke, but they are not a reliable read-back: an app-state-only update
+    // can leave the engine reporting the previous value. Keep the room's own
+    // record of what it last armed so the options rail shows the truth.
+    this.stylePrefs = { ...this.stylePrefs, ...patch };
     this.api.updateScene({
       appState: patch as never,
       captureUpdate: CaptureUpdateAction.NEVER,
     });
+    this.notify();
+  }
+
+  /** What the rail last armed for the next stroke (see `setCurrentStyle`). */
+  get nextStyle(): Record<string, unknown> {
+    return this.stylePrefs;
   }
 
   /** The shape tool's next primitive (the engine only knows three). */

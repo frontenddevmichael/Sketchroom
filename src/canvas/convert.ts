@@ -16,7 +16,7 @@
  * the user what did not come across.
  */
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
-import { INK, fillFor, inkFor, strokeStyleFor, strokeWidthFor } from './ink';
+import { INK, fillFor, objectPaint, strokeStyleFor, strokeWidthFor } from './ink';
 
 export interface LegacyRecord {
   id?: string;
@@ -301,7 +301,8 @@ function buildShape(record: LegacyRecord): ExcalidrawElement[] | null {
   const x = num(record.x);
   const y = num(record.y);
   const angle = -(num(record.rotation)) * (180 / Math.PI);
-  const strokeColor = inkFor(props.color as string | undefined);
+  // Objects keep the colour they were drawn in; only text is forced to ink.
+  const strokeColor = objectPaint(props.color as string | undefined);
   const strokeWidth = strokeWidthFor(props.size as string | undefined);
   const strokeStyle = strokeStyleFor(props.dash as string | undefined);
   const labelText = plainText(props.richText);
@@ -318,7 +319,7 @@ function buildShape(record: LegacyRecord): ExcalidrawElement[] | null {
         height: num(props.h, 100),
         angle,
         strokeColor,
-        backgroundColor: fillFor(props.fill as string | undefined),
+        backgroundColor: fillFor(props.fill as string | undefined, strokeColor),
         strokeWidth,
         strokeStyle,
         opacity,
@@ -333,7 +334,7 @@ function buildShape(record: LegacyRecord): ExcalidrawElement[] | null {
     case 'text':
     case 'line': {
       const text = labelText || String(props.text ?? '');
-      return [textElement({ x, y, text, color: strokeColor, angle, customData })];
+      return [textElement({ x, y, text, color: INK.ink, angle, customData })];
     }
 
     case 'note': {
