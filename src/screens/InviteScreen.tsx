@@ -6,6 +6,28 @@ import { ArrowLeft, Sparkles, Check, AlertTriangle } from 'lucide-react';
 import { usePageTitle } from '../lib/usePageTitle';
 import './InviteScreen.css';
 
+/**
+ * User-facing copy for known invite failures. Server errors are diagnosed by
+ * their message, but the raw text never reaches the UI — internal strings like
+ * "Cannot destructure property 'roomId' of 'undefined'" are useless to a user
+ * and leak implementation detail.
+ */
+const INVITE_ERROR_COPY: ReadonlyArray<readonly [RegExp, string]> = [
+  [/expired/i, 'This invite has expired. Ask the room owner for a fresh link.'],
+  [/doesn't match|does not match/i, 'This invite was sent to a different email address. Sign in with the invited account.'],
+  [/invalid/i, 'This invite link is invalid or has already been used.'],
+  [/not authenticated/i, 'Sign in to accept this invite.'],
+];
+
+const GENERIC_INVITE_ERROR =
+  'We could not add you to this room. The link may be out of date \u2014 ask the room owner for a new one.';
+
+function inviteErrorMessage(error: unknown): string {
+  const raw = error instanceof Error ? error.message : '';
+  const known = INVITE_ERROR_COPY.find(([pattern]) => pattern.test(raw));
+  return known ? known[1] : GENERIC_INVITE_ERROR;
+}
+
 export function InviteScreen() {
   usePageTitle('Joining a room — Sketchroom');
   const { token } = useParams<{ token: string }>();
@@ -18,14 +40,21 @@ export function InviteScreen() {
     if (!token) return;
     let cancelled = false;
     acceptInvite({ token })
-      .then(({ roomId }) => {
+      .then((result) => {
         if (cancelled) return;
+        // A success payload without a room id cannot be acted on: treat it as
+        // a failure rather than navigating to /room/undefined.
+        if (!result?.roomId) {
+          setError(GENERIC_INVITE_ERROR);
+          return;
+        }
         setAccepted(true);
-        window.setTimeout(() => navigate(`/room/${roomId}`, { replace: true }), 900);
+        window.setTimeout(() => navigate(`/room/${result.roomId}`, { replace: true }), 900);
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'This invite could not be accepted.');
+        console.error('acceptInvite failed', err);
+        setError(inviteErrorMessage(err));
       });
     return () => {
       cancelled = true;

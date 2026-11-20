@@ -73,6 +73,7 @@
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
@@ -125,6 +126,57 @@
   --font-handwriting: "Caveat", cursive, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
   --font-family: var(--font-body);
+
+  /* Global z-scale — the only place stacking order is decided outside the
+     room, which owns its own documented --room-z-* band. */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 60;
+  --z-nav: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+  --z-skip-link: 10000;
+
+  /* AI ghost-block tones — a semantic set, not a second accent ramp.
+     The translucent dashed shape is the primary "this is AI" signal;
+     these hues only tint it. */
+  --ghost-blue: #5b8cff;
+  --ghost-blue-border: rgba(70, 137, 255, 0.5);
+  --ghost-blue-ink: #dbe7ff;
+  --ghost-blue-shadow: rgba(91, 140, 255, 0.25);
+  --ghost-purple: #a96bff;
+  --ghost-purple-border: rgba(165, 100, 255, 0.5);
+  --ghost-purple-ink: #eee0ff;
+  --ghost-purple-shadow: rgba(169, 107, 255, 0.25);
+  --ghost-green: #25d366;
+  --ghost-green-border: rgba(37, 211, 102, 0.5);
+  --ghost-green-ink: #d9ffe6;
+  --ghost-green-shadow: rgba(37, 211, 102, 0.25);
+  --ghost-orange: #ff9548;
+  --ghost-orange-border: rgba(255, 149, 56, 0.5);
+  --ghost-orange-ink: #ffe7d2;
+  --ghost-orange-shadow: rgba(255, 149, 72, 0.25);
+  --ghost-teal: #2cc7be;
+  --ghost-teal-border: rgba(44, 199, 190, 0.5);
+  --ghost-teal-ink: #d4fffb;
+  --ghost-teal-shadow: rgba(44, 199, 190, 0.25);
+  --ghost-yellow: #ffcd42;
+  --ghost-yellow-border: rgba(255, 205, 66, 0.5);
+  --ghost-yellow-ink: #fff3cf;
+  --ghost-yellow-shadow: rgba(255, 205, 66, 0.25);
+  --ghost-gray: #a0a0aa;
+  --ghost-gray-border: rgba(160, 160, 170, 0.5);
+  --ghost-gray-ink: #e6e6ea;
+  --ghost-gray-shadow: rgba(160, 160, 170, 0.25);
+  /* Brighter text variants for ghost blocks floated over the dark canvas. */
+  --ghost-blue-ink-dark: #b3ccff;
+  --ghost-purple-ink-dark: #d4b8ff;
+  --ghost-green-ink-dark: #b3ffcc;
+  --ghost-orange-ink-dark: #ffd4a8;
+  --ghost-teal-ink-dark: #b3fffa;
+  --ghost-yellow-ink-dark: #ffe8a8;
+  --ghost-gray-ink-dark: #d0d0d4;
 
   /* Playful 10k vibe palette */
   --playful-yellow: #FFE600;
@@ -276,7 +328,7 @@ img {
   top: -100%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10000;
+  z-index: var(--z-skip-link);
   padding: 12px 24px;
   background: var(--accent);
   color: var(--accent-ink);

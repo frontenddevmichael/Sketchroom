@@ -32,8 +32,10 @@
 }
 
 .hero-ring-2 {
-  width: min(104vw, 1180px);
-  height: min(104vw, 1180px);
+  /* Keep the ring inside the viewport: at 104vw it overhung by ~11px at
+     768 and relied on clipping to hide the overflow. */
+  width: min(96vw, 1180px);
+  height: min(96vw, 1180px);
   border-color: var(--neutral-100);
   opacity: 0.5;
 }

@@ -549,7 +549,7 @@
 }
 
 .room-empty-title {
-  font-size: 26px;
+  font-size: var(--fs-h3);
   font-weight: 700;
   letter-spacing: -0.5px;
   margin: 0;
@@ -1944,4 +1944,24 @@ kbd.room-shortcuts-key,
 .room-status-neutral {
   background: var(--bg-elev);
   color: var(--ink-2);
+}
+
+/* ── Touch targets ────────────────────────────────────────────────────────
+   The rail and topbar glyphs stay 36px for visual density, but on
+   touch-sized viewports each control exposes a ≥44px hit area through an
+   invisible overlay. The glyph does not move; only the tappable box grows
+   (WCAG 2.5.5 / HIG minimum control size). */
+@media (max-width: 720px) {
+  .room-back-btn,
+  .room-icon-btn {
+    position: relative;
+  }
+
+  .room-back-btn::after,
+  .room-icon-btn::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: var(--radius-sm);
+  }
 }
