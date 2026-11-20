@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -35,9 +35,9 @@
          dependency and no cross-origin font request. -->
   </head>
   <body>
-    <!-- Theme is pinned as a static attribute on <html> rather than an inline
-         script: it paints correctly before hydration and keeps the CSP free of
-         script-src 'unsafe-inline'. -->
+    <!-- data-theme on <html> is the pre-hydration default (light). No inline
+         script is needed, which keeps the CSP free of script-src 'unsafe-inline';
+         ThemeProvider adopts the stored preference on mount. -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
