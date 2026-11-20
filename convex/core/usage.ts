@@ -6,7 +6,12 @@
 // This module exports plain helpers only — no Convex functions — so it needs
 // no generated-api entries and is safe to import from any mutation/query.
 import type { QueryCtx, MutationCtx } from "../_generated/server";
-import { FREE_ROOM_LIMIT, FREE_AI_SUGGESTIONS_PER_MONTH, monthStartMs } from "./lib";
+import {
+  FREE_ROOM_LIMIT,
+  FREE_COLLABORATORS_PER_ROOM,
+  FREE_AI_SUGGESTIONS_PER_MONTH,
+  monthStartMs,
+} from "./lib";
 
 type DbCtx = QueryCtx | MutationCtx;
 
@@ -49,7 +54,7 @@ export async function countAiSuggestions(
 
 export const FREE_PLAN = {
   ROOM_LIMIT: FREE_ROOM_LIMIT,
-  COLLABORATORS_PER_ROOM: 3, // owner + 3
+  COLLABORATORS_PER_ROOM: FREE_COLLABORATORS_PER_ROOM, // owner + 3
   AI_SUGGESTIONS_PER_MONTH: FREE_AI_SUGGESTIONS_PER_MONTH,
 } as const;
 

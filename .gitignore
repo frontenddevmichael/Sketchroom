@@ -42,7 +42,7 @@ cleark-setup-brief.md
 # Playwright output
 /test-results/
 
-# Internal tooling specs
-docs/
+# Committed engineering docs live in /docs (see design/SKILL.md and prompts/).
+# Internal tooling specs are ignored file-by-file instead of by directory.
 "test-output.txt" 
 .vercel
