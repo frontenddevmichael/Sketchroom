@@ -118,6 +118,33 @@ Estimated effort: **3–5 focused sessions** — one for the adapter + converter
 one to two for the room rebuild, one for the feature modules, one for
 verification. It is a rebuild of the room feature, not a swap of a prop.
 
+## Implementation status (step 1 of 4)
+
+Done:
+
+- `@excalidraw/excalidraw@0.18.1` installed (MIT; its peer range includes
+  React 19).
+- `src/canvas/` is in place: `scene.ts` (versioned `{ format: "excalidraw/1",
+  elements }` document, with legacy detection), `convert.ts` (tldraw records →
+  Excalidraw elements, local builders so the data path carries no editor
+  runtime), `ink.ts` (legacy colour names → ink ramp, fills, stroke styles),
+  `CanvasSurface.tsx` (the engine mount), `assets.ts` (self-hosted font/locale
+  base).
+- Excalidraw's fonts and locales are served from `public/excalidraw/` (2.2 MB,
+  the 13 MB Xiaolai CJK face is excluded) because the production CSP is
+  `font-src 'self'` and the package otherwise fetches fonts from `esm.sh`.
+- `/dev/canvas` (dev builds only) mounts the engine on the converted sample,
+  inserts a block, fits the view and persists the new scene format locally.
+  Verified in the browser: 8 elements, image reported as skipped, Liberation
+  Sans fetched from `/excalidraw/`, no console errors. 7 converter/scene tests
+  pass.
+
+Still to do (steps 2–4): the room itself is untouched and still renders tldraw,
+so the watermark remains until the room is rebuilt on `CanvasSurface`. The
+component set that takes an `Editor` (presence, comments, ghost blocks, block
+library, tool options, AI copilot, export, version history, templates) moves to
+Excalidraw's element API in that pass.
+
 ## Recommendation
 
 Adopt **Excalidraw (MIT)** behind a `src/canvas/` adapter. Do not buy a tldraw

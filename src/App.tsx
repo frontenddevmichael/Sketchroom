@@ -17,6 +17,7 @@ const NotFoundScreen = lazy(() => import('./screens/NotFoundScreen').then((m) =>
 const LegalScreen = lazy(() => import('./screens/LegalScreen').then((m) => ({ default: m.LegalScreen })));
 // Dev-only component kit; the route below is stripped from production builds.
 const KitScreen = lazy(() => import('./dev/KitScreen').then((m) => ({ default: m.KitScreen })));
+const CanvasScreen = lazy(() => import('./dev/CanvasScreen').then((m) => ({ default: m.CanvasScreen })));
 
 const ALLOWED_NEXT_PREFIXES = ['/room/', '/dashboard', '/settings', '/billing'];
 
@@ -150,7 +151,10 @@ export default function App() {
           </ProtectedRoute>
         } />
         {import.meta.env.DEV && (
-          <Route path="/dev/kit" element={<Screen><KitScreen /></Screen>} />
+          <>
+            <Route path="/dev/kit" element={<Screen><KitScreen /></Screen>} />
+            <Route path="/dev/canvas" element={<Screen><CanvasScreen /></Screen>} />
+          </>
         )}
         <Route path="/error" element={<ErrorScreen />} />
         <Route path="/terms" element={<LegalScreen page="terms" />} />

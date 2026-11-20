@@ -1,0 +1,61 @@
+.sk-harness {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.sk-harness__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding: var(--sp-3);
+  border-bottom: 1px solid var(--hair);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.sk-harness__meta {
+  margin-left: var(--sp-2);
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.sk-harness__actions {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.sk-harness__actions button {
+  min-height: 36px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-2);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.sk-harness__actions button:hover {
+  background: var(--fill-1);
+}
+
+.sk-harness__note {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px dashed var(--hair);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.sk-harness__canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}

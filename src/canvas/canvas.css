@@ -1,0 +1,77 @@
+/**
+ * Excalidraw ships its own theme variables. They are re-pointed at the ink
+ * ramp here so the canvas chrome, selection handles and snap lines obey the
+ * same grammar as the rest of the product: no hue, hairline strokes.
+ *
+ * The room replaces Excalidraw's toolbar and menus with its own rail; this file
+ * only owns what the canvas draws.
+ */
+.sk-canvas {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.sk-canvas .excalidraw {
+  --color-primary: var(--ink, #0a0a0a);
+  --color-primary-darker: #2e2e2e;
+  --color-primary-darkest: #0a0a0a;
+  --color-primary-light: #ededed;
+  --color-primary-light-darker: #e2e2e2;
+  --color-primary-light-hover: #f2f2f2;
+  --color-surface-lowest: #ffffff;
+  --color-surface-low: #fafafa;
+  --color-surface-mid: #f2f2f2;
+  --color-surface-high: #ededed;
+  --color-surface-primary-container: #e2e2e2;
+  --color-on-primary-container: #0a0a0a;
+  --color-gray-10: #ffffff;
+  --color-gray-20: #f5f5f5;
+  --color-gray-30: #ededed;
+  --color-gray-40: #e2e2e2;
+  --color-gray-50: #cfcfcf;
+  --color-gray-60: #b4b4b4;
+  --color-gray-70: #8f8f8f;
+  --color-gray-80: #6b6b6b;
+  --color-gray-90: #4a4a4a;
+  --color-gray-100: #0a0a0a;
+  --color-danger: #0a0a0a;
+  --color-danger-darker: #2e2e2e;
+  --color-danger-darkest: #0a0a0a;
+  --color-danger-light: #ededed;
+  --color-danger-text: #ffffff;
+  --default-bg-color: var(--paper, #fafafa);
+  --island-bg-color: var(--surface, #ffffff);
+  --dialog-border-color: var(--hair, #ededed);
+  --button-hover-bg: #f2f2f2;
+  --button-gray-1: #ffffff;
+  --button-gray-2: #ededed;
+  --input-border-color: #d8d8d8;
+  --focus-highlight-color: #cfcfcf;
+  --select-highlight-color: #d8d8d8;
+  --text-primary-color: var(--ink, #0a0a0a);
+  --overlay-bg-color: rgb(250 250 250 / 0.9);
+  --sidebar-bg-color: #ffffff;
+  --sidebar-border-color: #ededed;
+  --shadow-island: 0 1px 2px rgb(0 0 0 / 0.06);
+  font-family: var(--font-sans, 'Geist Variable', system-ui, sans-serif);
+}
+
+.sk-canvas .excalidraw .App-menu_top,
+.sk-canvas .excalidraw .App-bottom-bar,
+.sk-canvas .excalidraw .layer-ui__wrapper__top-right,
+.sk-canvas .excalidraw .layer-ui__wrapper__footer {
+  font-family: var(--font-sans, 'Geist Variable', system-ui, sans-serif);
+}
+
+/* Excalidraw's own border radius is larger than the product's 12px ceiling. */
+.sk-canvas .excalidraw .Island {
+  border-radius: var(--r-3, 12px);
+  border: 1px solid var(--hair, #ededed);
+  box-shadow: var(--shadow-sheet, 0 1px 2px rgb(0 0 0 / 0.06));
+}
+
+.sk-canvas .excalidraw .ToolIcon__icon {
+  border-radius: var(--r-2, 4px);
+}
