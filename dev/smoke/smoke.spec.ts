@@ -407,3 +407,31 @@ test.describe('auth flow', () => {
     await page.evaluate(() => { delete (window as unknown as Record<string, unknown>).__sketchroomAuth; });
   });
 });
+
+test.describe('design kit', () => {
+  test('renders the primitives in both themes', async ({ page }) => {
+    await page.goto(appUrl('/dev/kit'));
+
+    await expect(page.getByRole('heading', { name: 'One action, four weights' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tags and tiles' })).toBeVisible();
+
+    // Primary action, disabled and loading states all render.
+    await expect(page.getByRole('button', { name: /start sketching/i })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Disabled' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: /committing/i })).toBeDisabled();
+
+    // Dotted annotation tag and a tile label.
+    await expect(page.getByText('3 cursors live')).toBeVisible();
+    await expect(page.getByText('Live by default')).toBeVisible();
+
+    // Field errors are announced.
+    await expect(page.getByRole('alert')).toContainText('Enter a valid email address.');
+
+    // The theme toggle really flips the document theme, not just a label.
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await page.getByRole('button', { name: /dark mode/i }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await page.getByRole('button', { name: /light mode/i }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  });
+});

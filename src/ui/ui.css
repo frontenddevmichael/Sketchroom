@@ -1,0 +1,364 @@
+/* Sketchroom UI primitives — Blueprint language.
+   Rules: monochrome tokens only, hairline strokes, 4px radius on actions,
+   44px minimum hit area, focus = 2px ink + 2px paper offset. */
+
+/* ── Button ─────────────────────────────────────────────────────────────
+   primary   ink fill + paper label + arrow (the commit affordance)
+   secondary text only
+   ghost     hairline outline
+   icon      square, 44×44, no chrome until hover */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.ui-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.ui-btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.ui-btn--primary {
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: var(--paper);
+}
+
+.ui-btn--primary:hover:not([disabled]) {
+  background: var(--ink-2);
+  border-color: var(--ink-2);
+}
+
+.ui-btn--secondary {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink);
+  padding-inline: var(--sp-2);
+}
+
+.ui-btn--secondary:hover:not([disabled]) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.ui-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--hair-strong);
+  color: var(--ink);
+}
+
+.ui-btn--ghost:hover:not([disabled]) {
+  border-color: var(--ink);
+  background: var(--fill-2);
+}
+
+.ui-btn--icon {
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-2);
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.ui-btn--icon:hover:not([disabled]) {
+  background: var(--tile);
+  color: var(--ink);
+}
+
+.ui-btn__arrow {
+  display: inline-flex;
+  transition: transform var(--t-fast) var(--ease-out);
+}
+
+.ui-btn:hover:not([disabled]) .ui-btn__arrow {
+  transform: translateX(2px);
+}
+
+.ui-btn__spinner {
+  width: 14px;
+  height: 14px;
+  border: 1px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--r-pill);
+  animation: ui-spin 700ms linear infinite;
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Tag — the dotted mono annotation ─────────────────────────────────── */
+.ui-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 4px 8px;
+  border: 1px dashed var(--hair-strong);
+  border-radius: var(--r-1);
+  background: transparent;
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-tag);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.ui-tag--solid {
+  border-style: solid;
+}
+
+.ui-tag--accent {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/* ── IconTile — 44–52px tile + label, ref 2 bottom row ─────────────────── */
+.ui-icon-tile {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.ui-icon-tile__box {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-3);
+  background: var(--tile);
+  color: var(--ink);
+}
+
+.ui-icon-tile__box svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5;
+}
+
+.ui-icon-tile__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-icon-tile__label {
+  font-size: var(--fs-body);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.ui-icon-tile__desc {
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
+}
+
+/* ── Sheet — a 1px-bordered surface, never a floating glass card ───────── */
+.ui-sheet {
+  border: 1px solid var(--hair);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-sheet);
+  padding: var(--sp-6);
+}
+
+.ui-sheet--flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+.ui-sheet__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--hair);
+  margin-bottom: var(--sp-4);
+}
+
+.ui-sheet__title {
+  margin: 0;
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  letter-spacing: var(--track-h);
+  color: var(--ink);
+}
+
+/* ── Field ─────────────────────────────────────────────────────────────── */
+.ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.ui-field__label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-tag);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.ui-field__input {
+  min-height: 44px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--hair-strong);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+}
+
+.ui-field__input::placeholder {
+  color: var(--ink-3);
+}
+
+.ui-field__input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  border-color: var(--ink);
+}
+
+.ui-field__input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.ui-field__input[disabled] {
+  background: var(--fill-2);
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+
+.ui-field__hint {
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
+}
+
+.ui-field__error {
+  font-size: var(--fs-sm);
+  color: var(--danger);
+}
+
+/* ── Frame — the hairline column with dashed gutter guides (ref 1/2) ──── */
+.ui-frame {
+  position: relative;
+  width: 100%;
+  margin-inline: auto;
+  max-width: calc(var(--col) + var(--gutter) * 2);
+  padding-inline: var(--gutter);
+}
+
+.ui-frame::before,
+.ui-frame::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--hair);
+}
+
+.ui-frame::before {
+  left: var(--gutter);
+}
+
+.ui-frame::after {
+  right: var(--gutter);
+}
+
+.ui-frame--guides::before,
+.ui-frame--guides::after {
+  border-left: 1px dashed var(--guide);
+  background: transparent;
+  width: 0;
+}
+
+.ui-frame__body {
+  position: relative;
+}
+
+/* ── Section + rules ───────────────────────────────────────────────────── */
+.ui-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding-block: var(--sp-16);
+}
+
+.ui-section__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-width: 54ch;
+}
+
+.ui-section__title {
+  margin: 0;
+  font-size: var(--fs-h2);
+  font-weight: 500;
+  letter-spacing: var(--track-h);
+  line-height: 1.1;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.ui-section__lead {
+  margin: 0;
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.ui-rule {
+  width: 100%;
+  height: 1px;
+  border: 0;
+  background: var(--hair);
+  margin: 0;
+}
+
+/* ── Kbd ───────────────────────────────────────────────────────────────── */
+.ui-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 2px 6px;
+  border: 1px solid var(--hair-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--r-1);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-tag);
+  line-height: 1.4;
+}
