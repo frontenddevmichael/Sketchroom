@@ -421,7 +421,7 @@ test.describe('design kit', () => {
     await expect(page.getByRole('button', { name: /committing/i })).toBeDisabled();
 
     // Dotted annotation tag and a tile label.
-    await expect(page.getByText('3 cursors live')).toBeVisible();
+    await expect(page.getByText('3 cursors live').first()).toBeVisible();
     await expect(page.getByText('Live by default')).toBeVisible();
 
     // Field errors are announced.
@@ -434,4 +434,32 @@ test.describe('design kit', () => {
     await page.getByRole('button', { name: /light mode/i }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   });
+  test('scene geometry stays inside its viewBox', async ({ page }) => {
+    await page.goto(appUrl('/dev/kit'));
+
+    const scenes = page.getByRole('img');
+    await expect(scenes).toHaveCount(6);
+
+    for (const svg of await scenes.all()) {
+      const stats = await svg.evaluate((el: SVGSVGElement) => {
+        const vb = el.viewBox.baseVal;
+        const b = (el as unknown as SVGGraphicsElement).getBBox();
+        return {
+          view: { x: vb.x, y: vb.y, w: vb.width, h: vb.height },
+          box: { x: b.x, y: b.y, w: b.width, h: b.height },
+          paths: el.querySelectorAll('path').length,
+        };
+      });
+      // Real geometry, not an empty frame.
+      expect(stats.paths).toBeGreaterThan(4);
+      expect(stats.box.w).toBeGreaterThan(20);
+
+      // Nothing spills out of the declared frame.
+      expect(stats.box.x).toBeGreaterThanOrEqual(stats.view.x - 1);
+      expect(stats.box.y).toBeGreaterThanOrEqual(stats.view.y - 1);
+      expect(stats.box.x + stats.box.w).toBeLessThanOrEqual(stats.view.x + stats.view.w + 1);
+      expect(stats.box.y + stats.box.h).toBeLessThanOrEqual(stats.view.y + stats.view.h + 1);
+    }
+  });
 });
+

@@ -53,3 +53,27 @@
   letter-spacing: 0.04em;
   color: var(--ink-3);
 }
+
+.kit-scenes {
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-items: start;
+}
+
+.kit-scene {
+  padding: var(--sp-4);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-3);
+  background: var(--surface);
+}
+
+.kit-scene--wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 640px) {
+  .kit-scene--wide {
+    grid-column: span 1;
+  }
+}

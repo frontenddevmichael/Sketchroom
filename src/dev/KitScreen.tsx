@@ -10,6 +10,7 @@ import {
   Sheet,
   Tag,
 } from '../ui';
+import { EmptyAi, EmptyHistory, EmptyRooms, HeroDraftingTable, SketchIn } from '../illustration';
 import { useTheme } from '../lib/useTheme';
 import './KitScreen.css';
 
@@ -97,6 +98,35 @@ export function KitScreen() {
                 <span className="kit-copy">opens the copilot</span>
               </div>
             </Sheet>
+          </div>
+        </Section>
+
+        <Rule />
+
+        <Section
+          eyebrow={<Tag>illustration</Tag>}
+          title="The isometric kit"
+          lead="True 30° projection in world units, one stroke weight, tokens for every fill. The dashed block is a proposal; committing it is the only state change."
+        >
+          <div className="kit-scenes">
+            <div className="kit-scene kit-scene--wide">
+              <HeroDraftingTable caption="3 cursors live" />
+            </div>
+            <div className="kit-scene kit-scene--wide">
+              <HeroDraftingTable state="committed" caption="committed" />
+            </div>
+            <div className="kit-scene">
+              <SketchIn caption="loading" />
+            </div>
+            <div className="kit-scene">
+              <EmptyRooms caption="no rooms" />
+            </div>
+            <div className="kit-scene">
+              <EmptyHistory caption="no snapshots" />
+            </div>
+            <div className="kit-scene">
+              <EmptyAi caption="nothing proposed" />
+            </div>
           </div>
         </Section>
 

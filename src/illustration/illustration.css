@@ -1,0 +1,95 @@
+/* Isometric kit — line weight is the only state signal.
+   Fills are neutral steps; ink is the edge. No hue ever enters a scene. */
+
+.iso {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.iso-face,
+.iso-edge,
+.iso-signal,
+.iso-proposal {
+  vector-effect: non-scaling-stroke;
+}
+
+.iso-face {
+  stroke: var(--ink);
+  stroke-width: var(--stroke);
+  stroke-linejoin: round;
+}
+
+.iso-face--top {
+  fill: var(--fill-1);
+}
+
+.iso-face--left {
+  fill: var(--fill-2);
+}
+
+.iso-face--right {
+  fill: var(--fill-3);
+}
+
+.iso-edge {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: var(--stroke);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.iso-signal {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: var(--stroke);
+  stroke-linejoin: round;
+}
+
+/* A proposal: dashed, ink-3, never solid. */
+.iso-proposal {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: var(--stroke);
+  stroke-dasharray: var(--dash);
+  stroke-linejoin: round;
+}
+
+.iso-dot {
+  fill: var(--ink);
+}
+
+.iso-accent {
+  fill: var(--ink);
+  stroke: var(--ink);
+  stroke-width: var(--stroke);
+  stroke-linejoin: round;
+}
+
+.iso--ghosting .iso-proposal {
+  animation: iso-march 900ms linear infinite;
+}
+
+@keyframes iso-march {
+  to {
+    stroke-dashoffset: -8;
+  }
+}
+
+.iso-scene {
+  position: relative;
+}
+
+.iso-scene__tag {
+  position: absolute;
+  top: var(--sp-3);
+  right: var(--sp-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iso--ghosting .iso-proposal {
+    animation: none;
+  }
+}
