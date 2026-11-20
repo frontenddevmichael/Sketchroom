@@ -11,3 +11,9 @@ Convex agent skills for common tasks can be installed by running
 `npx convex ai-files install`.
 
 <!-- convex-ai-end -->
+
+<!-- sketchroom-refactor-pack-start -->
+
+Before any UI work read `/design/SKILL.md`. It overrides every older style in the repo, including the README's "Kuda dark green" theme.
+
+<!-- sketchroom-refactor-pack-end -->

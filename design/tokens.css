@@ -1,0 +1,42 @@
+/* Sketchroom Blueprint tokens. Single source of truth. Delete all legacy tokens in index.css. */
+:root {
+  --paper: #FAFAFA;
+  --surface: #FFFFFF;
+  --tile: #EDEDED;
+  --ink: #0A0A0A;
+  --ink-2: #3F3F3F;
+  --ink-3: #8A8A8A;   /* sub-copy on paper: 3.4:1, use >=18px only; body copy uses --ink-2 */
+  --hair: #E4E4E4;    /* 1px rules */
+  --hair-strong: #CFCFCF;
+  --guide: #D4D4D4;   /* dashed guides */
+  --fill-1: #FFFFFF; --fill-2: #F2F2F2; --fill-3: #E2E2E2; --fill-4: #CFCFCF;
+  --danger: #B42318; --focus: var(--ink);
+  --dot: rgb(10 10 10 / .08);
+
+  --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
+
+  --fs-hero: clamp(2.75rem, 6.2vw, 4.5rem);
+  --fs-h2: clamp(1.75rem, 3vw, 2.5rem);
+  --fs-h3: 1.5rem; --fs-lead: 1.125rem; --fs-body: .9375rem; --fs-sm: .8125rem; --fs-tag: .6875rem;
+  --track-hero: -0.035em; --track-h: -0.02em;
+
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px; --sp-24: 96px;
+  --r-1: 4px; --r-2: 8px; --r-3: 12px; --r-pill: 999px;
+  --stroke: 1.25px; --stroke-ghost: 1px; --dash: 3 4;
+  --col: 1120px; --gutter: clamp(16px, 4vw, 48px);
+
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --t-fast: 160ms; --t-panel: 280ms;
+  --shadow-sheet: 0 1px 2px rgb(0 0 0 / .06);
+
+  --z-canvas: 0; --z-panel: 20; --z-modal: 40; --z-toast: 60; --z-tldraw: 100;
+}
+[data-theme="dark"] {
+  --paper: #0A0A0A; --surface: #141414; --tile: #1C1C1C;
+  --ink: #F5F5F5; --ink-2: #C9C9C9; --ink-3: #8F8F8F;
+  --hair: rgb(255 255 255 / .14); --hair-strong: rgb(255 255 255 / .24); --guide: rgb(255 255 255 / .18);
+  --fill-1: #141414; --fill-2: #1C1C1C; --fill-3: #262626; --fill-4: #333;
+  --dot: rgb(255 255 255 / .07); --danger: #F97066; --shadow-sheet: none;
+}
+@media (prefers-reduced-motion: reduce) { :root { --t-fast: 0ms; --t-panel: 0ms; } }

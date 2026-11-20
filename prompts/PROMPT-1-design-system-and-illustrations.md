@@ -1,0 +1,13 @@
+# PROMPT 1 — Design system foundation + illustration kit
+
+Read `/design/SKILL.md`, `/design/ILLUSTRATION-SYSTEM.md`, `/design/STACK-RESEARCH.md` (in `/design`), and open all three images in `/design/refs/`. The goal of the whole refactor is that the product and marketing site look like those references. This step builds only the foundation.
+
+1. Install `@fontsource-variable/geist @fontsource-variable/geist-mono svgo vite-plugin-svgr @axe-core/playwright`. Remove Google Fonts links and the Urbanist/Nunito/Caveat/JetBrains references; update CSP.
+2. Replace `src/index.css` tokens with `/design/tokens.css`. **Delete** every legacy token (`--green-*`, `--neutral-*`, `--playful-*`, `--accent*`, `--bg*`, aliases). Then fix every usage (grep) by mapping to new tokens, not by re-adding aliases. Build must stay green; visuals may look broken until Prompts 2–3, that is expected.
+3. Build `src/ui/`: `Button` (primary/secondary/ghost/icon), `IconTile`, `Tag` (dotted mono annotation), `Sheet` (hairline panel), `Field`, `Tooltip`, `Dialog`, `Tabs`, `Kbd`, `Frame`/`Cell` (hairline column + dashed gutter guides + section rules, ref 1/2), `Section`. Each with a Storybook-less `/dev/kit` route (dev only) showing all states, light and dark, focus, disabled, loading. Primary = black fill + label + `→`.
+4. Build `src/illustration/iso.ts` primitives and the scenes listed in the illustration doc, starting with `HeroDraftingTable`, `SketchIn`, and the 9 empty/error scenes. Each scene exposes `data-layer` groups. Add `useSceneTimeline`. Add `scripts/clean-svg.mjs`. Preview all scenes at `/dev/kit`.
+5. Visual QA: Playwright screenshot of `/dev/kit` and `HeroDraftingTable` beside the refs. Iterate until the hero scene is recognisably the same family as ref 2 (isometric machine/table, dashed routes with dot terminals, grey face ramp, a few black accents). If a scene looks like generic clip-art, redo the geometry; do not ship it.
+
+Rules: no hardcoded colors or px outside tokens; all strokes `vector-effect: non-scaling-stroke`; reduced motion supported. Think beyond the checklist: what would make the kit feel designed rather than assembled? Do it. Commit; do not push.
+
+6. Monochrome sweep: grep the whole repo (src, convex, index.html, manifest, favicon, OG, tldraw theme overrides, `GhostBlocks.css`, `PresenceCursors`, `CommentPins`, `convex/utils` block color map, `presence.color` generation) for any hex/oklch/hsl/named color outside `tokens.css` and replace with the grey ramp. The server-side color assigned in `presence` and the AI block color map (blue/yellow/green/red/violet) must become grey-ramp/pattern identifiers.
