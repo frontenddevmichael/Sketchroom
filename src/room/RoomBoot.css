@@ -1,0 +1,24 @@
+/* ── Room boot (first load, before the room doc resolves) ────────────────
+   Sits on the shared loader family (`.loading-screen` backdrop + mark) with
+   room-specific copy and a calm retry path. */
+.room-boot-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  text-align: center;
+  animation: loader-fade-in 0.6s ease both;
+}
+
+.room-boot-error-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.room-boot-error-sub {
+  margin: 0 0 var(--sp-3);
+  font-size: 13px;
+  color: var(--ink-2);
+}

@@ -25,3 +25,36 @@
    system sets.
 5. tldraw's own chrome (zoom pill, minimap controls) is still tldraw-default
    prose styling, not the hairline language.
+
+## PROMPT-3 — product UI rebuild (in progress)
+
+### Step 2 — splitting `RoomScreen`
+
+The screen is 1,919 lines and its CSS 1,939, so the split goes module by
+module in `src/room/`, each one behaviour-preserving first and rebuilt second.
+
+Moved this pass (no behaviour change, CSS moved with its module and deleted
+from `RoomScreen.css`):
+
+| Was (in `RoomScreen.tsx`) | Now | Lines |
+| --- | --- | --- |
+| `CanvasOnboardingSketch` | `src/room/OnboardingSketch.tsx` | 26 |
+| `RoomCanvasBoot` | `src/room/RoomBoot.tsx` + `RoomBoot.css` | 44 |
+| `RoomCoachmarks`, `CoachmarkPill` | `src/room/RoomCoachmarks.tsx` + `.css` | 150 |
+
+`RoomScreen.tsx` is down to 1,693 lines and its CSS to 1,816.
+
+Kept as-is for now, with reasons: `RoomScreen` itself (it is the data owner —
+Convex queries, mutations, the save pipeline and the canvas handle), and the
+presence-colour and tool-title helpers (pure, four and twelve lines, used only
+here). Everything else still inside the component — topbar, tool rail, zoom and
+history controls, the shortcuts modal, the empty hero and the walkthrough — is
+queued to move next, then each module gets rebuilt per the mandate.
+
+### Colour decision (overrides SKILL.md's "no hue anywhere")
+
+You asked that the product stay monochrome while the *objects* keep colour.
+Implemented and documented in `docs/ENGINE-EVALUATION.md`: the interface,
+paper and text are ink; shapes, blocks and strokes carry `OBJECT_PALETTE`, and
+fills are a wash of the object's own colour. Text is the one exception that
+stays on the ink ramp.

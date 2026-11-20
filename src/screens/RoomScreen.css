@@ -825,82 +825,6 @@
   }
 }
 
-/* Sequential first-run coachmark pills — neutral, informational (never green),
-   positioned next to their target (rail, AI icon, Share) and fixed to the
-   viewport since they must float above the stage chrome. */
-.room-coachmark {
-  position: fixed;
-  z-index: var(--z-panel);
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  max-width: min(340px, calc(100vw - var(--sp-8)));
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-3);
-  animation: coachmark-in var(--t-panel) var(--ease-out);
-}
-
-.room-coachmark-text {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--ink);
-}
-
-.room-coachmark-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-  flex-shrink: 0;
-}
-
-.room-coachmark-next {
-  padding: 6px 14px;
-  border-radius: var(--r-pill);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ink);
-  background: var(--fill-2);
-  white-space: nowrap;
-  transition: background var(--t-fast) var(--ease-out);
-}
-
-.room-coachmark-next:hover {
-  background: var(--hair);
-}
-
-.room-coachmark-done {
-  font-size: 12px;
-  color: var(--ink-2);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  padding: 4px;
-  white-space: nowrap;
-  transition: color var(--t-fast) var(--ease-out);
-}
-
-.room-coachmark-done:hover {
-  color: var(--ink);
-}
-
-.room-coachmark-x {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--r-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink-2);
-  flex-shrink: 0;
-  transition: background var(--t-fast) var(--ease-out),
-    color var(--t-fast) var(--ease-out);
-}
-
-.room-coachmark-x:hover {
-  background: var(--fill-2);
-  color: var(--ink);
-}
-
 /* The engine surface fills the stage. Its chrome is hidden in canvas.css; the
    paper, grid and ink tokens come from the app theme through --paper/--ink. */
 .room-canvas-surface {
@@ -1621,31 +1545,6 @@ body.has-open-panel {
   color: var(--ink-3);
 }
 
-/* ── Room boot (first load, before the room doc resolves) ────────────────
-   Sits on the shared loader family (`.loading-screen` backdrop + mark) with
-   room-specific copy and a calm retry path. */
-.room-boot-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-2);
-  text-align: center;
-  animation: loader-fade-in 0.6s ease both;
-}
-
-.room-boot-error-title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.room-boot-error-sub {
-  margin: 0 0 var(--sp-3);
-  font-size: 13px;
-  color: var(--ink-2);
-}
-
 /* ── First-room flourish ─────────────────────────────────────────────────
    A one-time "your room is live" beat for brand-new rooms: a hand-drawn
    ring and sparkle draw themselves in green, then the whole mark dissolves.
@@ -1870,28 +1769,6 @@ body.has-open-panel {
 
 .room-zoom-menu button:hover {
   background: var(--surface);
-}
-
-.room-coachmark {
-  background: var(--surface);
-  border: 1px solid var(--hair);
-}
-
-.room-coachmark-next {
-  background: var(--surface);
-}
-
-.room-coachmark-next:hover {
-  background: var(--fill-2);
-}
-
-.room-coachmark-done:hover {
-  color: var(--ink);
-}
-
-.room-coachmark-x:hover {
-  background: var(--surface);
-  color: var(--ink);
 }
 
 .room-canvas-loading {

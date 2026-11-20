@@ -1,0 +1,77 @@
+/* Sequential first-run coachmark pills — neutral, informational, positioned
+   next to their target (rail, AI icon, Share) and fixed to the viewport since
+   they must float above the stage chrome. */
+.room-coachmark {
+  position: fixed;
+  z-index: var(--z-panel);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  max-width: min(340px, calc(100vw - var(--sp-8)));
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  animation: coachmark-in var(--t-panel) var(--ease-out);
+}
+
+.room-coachmark-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.room-coachmark-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  flex-shrink: 0;
+}
+
+.room-coachmark-next {
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--surface);
+  white-space: nowrap;
+  transition: background var(--t-fast) var(--ease-out);
+}
+
+.room-coachmark-next:hover {
+  background: var(--fill-2);
+}
+
+.room-coachmark-done {
+  font-size: 12px;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 4px;
+  white-space: nowrap;
+  transition: color var(--t-fast) var(--ease-out);
+}
+
+.room-coachmark-done:hover {
+  color: var(--ink);
+}
+
+.room-coachmark-x {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
+  flex-shrink: 0;
+  transition: background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.room-coachmark-x:hover {
+  background: var(--surface);
+  color: var(--ink);
+}

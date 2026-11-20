@@ -1,5 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, RefObject } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
@@ -20,8 +19,8 @@ import { playPop, toggleSound, isSoundEnabled } from '../utils/sound';
 import { useLongLoad } from '../hooks/useLongLoad';
 import { useModalFocus } from '../lib/useModalFocus';
 import { usePageTitle } from '../lib/usePageTitle';
-import { LoaderMark, LoaderWordmark } from '../components/LoadingScreen';
-import { CanvasEmptyIllo, ErrorIllo, DrawnTitle } from '../components/illustrations';
+import { LoaderMark } from '../components/LoadingScreen';
+import { CanvasEmptyIllo, DrawnTitle } from '../components/illustrations';
 import { AiFeed } from '../components/AiFeed';
 import { useAiCopilot } from '../lib/useAiCopilot';
 import { ShareModal } from '../components/ShareModal';
@@ -51,6 +50,9 @@ import '../components/ViewportAwareness.css';
 import '../components/PlacementPulses.css';
 import '../components/FocusDim.css';
 import '../components/CommentPins.css';
+import { OnboardingSketch } from '../room/OnboardingSketch';
+import { RoomBoot } from '../room/RoomBoot';
+import { RoomCoachmarks } from '../room/RoomCoachmarks';
 
 // Presence is monochrome, so collaborators are separated by ink weight and by
 // their name label rather than by hue. Six steps of the ramp, dark to light.
@@ -115,34 +117,6 @@ const WT_COPY = [
   'Connect the two with an arrow',
   "That's the whole loop — you've got it",
 ] as const;
-
-/**
- * First-visit onboarding: a quiet scene that draws itself in step by step —
- * pencil, then sticky note, then the connector between them — teaching the
- * product's core loop through its own linework. Dismissed by the first real
- * stroke; never replayed for a room once shown.
- */
-function CanvasOnboardingSketch() {
-  const d = (ms: number): CSSProperties => ({ ['--d' as string]: `${ms}ms` }) as CSSProperties;
-  return (
-    <svg viewBox="0 0 300 130" fill="none" aria-hidden="true">
-      {/* Pencil — body, then tip, then ferrule. */}
-      <path className="illo-stroke" pathLength={1} d="M36 86 L42 64 L92 48 L86 70 Z" style={d(0)} />
-      <path className="illo-stroke" pathLength={1} d="M92 48 L108 38 L100 64" style={d(150)} />
-      <path className="illo-stroke" pathLength={1} d="M48 78 L51 64" style={d(280)} />
-      {/* Sticky note — outline, fold, then the scribbles. */}
-      <path className="illo-stroke" pathLength={1} d="M198 42 L274 44 L280 98 L204 100 Z" style={d(900)} />
-      <path className="illo-stroke" pathLength={1} d="M274 44 L276 60 L260 58" style={d(1030)} />
-      <path className="illo-stroke" pathLength={1} d="M212 64 q6 -5 12 0 t12 0" style={d(1160)} />
-      <path className="illo-stroke" pathLength={1} d="M212 78 q6 -5 12 0 t12 0" style={d(1240)} />
-      <path className="illo-stroke" pathLength={1} d="M212 90 q6 -4 12 0" style={d(1310)} />
-      {/* Connector — the curve, its arrowhead, then a single green sparkle. */}
-      <path className="illo-stroke" pathLength={1} d="M104 46 C142 40 164 64 198 70" style={d(1800)} />
-      <path className="illo-stroke" pathLength={1} d="M190 67 L198 70 L191 77" style={d(1960)} />
-      <path className="illo-stroke illo-accent" pathLength={1} d="M258 22 l2 5.5 5.5 2 -5.5 2 -2 5.5 -2 -5.5 -5.5 -2 5.5 -2 z" style={d(2150)} />
-    </svg>
-  );
-}
 
 export function RoomScreen() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -1039,7 +1013,7 @@ export function RoomScreen() {
   // means the room was loaded and genuinely does not exist / no access.
   if (room === undefined) {
     if (!roomIdArg) return null;
-    return <RoomCanvasBoot />;
+    return <RoomBoot />;
   }
 
   if (room === null) return null;
@@ -1368,7 +1342,7 @@ export function RoomScreen() {
 
         {showOnboarding && shapeCount === 0 && !canvasTouched && !isReadOnly && (
           <div className="room-onboarding" aria-hidden="true">
-            <CanvasOnboardingSketch />
+            <OnboardingSketch />
             <span className="room-onboarding-label">Sketch · note · connect</span>
           </div>
         )}
@@ -1714,211 +1688,6 @@ export function RoomScreen() {
           <ExportDialog api={canvasApi} onClose={() => setShowExport(false)} />
         </Suspense>
       )}
-    </div>
-  );
-}
-
-// First-load boot for the room: the brand sketch-in loader (star draw-on +
-// wordmark) with honest long-load copy, and — never a dead end — a calm
-// retry path if the room itself can't be reached within a reasonable window.
-function RoomCanvasBoot() {
-  const { phrase } = useLongLoad(
-    true,
-    ['Opening your room…', 'Warming up the canvas…', 'Still syncing…'],
-    4000
-  );
-  const [gaveUp, setGaveUp] = useState(false);
-  useEffect(() => {
-    const t = window.setTimeout(() => setGaveUp(true), 15000);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  return (
-    <div className="loading-screen room-boot" role="status" aria-label="Opening room">
-      <LoaderMark size={62} />
-      <LoaderWordmark />
-      {gaveUp ? (
-        <div className="room-boot-error" role="alert">
-          <div aria-hidden="true">
-            <ErrorIllo />
-          </div>
-          <DrawnTitle className="room-boot-error-title" delay={700}>
-            Can't reach this room
-          </DrawnTitle>
-          <p className="room-boot-error-sub">Check your connection and give it another try.</p>
-          <button className="btn btn-primary" onClick={() => window.location.reload()}>
-            Try again
-          </button>
-        </div>
-      ) : (
-        <p className="loader-label">{phrase}</p>
-      )}
-    </div>
-  );
-}
-
-const COACHMARK_KEY = 'sketchroom.coachmarks.v1';
-
-interface CoachmarkTarget {
-  ref: RefObject<HTMLElement | null>;
-  placement: 'right' | 'left' | 'below' | 'above';
-  text: string;
-}
-
-// First-run coachmarks: three sequential single-line callouts (tool rail, AI
-// bar, Share), shown once only, dismissible individually via the X / "Next"
-// (advances), or wholesale via "Got it". Pills are neutral glass — never green,
-// since they're informational rather than AI-driven.
-function RoomCoachmarks({
-  railRef,
-  aiRef,
-  shareRef,
-}: {
-  railRef: RefObject<HTMLElement | null>;
-  aiRef: RefObject<HTMLElement | null>;
-  shareRef: RefObject<HTMLElement | null>;
-}) {
-  const [step, setStep] = useState(() => {
-    try {
-      return localStorage.getItem(COACHMARK_KEY) === 'dismissed' ? -1 : 0;
-    } catch {
-      return 0;
-    }
-  });
-
-  if (step < 0) return null;
-
-  const finish = () => {
-    setStep(-1);
-    try {
-      localStorage.setItem(COACHMARK_KEY, 'dismissed');
-    } catch {
-      // ignore
-    }
-  };
-  const next = () => setStep((s) => (s >= 2 ? -1 : s + 1));
-
-  const steps: CoachmarkTarget[] = [
-    {
-      ref: railRef,
-      placement: 'right',
-      text: 'Tools live on the left — select, draw, sticky notes, shapes, and the block library.',
-    },
-    {
-      ref: aiRef,
-      placement: 'above',
-      text: 'The AI copilot lives here — ask it to draft, refine, or answer.',
-    },
-    {
-      ref: shareRef,
-      placement: 'below',
-      text: 'Invite your team with Share.',
-    },
-  ];
-  const current = steps[step];
-
-  return (
-    <CoachmarkPill
-      targetRef={current.ref}
-      placement={current.placement}
-      text={current.text}
-      last={step === steps.length - 1}
-      onNext={next}
-      onFinish={finish}
-    />
-  );
-}
-
-function CoachmarkPill({
-  targetRef,
-  placement,
-  text,
-  last,
-  onNext,
-  onFinish,
-}: {
-  targetRef: RefObject<HTMLElement | null>;
-  placement: 'right' | 'left' | 'below' | 'above';
-  text: string;
-  last: boolean;
-  onNext: () => void;
-  onFinish: () => void;
-}) {
-  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
-  const pillRef = useRef<HTMLDivElement | null>(null);
-
-  useLayoutEffect(() => {
-    const place = () => {
-      const target = targetRef.current;
-      const pill = pillRef.current;
-      if (!target || !pill) return;
-      const tr = target.getBoundingClientRect();
-      const pw = pill.offsetWidth;
-      const ph = pill.offsetHeight;
-      if (!pw || !ph || tr.width === 0) return;
-      let left: number;
-      let top: number;
-      if (placement === 'right') {
-        left = tr.right + 12;
-        top = tr.top + tr.height / 2 - ph / 2;
-      } else if (placement === 'left') {
-        left = tr.left - pw - 12;
-        top = tr.top + tr.height / 2 - ph / 2;
-      } else if (placement === 'above') {
-        left = tr.left + tr.width / 2 - pw / 2;
-        top = tr.top - ph - 12;
-      } else {
-        left = tr.left + tr.width / 2 - pw / 2;
-        top = tr.bottom + 12;
-      }
-      left = Math.max(12, Math.min(left, window.innerWidth - pw - 12));
-      top = Math.max(12, Math.min(top, window.innerHeight - ph - 12));
-      setPos({ left, top });
-    };
-    place();
-    const frame = requestAnimationFrame(place);
-    const t1 = window.setTimeout(place, 200);
-    const t2 = window.setTimeout(place, 800);
-    const onResize = () => place();
-    window.addEventListener('resize', onResize);
-    const target = targetRef.current;
-    let observer: ResizeObserver | null = null;
-    if (target) {
-      observer = new ResizeObserver(place);
-      observer.observe(target);
-    }
-    return () => {
-      cancelAnimationFrame(frame);
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-      window.removeEventListener('resize', onResize);
-      observer?.disconnect();
-    };
-  }, [targetRef, placement]);
-
-  return (
-    <div
-      ref={pillRef}
-      className="room-coachmark glass"
-      role="note"
-      aria-label="Getting started"
-      aria-live="polite"
-      style={pos ? { left: pos.left, top: pos.top } : undefined}
-    >
-      <p className="room-coachmark-text">{text}</p>
-      <div className="room-coachmark-actions">
-        <button className="room-coachmark-done" onClick={onFinish}>
-          Got it
-        </button>
-        {!last && (
-          <button className="room-coachmark-next" onClick={onNext}>
-            Next
-          </button>
-        )}
-      </div>
-      <button className="room-coachmark-x" onClick={onNext} aria-label={last ? 'Dismiss' : 'Next'}>
-        <X size={14} />
-      </button>
     </div>
   );
 }
