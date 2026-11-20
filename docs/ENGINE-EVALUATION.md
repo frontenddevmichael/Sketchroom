@@ -139,11 +139,34 @@ Done:
   Sans fetched from `/excalidraw/`, no console errors. 7 converter/scene tests
   pass.
 
-Still to do (steps 2–4): the room itself is untouched and still renders tldraw,
-so the watermark remains until the room is rebuilt on `CanvasSurface`. The
-component set that takes an `Editor` (presence, comments, ghost blocks, block
-library, tool options, AI copilot, export, version history, templates) moves to
-Excalidraw's element API in that pass.
+Done (step 2 of 4 — the room itself):
+
+- `src/canvas/api.ts` is the single handle on the engine (`CanvasApi`): scene
+  reads, camera/coordinate conversion through the package's own helpers, tool
+  arming, element insert/update/remove, align/distribute/z-order, zoom, and the
+  room's undo/redo stack.
+- `src/canvas/elements.ts` builds the product's own content (blocks, notes,
+  text, connectors) as elements; `src/canvas/export.ts` renders PNG/SVG/JPEG
+  previews on the paper colour.
+- `RoomScreen` mounts `CanvasSurface`, saves a per-element diff
+  (`{ put: Element[], remove: string[] }`), reconciles remote versions without
+  echoing them back, and captures thumbnails and snapshots from the scene.
+- Presence, viewport/selection awareness, focus dim, placement pulses, comments,
+  ghost blocks, block library, tool options, AI copilot, export and version
+  history all talk to `CanvasApi`; templates and block kinds are drawn on the
+  ink ramp. `tldraw`, `@tldraw/assets`, `@tldraw/tlschema` and `@tldraw/utils`
+  are removed from `package.json` and the lockfile (104 packages pruned).
+- Legacy rooms still convert once on read, in both the room and snapshot
+  previews; the server treats a legacy blob as an empty scene and the client's
+  first edit writes the converted scene back.
+- Verified: `tsc -b`, `eslint . --max-warnings=0`, `vitest run` (79 tests,
+  including the rewritten canvas persistence tests) and `pnpm run build` all
+  pass; the room loads on Excalidraw with no console errors, a library insert
+  flushes through `applyCanvasChanges`, and undo/redo round-trips.
+
+Still to do (steps 3–4): the guided-walkthrough/onboarding copy still describes
+stroke counts from the old engine's shape vocabulary, and the two-user
+Playwright pass still needs a live Convex deployment.
 
 ## Recommendation
 

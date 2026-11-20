@@ -1,7 +1,8 @@
 import type { BlockDef } from './types';
-import type { Editor } from 'tldraw';
-import { toRichText, createShapeId } from 'tldraw';
-import { kindColor } from '../lib/blockKinds';
+import type { CanvasApi, CanvasBounds } from '../canvas/api';
+import { INK } from '../canvas/ink';
+import { createShapeElements } from '../canvas/elements';
+import { kindInk } from '../lib/blockKinds';
 import { emitPlacementPulse } from '../components/placementPulse';
 
 // ── Shared constants ──────────────────────────────────────────────────────
@@ -39,71 +40,66 @@ export function snapToGrid(v: number): number {
   return Math.round(v / GRID) * GRID;
 }
 
-export function makeBlockProps(block: BlockDef) {
+/** Where a block lands: the viewport centre, cascaded so drops never stack. */
+export function blockPlacement(
+  api: CanvasApi,
+  cascadeIndex: number,
+): { x: number; y: number } {
+  const view = api.viewportBounds();
+  const center = { x: view.x + view.w / 2, y: view.y + view.h / 2 };
+  const col = cascadeIndex % CASCADE_COLS;
+  const row = Math.floor(cascadeIndex / CASCADE_COLS);
   return {
-    geo: 'rectangle' as const,
-    w: BLOCK_W,
-    h: BLOCK_H,
-    color: kindColor(block.code),
-    fill: 'semi' as const,
-    richText: toRichText(block.role ?? block.label),
-  } satisfies {
-    geo: 'rectangle';
-    w: number;
-    h: number;
-    color: ReturnType<typeof kindColor>;
-    fill: 'semi';
-    richText: ReturnType<typeof toRichText>;
+    x: snapToGrid(center.x - BLOCK_W / 2 + col * (BLOCK_W + CASCADE_GAP_X)),
+    y: snapToGrid(center.y - BLOCK_H / 2 + row * (BLOCK_H + CASCADE_GAP_Y)),
   };
 }
 
+/** The pulse layer works in screen space; this is the one conversion. */
+export function pulseForBounds(api: CanvasApi, bounds: CanvasBounds, tone: 'neutral' | 'ai'): void {
+  const camera = api.camera;
+  emitPlacementPulse(
+    {
+      x: (bounds.x - camera.x) * camera.z,
+      y: (bounds.y - camera.y) * camera.z,
+      w: bounds.w * camera.z,
+      h: bounds.h * camera.z,
+    },
+    tone,
+  );
+}
+
 /**
- * Insert a block at the center of the viewport with cascade positioning.
- * Accepts editor + cascade state as parameters so it stays decoupled from
+ * Insert a block at the centre of the viewport with cascade positioning.
+ * Accepts the api + cascade state as parameters so it stays decoupled from
  * any component's hooks.
  */
 export function insertBlock(
   block: BlockDef,
-  editor: Editor | null,
+  api: CanvasApi | null,
   cascadeIndex: number,
   setCascadeIndex: React.Dispatch<React.SetStateAction<number>>,
-) {
-  if (!editor) return;
-  const viewport = editor.getViewportScreenBounds();
-  const center = editor.screenToPage({ x: viewport.midX, y: viewport.midY });
-
-  const col = cascadeIndex % CASCADE_COLS;
-  const row = Math.floor(cascadeIndex / CASCADE_COLS);
+): void {
+  if (!api) return;
+  const { x, y } = blockPlacement(api, cascadeIndex);
   setCascadeIndex((i) => i + 1);
 
-  const x = snapToGrid(center.x - BLOCK_W / 2 + col * (BLOCK_W + CASCADE_GAP_X));
-  const y = snapToGrid(center.y - BLOCK_H / 2 + row * (BLOCK_H + CASCADE_GAP_Y));
-
-  const id = createShapeId();
-  editor.createShape({
-    id,
-    type: 'geo',
+  const elements = createShapeElements({
+    kind: 'rectangle',
     x,
     y,
-    props: makeBlockProps(block),
+    width: BLOCK_W,
+    height: BLOCK_H,
+    label: block.role ?? block.label,
+    style: { stroke: kindInk(block.code), fill: INK.fill1, strokeWidth: 1.25 },
+    labelStyle: { stroke: INK.ink },
   });
-  editor.select(id);
-  editor.setCurrentTool('select');
-  editor.zoomToSelection({ animation: { duration: 160 } });
+
+  api.addElements(elements, { select: true });
+  api.setTool('select');
+  api.zoomToBounds({ x, y, w: BLOCK_W, h: BLOCK_H }, { inset: 220, targetZoom: 1 });
 
   // The placement "snap": a spring ring flashes around the landed block
   // so the drop reads as a deliberate moment, not a silent teleport.
-  const bounds = editor.getShapePageBounds(id);
-  if (bounds) {
-    const cam = editor.getCamera();
-    emitPlacementPulse(
-      {
-        x: (bounds.x - cam.x) * cam.z,
-        y: (bounds.y - cam.y) * cam.z,
-        w: bounds.w * cam.z,
-        h: bounds.h * cam.z,
-      },
-      'neutral',
-    );
-  }
+  pulseForBounds(api, { x, y, w: BLOCK_W, h: BLOCK_H }, 'neutral');
 }

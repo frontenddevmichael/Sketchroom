@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, RefObject } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'convex/react';
@@ -6,18 +6,15 @@ import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { useTheme } from '../lib/useTheme';
 import { useCurrentUser } from '../hooks/useCurrentUser';
-import { createTLStore, setUserPreferences } from 'tldraw';
-import { Tldraw } from 'tldraw';
-// Self-hosted tldraw assets. Without this, tldraw fetches its icons, fonts and
-// translations from cdn.tldraw.com — which the production CSP blocks
-// (default-src 'self'), leaving the room with missing iconography.
-import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite';
-
-// Resolved once: a fresh object per render would make tldraw re-resolve its
-// asset base on every re-render of the room.
-const TLDRAW_ASSET_URLS = getAssetUrlsByImport();
-import type { Editor, TLRecord, TLStore } from 'tldraw';
-import 'tldraw/tldraw.css';
+import {
+  CanvasSurface,
+  emptyScene,
+  parseScene,
+  sceneThumbnail,
+  serializeScene,
+} from '../canvas';
+import type { CanvasApi, CanvasTool, SceneDocument } from '../canvas';
+import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import { Blocks, History, Download, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, HelpCircle, X, ArrowLeft, Pencil, User, MoreHorizontal, MessageSquare, Volume2, VolumeX } from 'lucide-react';
 import { playPop, toggleSound, isSoundEnabled } from '../utils/sound';
 import { useLongLoad } from '../hooks/useLongLoad';
@@ -67,48 +64,21 @@ function presenceColorFor(id: string): string {
   return PRESENCE_COLORS[hash % PRESENCE_COLORS.length];
 }
 
-// The server persists canvas state as a canonical map { [recordId]: TLRecord }
-// of document-scope records only (session/presence records like camera and
-// pointer are never stored). Older rooms may still hold a full tldraw snapshot
-// { schema, records }; extract the document scope in that case. Either way we
-// only ever emit records whose typeName exists in tldraw's document scope, so
-// a malformed stored value (missing typeName, or a stray records/schema
-// wrapper) can never crash store.put.
-function parseCanonicalRecords(
-  data: string | undefined | null,
-  store: TLStore
-): Record<string, TLRecord> {
-  if (!data) return {};
-  try {
-    const parsed = JSON.parse(data) as unknown;
-    if (!parsed || typeof parsed !== 'object') return {};
-    const legacy = parsed as { records?: unknown; schema?: unknown };
-    const docTypes = store.scopedTypes.document;
-    const recordList =
-      legacy.records && typeof legacy.records === 'object' && legacy.schema
-        ? Object.entries(legacy.records as Record<string, unknown>)
-        : Object.entries(parsed as Record<string, unknown>);
-    const out: Record<string, TLRecord> = {};
-    for (const [id, record] of recordList) {
-      const rec = record as TLRecord;
-      if (rec && typeof rec === 'object' && docTypes.has(rec.typeName)) out[id] = rec;
-    }
-    return out;
-  } catch {
-    return {};
-  }
-}
+// A room's canvas is one self-describing document (`{ format, elements }`).
+// `parseScene` accepts that, a bare Excalidraw file blob, or a legacy tldraw
+// record map (converted once on read), and returns an empty scene rather than a
+// crashed room for anything malformed.
 
 type Panel = 'history' | 'blocks' | null;
 
-const TOOL_BY_ID: Record<string, { tool: string; hint: string; key?: string }> = {
+const TOOL_BY_ID: Record<string, { tool: CanvasTool; hint: string; key?: string }> = {
   select: { tool: 'select', hint: 'Select', key: 'V' },
   draw: { tool: 'draw', hint: 'Draw', key: 'D' },
-  sticky: { tool: 'note', hint: 'Sticky note', key: 'N' },
+  sticky: { tool: 'sticky', hint: 'Sticky note', key: 'N' },
   text: { tool: 'text', hint: 'Text', key: 'T' },
-  connector: { tool: 'arrow', hint: 'Connector', key: 'A' },
+  connector: { tool: 'connector', hint: 'Connector', key: 'A' },
   eraser: { tool: 'eraser', hint: 'Eraser', key: 'E' },
-  shapes: { tool: 'geo', hint: 'Shapes', key: 'R' },
+  shapes: { tool: 'shapes', hint: 'Shapes', key: 'R' },
 };
 
 // The left tool rail is the design brief's tool surface: essential tools plus
@@ -212,14 +182,17 @@ export function RoomScreen() {
   const loadedVersion = useRef(-1);
   const dirtySinceSnapshot = useRef(false);
   const snapInFlight = useRef(false);
-  const pendingDiff = useRef<{ put: Record<string, TLRecord>; remove: Set<string> }>({
-    put: {},
+  const pendingDiff = useRef<{ put: Map<string, ExcalidrawElement>; remove: Set<string> }>({
+    put: new Map(),
     remove: new Set(),
   });
-  const baselineSeeded = useRef(false);
   const savedAt = useRef(0);
-  const editorRef = useRef<Editor | null>(null);
-  const [editorState, setEditorState] = useState<Editor | null>(null);
+  const apiRef = useRef<CanvasApi | null>(null);
+  const [canvasApi, setCanvasApi] = useState<CanvasApi | null>(null);
+  // Element JSON as last reconciled with the server: the diff baseline.
+  const knownElements = useRef<Map<string, string>>(new Map());
+  const latestElements = useRef<readonly ExcalidrawElement[]>([]);
+  const diffTimer = useRef<number | null>(null);
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const cursorRef = useRef<{ x: number; y: number } | null>(null);
@@ -281,14 +254,13 @@ export function RoomScreen() {
       const id = WT_STEP_IDS[step];
       const cfg = TOOL_BY_ID[id];
       if (!cfg) return;
-      const editor = editorRef.current;
-      if (editor) editor.setCurrentTool(cfg.tool);
+      apiRef.current?.setTool(cfg.tool);
       setActiveTool(id);
     },
-    [isReadOnly]
+    [isReadOnly],
   );
 
-  const ai = useAiCopilot({ roomId: roomIdArg, editor: editorState, readOnly: isReadOnly });
+  const ai = useAiCopilot({ roomId: roomIdArg, api: canvasApi, readOnly: isReadOnly });
   const closeAiFeed = ai.closeFeed;
   const openFeed = ai.openFeed;
 
@@ -370,24 +342,17 @@ export function RoomScreen() {
 
   const captureThumbnail = useCallback(async () => {
     if (!roomIdArg || isReadOnly) return;
-    const editor = editorRef.current;
-    if (!editor) return;
-    const shapes = editor.getCurrentPageShapes();
-    if (shapes.length === 0) return;
+    const api = apiRef.current;
+    if (!api) return;
     try {
-      const { url } = await editor.toImageDataUrl(shapes, {
-        format: 'jpeg',
-        quality: 0.6,
-        scale: 0.25,
-        background: true,
-      });
-      await updateRoomThumbnail({ roomId: roomIdArg, thumbnailData: url });
+      const thumbnail = await sceneThumbnail(api);
+      if (!thumbnail) return;
+      await updateRoomThumbnail({ roomId: roomIdArg, thumbnailData: thumbnail });
     } catch {
       // Thumbnail capture is best-effort; ignore failures
     }
   }, [roomIdArg, isReadOnly, updateRoomThumbnail]);
 
-  const [store] = useState(() => createTLStore({ defaultName: 'Untitled room' }));
   // Blur-up: once the canvas data arrives, let the live canvas hydrate
   // underneath, then cross-fade the loading overlay away after a beat.
   const [showCanvasOverlay, setShowCanvasOverlay] = useState(true);
@@ -399,51 +364,37 @@ export function RoomScreen() {
     4000
   );
 
-  useEffect(() => () => store.dispose(), [store]);
+  // The document a room opens with. CanvasSurface reads it once on mount, so
+  // later versions are applied through `replaceElements` instead of a remount —
+  // a remount would drop the viewer's camera and selection mid-session.
+  const initialScene = useMemo<SceneDocument>(
+    () => (canvas ? parseScene(canvas.canvasData) : emptyScene()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [canvas?.canvasData],
+  );
 
-  // Keep the tldraw editor's color scheme in lockstep with the app theme so
-  // the canvas and its UI render on the same elevation system as everything else.
+  // Reconcile remote changes whenever the room's canvas version bumps. Edits
+  // that have not been sent yet win over the incoming document, so a reconcile
+  // can never eat someone's in-flight stroke, and our own pushes come back with
+  // matching element JSON — so there is no echo write-back.
   useEffect(() => {
-    const editor = editorRef.current;
-    if (editor) editor.setColorMode(theme === 'dark' ? 'dark' : 'light');
-  }, [theme, editorState]);
-
-  // Hydrate the store from canonical data and reconcile remote document
-  // changes whenever the canvas version bumps. Our own pushes come back with
-  // matching record JSON, so the reconcile is a no-op (no echo).
-  //
-  // Only user-deletable records (shapes, assets, bindings) are ever removed.
-  // Structural records — document, page, user — are created by tldraw itself
-  // with stable ids (e.g. page:page) on every client, so removing them would
-  // churn against tldraw's own integrity checks.
-  useEffect(() => {
-    if (!canvas) return;
+    if (!canvas || !canvasApi) return;
     if (canvas.canvasVersion <= loadedVersion.current) return;
     loadedVersion.current = canvas.canvasVersion;
-    if (!canvas.canvasData || canvas.canvasData === '') return;
-    const canonical = parseCanonicalRecords(canvas.canvasData, store);
-    const local = store.serialize('document');
+    if (!canvas.canvasData) return;
+    const remote = parseScene(canvas.canvasData);
     const pending = pendingDiff.current;
-    const put: Record<string, TLRecord> = {};
-    const remove: string[] = [];
-    for (const [id, record] of Object.entries(canonical)) {
-      if (pending.put[id]) continue;
-      if (pending.remove.has(id)) continue;
-      const existing = local[id as keyof typeof local];
-      if (!existing || JSON.stringify(existing) !== JSON.stringify(record)) put[id] = record;
+    const merged = new Map<string, ExcalidrawElement>(
+      remote.elements.map((element) => [element.id, element]),
+    );
+    for (const [id, element] of pending.put) merged.set(id, element);
+    for (const id of pending.remove) merged.delete(id);
+    for (const element of remote.elements) {
+      if (pending.put.has(element.id) || pending.remove.has(element.id)) continue;
+      knownElements.current.set(element.id, JSON.stringify(element));
     }
-    const REMOVABLE_TYPES = new Set(['shape', 'asset', 'binding']);
-    for (const id of Object.keys(local)) {
-      const rec = local[id as keyof typeof local];
-      if (!rec || !REMOVABLE_TYPES.has(rec.typeName)) continue;
-      if (!canonical[id] && !pending.put[id]) remove.push(id);
-    }
-    if (Object.keys(put).length === 0 && remove.length === 0) return;
-    store.mergeRemoteChanges(() => {
-      store.put(Object.values(put));
-      store.remove(remove as Parameters<typeof store.remove>[0]);
-    });
-  }, [store, canvas]);
+    canvasApi.replaceElements([...merged.values()]);
+  }, [canvas, canvasApi]);
 
   // The overlay's fade begins as soon as the canvas query resolves (the
   // hydrate effect above has already run in the same commit), and the overlay
@@ -467,19 +418,17 @@ export function RoomScreen() {
     // "Not a member" forever. A missing room means no write permission.
     if (!room || room.userRole === 'viewer') return;
     const diff = pendingDiff.current;
-    if (Object.keys(diff.put).length === 0 && diff.remove.size === 0) return;
+    if (diff.put.size === 0 && diff.remove.size === 0) return;
     const sent = {
-      put: { ...diff.put },
+      put: Array.from(diff.put.values()),
       remove: Array.from(diff.remove),
     };
     const changes = JSON.stringify(sent);
     setSaveStatus('saving');
     try {
       await applyCanvasChanges({ roomId: roomIdArg, changes });
-      for (const id of Object.keys(sent.put)) {
-        if (diff.put[id] && JSON.stringify(diff.put[id]) === JSON.stringify(sent.put[id])) {
-          delete diff.put[id];
-        }
+      for (const element of sent.put) {
+        if (diff.put.get(element.id)?.version === element.version) diff.put.delete(element.id);
       }
       for (const id of sent.remove) {
         if (diff.remove.has(id)) diff.remove.delete(id);
@@ -488,7 +437,7 @@ export function RoomScreen() {
       savedAt.current = Date.now();
       setSaveStatus('saved');
       announce('Canvas saved');
-      if (Object.keys(diff.put).length > 0 || diff.remove.size > 0) {
+      if (diff.put.size > 0 || diff.remove.size > 0) {
         if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
         saveTimer.current = window.setTimeout(() => void flushRef.current(), 300);
       }
@@ -501,56 +450,66 @@ export function RoomScreen() {
     flushRef.current = flush;
   }, [flush]);
 
-  // Accumulate local document edits (source 'user', scope 'document') and
-  // debounce-push them. Remote reconciles never match these filters, so there
-  // is no write-back loop.
   const thumbnailTimer = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (!roomIdArg) return;
-    const unlisten = store.listen(
-      (entry) => {
-        if (!room || room.userRole === 'viewer') return;
-        // First local edit: seed the room's structural baseline (document +
-        // page records) into the push so the canonical state carries the page
-        // structure for anyone who joins later.
-        if (!baselineSeeded.current) {
-          baselineSeeded.current = true;
-          const baseline = store.serialize('document');
-          for (const [id, rec] of Object.entries(baseline)) {
-            if (rec.typeName === 'document' || rec.typeName === 'page') {
-              pendingDiff.current.put[id] = rec;
-            }
-          }
+  // Turn the latest scene into a per-element diff, debounced so a drag produces
+  // one comparison instead of sixty. Only what actually changed is queued, so
+  // a reconcile that came from the server never bounces back to it.
+  const queueDiff = useCallback(() => {
+    if (diffTimer.current !== null) window.clearTimeout(diffTimer.current);
+    diffTimer.current = window.setTimeout(() => {
+      diffTimer.current = null;
+      if (!room || room.userRole === 'viewer') return;
+      const elements = latestElements.current;
+      const pending = pendingDiff.current;
+      const seen = new Set<string>();
+      let dirty = false;
+      for (const element of elements) {
+        seen.add(element.id);
+        const serialized = JSON.stringify(element);
+        if (knownElements.current.get(element.id) === serialized) continue;
+        knownElements.current.set(element.id, serialized);
+        dirty = true;
+        if (element.isDeleted) {
+          pending.remove.add(element.id);
+          pending.put.delete(element.id);
+        } else {
+          pending.put.set(element.id, element);
+          pending.remove.delete(element.id);
         }
-        const { added, updated, removed } = entry.changes;
-        const addedMap = added as Record<string, TLRecord>;
-        const updatedMap = updated as Record<string, [TLRecord, TLRecord]>;
-        for (const id of Object.keys(addedMap)) {
-          pendingDiff.current.put[id] = addedMap[id];
-        }
-        for (const id of Object.keys(updatedMap)) {
-          pendingDiff.current.put[id] = updatedMap[id][1];
-        }
-        for (const id of Object.keys(removed)) {
-          pendingDiff.current.remove.add(id);
-          delete pendingDiff.current.put[id];
-        }
-        dirtySinceSnapshot.current = true;
-        if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
-        saveTimer.current = window.setTimeout(() => void flushRef.current(), 800);
-        // Debounced thumbnail capture — 3s after last edit
-        if (thumbnailTimer.current !== null) window.clearTimeout(thumbnailTimer.current);
-        thumbnailTimer.current = window.setTimeout(() => void captureThumbnail(), 3000);
-      },
-      { source: 'user', scope: 'document' }
-    );
-    return () => {
-      unlisten();
+      }
+      for (const id of [...knownElements.current.keys()]) {
+        if (seen.has(id)) continue;
+        knownElements.current.delete(id);
+        pending.put.delete(id);
+        pending.remove.add(id);
+        dirty = true;
+      }
+      if (!dirty) return;
+      dirtySinceSnapshot.current = true;
       if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
+      saveTimer.current = window.setTimeout(() => void flushRef.current(), 800);
+      // Debounced thumbnail capture — 3s after last edit
       if (thumbnailTimer.current !== null) window.clearTimeout(thumbnailTimer.current);
+      thumbnailTimer.current = window.setTimeout(() => void captureThumbnail(), 3000);
+    }, 200);
+  }, [room, captureThumbnail]);
+
+  const handleCanvasChange = useCallback(
+    (elements: readonly ExcalidrawElement[]) => {
+      latestElements.current = elements;
+      queueDiff();
+    },
+    [queueDiff],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (diffTimer.current !== null) window.clearTimeout(diffTimer.current);
+      if (thumbnailTimer.current !== null) window.clearTimeout(thumbnailTimer.current);
+      if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
     };
-  }, [store, roomIdArg, room, flush, captureThumbnail]);
+  }, []);
 
   // Retry pending changes when the network comes back.
   useEffect(() => {
@@ -592,11 +551,10 @@ export function RoomScreen() {
   // JPEG thumbnail fix. Only fires once per room load after the editor hydrates.
   useEffect(() => {
     if (!roomIdArg || isReadOnly || !room || !canvas?.canvasData || room.thumbnailData) return;
-    const editor = editorRef.current;
-    if (!editor) return;
+    if (!canvasApi) return;
     const timer = window.setTimeout(() => void captureThumbnail(), 2000);
     return () => window.clearTimeout(timer);
-  }, [roomIdArg, room, canvas, isReadOnly, captureThumbnail]);
+  }, [roomIdArg, room, canvas, isReadOnly, canvasApi, captureThumbnail]);
 
   // First-visit onboarding sketch: on an empty room, a pencil → note →
   // connector scene draws itself in once — a quiet "this is the loop" beat.
@@ -631,9 +589,9 @@ export function RoomScreen() {
     const tick = async () => {
       if (!room || room.userRole === 'viewer') return;
       if (snapInFlight.current || !dirtySinceSnapshot.current) return;
-      const editor = editorRef.current;
-      if (!editor) return;
-      const data = JSON.stringify(store.serialize('document'));
+      const api = apiRef.current;
+      if (!api) return;
+      const data = serializeScene(api.elements);
       snapInFlight.current = true;
       try {
         await saveSnapshot({
@@ -660,7 +618,7 @@ export function RoomScreen() {
       window.clearInterval(interval);
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
-  }, [roomIdArg, saveSnapshot, store, room, captureThumbnail, flush]);
+  }, [roomIdArg, saveSnapshot, room, captureThumbnail, flush]);
 
   // Presence: ship cursor + camera + selection on pointer move and on an
   // interval, and periodically sweep stale cursors left by closed tabs.
@@ -672,8 +630,8 @@ export function RoomScreen() {
       const now = Date.now();
       if (throttled && now - lastPresenceShip.current < 150) return;
       lastPresenceShip.current = now;
-      const editor = editorRef.current;
-      const camera = editor?.getCamera();
+      const api = apiRef.current;
+      const camera = api?.camera;
       const cursor = cursorRef.current;
       upsertPresence({
         roomId: roomIdArg,
@@ -686,13 +644,13 @@ export function RoomScreen() {
             : undefined,
         cursorX: cursor?.x,
         cursorY: cursor?.y,
-        selectedShapeIds: editor?.getSelectedShapeIds().map(String),
+        selectedShapeIds: api?.selectionIds,
       }).catch(() => setIsConnected(false));
     };
     const handleMove = (e: PointerEvent) => {
-      const editor = editorRef.current;
-      if (editor) {
-        const page = editor.screenToPage({ x: e.clientX, y: e.clientY });
+      const api = apiRef.current;
+      if (api) {
+        const page = api.screenToScene(e.clientX, e.clientY);
         cursorRef.current = { x: page.x, y: page.y };
         ship(true);
       }
@@ -728,38 +686,37 @@ export function RoomScreen() {
     };
   }, [roomIdArg, room, user, upsertPresence, prunePresence, removePresence]);
 
-  // Track shape count, camera zoom, and the active tool for the rail.
-  // Selection changes don't fire pointer moves, so push a presence update
-  // when the selected set changes so others see the live focus ring.
+  // Track element count, camera, tool, selection and history depth for the
+  // rail and the guides. Selection changes don't fire pointer moves, so a
+  // selection change also ships presence so others see the live focus ring.
   useEffect(() => {
-    if (!editorState) return;
+    if (!canvasApi) return;
     const update = () => {
-      const shapes = editorState.getCurrentPageShapes();
+      const elements = canvasApi.elements;
       // First real stroke (or a dropped block) retires the onboarding sketch.
-      if (shapes.length > 0) {
-        if (showOnboarding) {
-          setShowOnboarding(false);
-          if (roomIdArg) completeOnboarding({ roomId: roomIdArg }).catch(() => {});
-        }
+      if (elements.length > 0 && showOnboarding) {
+        setShowOnboarding(false);
+        if (roomIdArg) completeOnboarding({ roomId: roomIdArg }).catch(() => {});
       }
       // Guided walkthrough: a real pencil stroke, sticky note, and connector
-      // each check their step off; an unguided action (a block, text, a geo
-      // shape) means the user is already working independently, so the guide
-      // quietly steps aside instead of nagging.
+      // each check their step off; an unguided action (text, an ellipse) means
+      // the user is already working independently, so the guide steps aside.
       if (walkthrough) {
-        const types = new Set(shapes.map((s) => s.type));
+        const types = new Set(elements.map((element) => element.type));
         const guided = {
-          pencil: walkthrough.pencil || types.has('draw'),
-          note: walkthrough.note || types.has('note'),
+          pencil: walkthrough.pencil || types.has('freedraw'),
+          note: walkthrough.note || types.has('rectangle'),
           connector: walkthrough.connector || types.has('arrow'),
         };
         const allDone = guided.pencil && guided.note && guided.connector;
-        const unguided = [...types].some((t) => t !== 'draw' && t !== 'note' && t !== 'arrow');
+        const unguided = [...types].some(
+          (type) => type !== 'freedraw' && type !== 'rectangle' && type !== 'arrow',
+        );
         if (unguided && !allDone) {
           dismissWalkthrough();
         } else if (allDone) {
-          // Only announce completion once: a fresh object every store tick
-          // would keep resetting the done-beat timer below.
+          // Only announce completion once: a fresh object every change would
+          // keep resetting the done-beat timer below.
           if (!walkthrough.pencil || !walkthrough.note || !walkthrough.connector) {
             setWalkthrough({ pencil: true, note: true, connector: true });
           }
@@ -772,44 +729,22 @@ export function RoomScreen() {
           armWalkthroughTool(!guided.pencil ? 0 : !guided.note ? 1 : 2);
         }
       }
-      setShapeCount(shapes.length);
-      setSelectionCount(editorState.getSelectedShapeIds().length);
-      setZoom(editorState.getCamera().z);
-      const undoable = editorState.getCanUndo();
-      const redoable = editorState.getCanRedo();
-      setCanUndo(undoable);
-      setCanRedo(redoable);
-      // Undo/redo depth for the notch's history gauge. tldraw's history
-      // manager is protected in the types but a live public field — probe it
-      // through a typed view so the gauge is proportional, not a boolean.
-      const history = (
-        editorState as unknown as {
-          history?: { getNumUndos(): number; getNumRedos(): number };
-        }
-      ).history;
-      setUndoDepth(Math.min(history?.getNumUndos?.() ?? (undoable ? 1 : 0), 10));
-      setRedoDepth(Math.min(history?.getNumRedos?.() ?? (redoable ? 1 : 0), 10));
-      const toolId = editorState.getCurrentToolId();
-      const mapped: Record<string, string> = {
-        select: 'select',
-        draw: 'draw',
-        note: 'sticky',
-        text: 'text',
-        arrow: 'connector',
-        eraser: 'eraser',
-        geo: 'shapes',
-      };
-      setActiveTool((current) => mapped[toolId] ?? current);
-      const selection = editorState.getSelectedShapeIds().join(',');
+      setShapeCount(elements.length);
+      setSelectionCount(canvasApi.selectionIds.length);
+      setZoom(canvasApi.camera.z);
+      setCanUndo(canvasApi.canUndo);
+      setCanRedo(canvasApi.canRedo);
+      // The history stack is ours, so the gauge reports real step counts.
+      setUndoDepth(Math.min(canvasApi.undoDepth, 10));
+      setRedoDepth(Math.min(canvasApi.redoDepth, 10));
+      setActiveTool(canvasApi.activeTool);
+      const selection = canvasApi.selectionIds.join(',');
       if (selection !== lastSelection.current && roomIdArg && room) {
         lastSelection.current = selection;
-        const displayName =
-          user?.name ||
-          user?.email ||
-          'Unknown';
+        const displayName = user?.name || user?.email || 'Unknown';
         // Send the full presence payload so the selection change never clears
         // the cursor/camera fields this user already shipped.
-        const camera = editorState.getCamera();
+        const camera = canvasApi.camera;
         const cursor = cursorRef.current;
         void upsertPresence({
           roomId: roomIdArg,
@@ -819,15 +754,14 @@ export function RoomScreen() {
           camera: { x: camera.x, y: camera.y, zoom: camera.z },
           cursorX: cursor?.x,
           cursorY: cursor?.y,
-          selectedShapeIds: editorState.getSelectedShapeIds().map(String),
+          selectedShapeIds: canvasApi.selectionIds,
         }).catch(() => undefined);
       }
     };
     update();
-    const unlisten = editorState.store.listen(update);
-    return () => unlisten();
+    return canvasApi.subscribe(update);
   }, [
-    editorState,
+    canvasApi,
     roomIdArg,
     room,
     user,
@@ -868,13 +802,12 @@ export function RoomScreen() {
       if (isReadOnly) return;
       const cfg = TOOL_BY_ID[id];
       if (!cfg) return;
-      const editor = editorRef.current;
-      if (editor) editor.setCurrentTool(cfg.tool);
+      apiRef.current?.setTool(cfg.tool);
       setActiveTool(id);
       setCanvasTouched(true);
       playPop(380);
     },
-    [isReadOnly]
+    [isReadOnly],
   );
 
   // The completed beat reads for a moment, then the guide fades away.
@@ -960,11 +893,11 @@ export function RoomScreen() {
           // `room` is null and `isReadOnly` is false, so this would otherwise
           // keep saving into a room the server rejects.
           if (!room || isReadOnly) return;
-          const editor = editorRef.current;
-          if (editor && roomIdArg) {
+          const api = apiRef.current;
+          if (api && roomIdArg) {
             try {
               await flush();
-              const data = JSON.stringify(store.serialize('document'));
+              const data = serializeScene(api.elements);
               await saveSnapshot({ roomId: roomIdArg, canvasData: data, description: 'Manual save' });
               dirtySinceSnapshot.current = false;
               setIsConnected(true);
@@ -990,13 +923,13 @@ export function RoomScreen() {
       if (e.key.toLowerCase() === 'f' && e.shiftKey) {
         // ⇧F — fit view. The shortcuts modal claims this; make it true.
         e.preventDefault();
-        editorRef.current?.zoomToFit({ animation: { duration: 200 } });
+        apiRef.current?.zoomToFit();
         return;
       }
       if (e.key.toLowerCase() === 'f' && !e.shiftKey && !isMod) {
         // F — focus mode. Only enters with a selection (a hole to punch).
         e.preventDefault();
-        const has = (editorRef.current?.getSelectedShapeIds().length ?? 0) > 0;
+        const has = (apiRef.current?.selectionIds.length ?? 0) > 0;
         if (has) setFocusMode((f) => !f);
         return;
       }
@@ -1034,7 +967,26 @@ export function RoomScreen() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [saveSnapshot, roomIdArg, store, setTool, room, isReadOnly, captureThumbnail, flush, closeAiFeed, openAi, dismissWalkthrough]);
+  }, [saveSnapshot, roomIdArg, setTool, room, isReadOnly, captureThumbnail, flush, closeAiFeed, openAi, dismissWalkthrough]);
+
+  // Undo/redo is the room's own history (the engine exposes no undo stack), so
+  // the shortcut is claimed in the capture phase and stopped before the engine's
+  // handler sees it — otherwise one ⌘Z would undo twice.
+  useEffect(() => {
+    if (isReadOnly) return;
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      const key = e.key.toLowerCase();
+      if (key !== 'z' && key !== 'y') return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (key === 'y' || e.shiftKey) apiRef.current?.redo();
+      else apiRef.current?.undo();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [isReadOnly]);
 
   // Announce presence changes
   const presenceList = presence || [];
@@ -1354,73 +1306,59 @@ export function RoomScreen() {
             {!isReadOnly && !aiPanelOpen && activeTool === 'select' && (
               <RoomCoachmarks railRef={toolRailRef} aiRef={aiBarRef} shareRef={shareBtnRef} />
             )}
-            <Tldraw
-              store={store}
-              assetUrls={TLDRAW_ASSET_URLS}
-              licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
-              components={{
-                Toolbar: null,
-                ZoomMenu: null,
-                PageMenu: null,
-                QuickActions: null,
-                // The room ships its own chrome: the tool rail, zoom cluster,
-                // ToolOptions styling pill, and shortcuts modal replace all of
-                // tldraw's default UI. These leftover surfaces (style panel,
-                // main menu, minimap toggle) rendered on top of the app's
-                // floating panels — tldraw's internal UI sits at z-index 300,
-                // above every --room-z-* token — so they stole clicks meant
-                // for Block Library / Version History at narrow widths.
-                StylePanel: null,
-                MainMenu: null,
-                NavigationPanel: null,
-                HelpMenu: null,
-              }}
-              onMount={(editor) => {
-                editorRef.current = editor;
-                setEditorState(editor);
-                editor.updateInstanceState({ isReadonly: isReadOnly, isGridMode: true });
-                setUserPreferences({
-                  id: user?.id || 'user',
-                  name: user?.name || 'Unknown',
-                  color: presenceColorFor(user?.id || 'user'),
-                });
-                editor.getContainer().addEventListener(
-                  'pointerdown',
-                  () => {
-                    setCanvasTouched(true);
-                    // The first press on the canvas is the signal: the
-                    // onboarding sketch steps aside for real work.
-                    if (showOnboarding) {
-                      setShowOnboarding(false);
-                      if (roomIdArg) completeOnboarding({ roomId: roomIdArg }).catch(() => {});
-                    }
-                  },
-                  { once: false }
-                );
-              }}
-              className="room-tldraw"
-            />
+            {/* The canvas mounts only once the room's document has arrived, so
+                the first frame is the board — never an empty surface that fills
+                in a moment later. `initialScene` is read once; later versions
+                reconcile through the api. */}
+            {canvas !== undefined && (
+              <CanvasSurface
+                scene={initialScene}
+                theme={theme === 'dark' ? 'dark' : 'light'}
+                readOnly={isReadOnly}
+                onApiReady={(api) => {
+                  apiRef.current = api;
+                  setCanvasApi(api);
+                  latestElements.current = api.elements;
+                  for (const element of api.elements) {
+                    knownElements.current.set(element.id, JSON.stringify(element));
+                  }
+                }}
+                onChange={handleCanvasChange}
+                onPointerUpdate={(point) => {
+                  cursorRef.current = point;
+                }}
+                onPointerDown={() => {
+                  setCanvasTouched(true);
+                  // The first press on the canvas is the signal: the
+                  // onboarding sketch steps aside for real work.
+                  if (showOnboarding) {
+                    setShowOnboarding(false);
+                    if (roomIdArg) completeOnboarding({ roomId: roomIdArg }).catch(() => {});
+                  }
+                }}
+                className="room-canvas-surface"
+              />
+            )}
 
-            <ViewportAwareness editor={editorState} presence={presence || []} />
-            <PresenceCursors editor={editorState} presence={presence || []} />
-            <SelectionAwareness editor={editorState} presence={presence || []} />
-            <PlacementPulses editor={editorState} />
-            <FocusDim editor={editorState} active={effectiveFocus} />
+            <ViewportAwareness api={canvasApi} presence={presence || []} />
+            <PresenceCursors api={canvasApi} presence={presence || []} />
+            <SelectionAwareness api={canvasApi} presence={presence || []} />
+            <PlacementPulses api={canvasApi} />
+            <FocusDim api={canvasApi} active={effectiveFocus} />
             <FocusHint active={effectiveFocus} />
             <CommentPins
-              editor={editorState}
+              api={canvasApi}
               roomId={roomIdArg as Id<'rooms'> | undefined}
               commentMode={commentMode}
               onExitCommentMode={() => setCommentMode(false)}
             />
 
             {!isReadOnly && activePanel === 'blocks' && (
-            <BlockLibrary editor={editorState} onClose={() => setActivePanel(null)} anchorRef={blockBtnRef} />
-            
+              <BlockLibrary api={canvasApi} onClose={() => setActivePanel(null)} anchorRef={blockBtnRef} />
             )}
 
             {activePanel === 'history' && (
-              <VersionHistory roomId={roomIdArg as Id<'rooms'>} editor={editorState} onClose={() => setActivePanel(null)} />
+              <VersionHistory roomId={roomIdArg as Id<'rooms'>} api={canvasApi} onClose={() => setActivePanel(null)} />
             )}
           </div>
 
@@ -1448,7 +1386,7 @@ export function RoomScreen() {
           <AiFeed
             copilot={ai}
             roomId={roomIdArg as Id<'rooms'>}
-            editor={editorState}
+            api={canvasApi}
             readOnly={isReadOnly}
             inputRef={aiInputRef}
             barRef={aiBarRef}
@@ -1537,7 +1475,7 @@ export function RoomScreen() {
             <>
               <button
                 className="room-icon-btn room-controls-btn"
-                onClick={() => editorRef.current?.undo()}
+                onClick={() => apiRef.current?.undo()}
                 disabled={!canUndo}
                 title="Undo (⌘Z)"
                 aria-label="Undo"
@@ -1546,7 +1484,7 @@ export function RoomScreen() {
               </button>
               <button
                 className="room-icon-btn room-controls-btn"
-                onClick={() => editorRef.current?.redo()}
+                onClick={() => apiRef.current?.redo()}
                 disabled={!canRedo}
                 title="Redo (⇧⌘Z)"
                 aria-label="Redo"
@@ -1558,7 +1496,7 @@ export function RoomScreen() {
           )}
           <button
             className="room-icon-btn room-controls-btn"
-            onClick={() => editorRef.current?.zoomOut()}
+            onClick={() => apiRef.current?.zoomBy(1 / 1.2)}
             title="Zoom out (⌘−)"
             aria-label="Zoom out"
           >
@@ -1575,7 +1513,7 @@ export function RoomScreen() {
           </button>
           <button
             className="room-icon-btn room-controls-btn"
-            onClick={() => editorRef.current?.zoomIn()}
+            onClick={() => apiRef.current?.zoomBy(1.2)}
             title="Zoom in (⌘+)"
             aria-label="Zoom in"
           >
@@ -1594,7 +1532,7 @@ export function RoomScreen() {
               <button
                 role="menuitem"
                 onClick={() => {
-                  editorRef.current?.zoomToFit({ animation: { duration: 200 } });
+                  apiRef.current?.zoomToFit();
                   setZoomMenuOpen(false);
                 }}
               >
@@ -1604,7 +1542,7 @@ export function RoomScreen() {
               <button
                 role="menuitem"
                 onClick={() => {
-                  editorRef.current?.setCamera({ x: 0, y: 0, z: 1 }, { animation: { duration: 200 } });
+                  apiRef.current?.resetView();
                   setZoomMenuOpen(false);
                 }}
               >
@@ -1618,7 +1556,7 @@ export function RoomScreen() {
         {showOptionsRail && (
           <ToolOptionsRail
             key={activeTool}
-            editor={editorState}
+            api={canvasApi}
             tool={activeTool}
             mode={styleMode}
             onModeChange={setStyleMode}
@@ -1767,9 +1705,9 @@ export function RoomScreen() {
       {showShare && (
         <ShareModal roomId={roomIdArg as Id<'rooms'>} onClose={() => setShowShare(false)} />
       )}
-      {showExport && (
+              {showExport && (
         <Suspense fallback={null}>
-          <ExportDialog editor={editorState} onClose={() => setShowExport(false)} />
+          <ExportDialog api={canvasApi} onClose={() => setShowExport(false)} />
         </Suspense>
       )}
     </div>

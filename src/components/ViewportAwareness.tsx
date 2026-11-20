@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 import './ViewportAwareness.css';
 
 // Presence rows already exclude the local user, so every outline here is a
@@ -31,33 +31,41 @@ interface ViewportRect {
 }
 
 interface ViewportAwarenessProps {
-  editor: Editor | null;
+  api: CanvasApi | null;
   presence: PresenceViewport[];
 }
 
-export function ViewportAwareness({ editor, presence }: ViewportAwarenessProps) {
+export function ViewportAwareness({ api, presence }: ViewportAwarenessProps) {
   const [camera, setCamera] = useState<CameraState>({ x: 0, y: 0, z: 1 });
   const [size, setSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
-    if (!editor) return;
+    if (!api) return;
     const sync = () => {
-      const cam = editor.getCamera();
-      setCamera({ x: cam.x, y: cam.y, z: cam.z });
-      const host = editor.getContainer();
-      setSize({ w: host.clientWidth, h: host.clientHeight });
+      const cam = api.camera;
+      setCamera((prev) =>
+        prev.x === cam.x && prev.y === cam.y && prev.z === cam.z
+          ? prev
+          : { x: cam.x, y: cam.y, z: cam.z },
+      );
+      const host = api.container;
+      setSize((prev) =>
+        prev.w === host.clientWidth && prev.h === host.clientHeight
+          ? prev
+          : { w: host.clientWidth, h: host.clientHeight },
+      );
     };
     sync();
-    const unlisten = editor.store.listen(() => requestAnimationFrame(sync));
+    const unlisten = api.subscribe(sync);
     const onResize = () => sync();
     window.addEventListener('resize', onResize);
     return () => {
       unlisten();
       window.removeEventListener('resize', onResize);
     };
-  }, [editor]);
+  }, [api]);
 
-  if (!editor || size.w === 0) return null;
+  if (!api || size.w === 0) return null;
 
   const rects: ViewportRect[] = [];
   for (const p of presence) {

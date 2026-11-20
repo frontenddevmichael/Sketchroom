@@ -76,9 +76,9 @@ test.describe('canvas save', () => {
   test('an edit on the canvas flushes through the save pipeline', async ({ page }) => {
     await page.goto(appUrl('/room/room_a'));
     await expect(page.locator('.room-screen')).toBeVisible();
-    await expect(page.locator('.room-tldraw')).toBeVisible();
+    await expect(page.locator('.sk-canvas')).toBeVisible();
 
-    // Insert a block from the library — a real shape lands in the tldraw store.
+    // Insert a block from the library — a real element lands in the scene.
     await page.getByRole('button', { name: 'Block library' }).click();
     await page.locator('.block-library-item').first().click();
 

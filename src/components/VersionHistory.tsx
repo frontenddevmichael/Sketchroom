@@ -1,10 +1,12 @@
 import { memo, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useMutation, useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { api as convexApi } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { X, RotateCcw } from 'lucide-react';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
+import { INK } from '../canvas/ink';
+import { parseScene } from '../canvas/scene';
 import { useSmartFloat } from '../hooks/useSmartFloat';
 import { SmartFloatHandle } from './SmartFloatHandle';
 import { ListRowSkeleton } from './skeletons';
@@ -15,16 +17,16 @@ import './VersionHistory.css';
 interface VersionHistoryProps {
   roomId: Id<'rooms'>;
   onClose: () => void;
-  editor?: Editor | null;
+  api?: CanvasApi | null;
 }
 
-export function VersionHistory({ roomId, onClose, editor = null }: VersionHistoryProps) {
-  const snapshots = useQuery(api.features.snapshots.listSnapshots, { roomId });
-  const restoreSnapshot = useMutation(api.features.snapshots.restoreSnapshot);
+export function VersionHistory({ roomId, onClose, api = null }: VersionHistoryProps) {
+  const snapshots = useQuery(convexApi.features.snapshots.listSnapshots, { roomId });
+  const restoreSnapshot = useMutation(convexApi.features.snapshots.restoreSnapshot);
   const [confirmId, setConfirmId] = useState<Id<'snapshots'> | null>(null);
   const [restoring, setRestoring] = useState(false);
   const rootRef = useRef<HTMLElement | null>(null);
-  const float = useSmartFloat({ ref: rootRef, editor, panelKey: 'version-history' });
+  const float = useSmartFloat({ ref: rootRef, api, panelKey: 'version-history' });
 
   const handleRestore = async (snapshotId: Id<'snapshots'>) => {
     if (confirmId !== snapshotId) {
@@ -111,60 +113,12 @@ export function VersionHistory({ roomId, onClose, editor = null }: VersionHistor
 
 /* ---- Snapshot mini-map preview ---- */
 
-interface ShapeRecord {
-  id: string;
-  typeName?: string;
-  type?: string;
-  x?: number;
-  y?: number;
-  props?: {
-    w?: number;
-    h?: number;
-    color?: string;
-  };
-}
-
 const THUMB_W = 56;
 const THUMB_H = 40;
 const THUMB_PAD = 3;
 
-// Snapshots may hold any tldraw colour name; previews resolve them onto the
-// same ink ramp the canvas uses, so an old rainbow board reads as greys.
-const PREVIEW_COLORS: Record<string, string> = {
-  black: '#0A0A0A',
-  grey: '#5C5C5C',
-  violet: '#2E2E2E',
-  blue: '#3F3F3F',
-  green: '#6B6B6B',
-  orange: '#8A8A8A',
-  yellow: '#A1A1A1',
-  red: '#C6C6C6',
-  'light-violet': '#CFCFCF',
-  'light-blue': '#DBDBDB',
-  'light-green': '#E4E4E4',
-  'light-red': '#EDEDED',
-  white: '#FFFFFF',
-};
-
-function extractShapes(data: string): ShapeRecord[] {
-  try {
-    const parsed = JSON.parse(data) as unknown;
-    if (!parsed || typeof parsed !== 'object') return [];
-    const legacy = parsed as { records?: unknown };
-    const source =
-      legacy.records && typeof legacy.records === 'object'
-        ? Object.values(legacy.records as Record<string, unknown>)
-        : Object.values(parsed as Record<string, unknown>);
-    return source.filter((r): r is ShapeRecord => {
-      const rec = r as Partial<ShapeRecord>;
-      return rec?.typeName === 'shape' && typeof rec.id === 'string';
-    });
-  } catch {
-    return [];
-  }
-}
-
 interface PreviewShape {
+  key: string;
   x: number;
   y: number;
   w: number;
@@ -173,21 +127,26 @@ interface PreviewShape {
   color: string;
 }
 
-function previewShape(s: ShapeRecord): PreviewShape {
-  const x = s.x ?? 0;
-  const y = s.y ?? 0;
-  const color = PREVIEW_COLORS[s.props?.color ?? 'black'] ?? '#0A0A0A';
-  if (s.type === 'arrow') return { x, y, w: 44, h: 16, arrow: true, color };
-  const w = s.props?.w;
-  const h = s.props?.h;
-  return {
-    x,
-    y,
-    w: typeof w === 'number' && w > 0 ? w : 48,
-    h: typeof h === 'number' && h > 0 ? (s.type === 'text' ? 10 : h) : 16,
-    arrow: false,
-    color,
-  };
+/**
+ * Previews read snapshots through the same scene reader the room uses, so a
+ * version saved before the engine change is still pictured: legacy records are
+ * converted to elements on the way in.
+ */
+function extractShapes(data: string): PreviewShape[] {
+  return parseScene(data).elements.map((element) => {
+    const w = Math.max(2, element.width);
+    const h = Math.max(2, element.height);
+    const linear = element.type === 'arrow' || element.type === 'line';
+    return {
+      key: element.id,
+      x: element.x,
+      y: element.y,
+      w,
+      h,
+      arrow: linear,
+      color: /^#/.test(element.strokeColor) ? element.strokeColor : INK.ink3,
+    };
+  });
 }
 
 const SnapshotPreview = memo(function SnapshotPreview({ data }: { data: string }) {
@@ -198,8 +157,7 @@ const SnapshotPreview = memo(function SnapshotPreview({ data }: { data: string }
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
-  for (const s of shapes) {
-    const b = previewShape(s);
+  for (const b of shapes) {
     minX = Math.min(minX, b.x);
     minY = Math.min(minY, b.y);
     maxX = Math.max(maxX, b.x + b.w);
@@ -215,8 +173,7 @@ const SnapshotPreview = memo(function SnapshotPreview({ data }: { data: string }
 
   return (
     <svg className="history-thumb-svg" viewBox={`0 0 ${THUMB_W} ${THUMB_H}`} aria-hidden="true">
-      {shapes.map((s) => {
-        const b = previewShape(s);
+      {shapes.map((b) => {
         const x = b.x * scale + ox;
         const y = b.y * scale + oy;
         const w = Math.max(1.5, b.w * scale);
@@ -224,7 +181,7 @@ const SnapshotPreview = memo(function SnapshotPreview({ data }: { data: string }
         if (b.arrow) {
           return (
             <line
-              key={s.id}
+              key={b.key}
               x1={x}
               y1={y}
               x2={x + w}
@@ -235,7 +192,18 @@ const SnapshotPreview = memo(function SnapshotPreview({ data }: { data: string }
             />
           );
         }
-        return <rect key={s.id} x={x} y={y} width={w} height={h} rx={1} fill={b.color} opacity={0.85} />;
+        return (
+          <rect
+            key={b.key}
+            x={x}
+            y={y}
+            width={w}
+            height={h}
+            rx={1}
+            fill={b.color}
+            opacity={0.7}
+          />
+        );
       })}
     </svg>
   );

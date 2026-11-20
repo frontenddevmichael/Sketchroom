@@ -6,10 +6,6 @@ const stub = (name: string) => new URL(`./stubs/${name}`, import.meta.url).pathn
 export default defineConfig({
   plugins: [react()],
   server: { port: 5199, strictPort: true },
-  // @tldraw/assets resolves its icons/fonts/translations through `?url`
-  // imports; Vite's dependency pre-bundler cannot load those, so it must be
-  // left to the normal module graph.
-  optimizeDeps: { exclude: ['@tldraw/assets'] },
   resolve: {
     alias: [
       { find: 'convex/react', replacement: stub('convex-react.tsx') },

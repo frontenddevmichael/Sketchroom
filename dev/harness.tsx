@@ -12,6 +12,7 @@ import '../src/screens/RoomScreen.css';
 import { AiFeed } from '../src/components/AiFeed';
 import { ToolOptionsRail } from '../src/components/ToolOptions';
 import type { ToolStyleMode } from '../src/components/ToolOptions';
+import type { CanvasApi } from '../src/canvas/api';
 import { BlockLibrary } from '../src/components/BlockLibrary';
 import { VersionHistory } from '../src/components/VersionHistory';
 import { CanvasEmptyIllo, ErrorIllo, DrawnTitle } from '../src/components/illustrations';
@@ -50,40 +51,56 @@ const TOOL_ICONS: Record<string, typeof MousePointer2> = {
   shapes: Shapes,
 };
 
-function makeFakeEditor() {
-  const store = { listen: () => () => {} };
+/**
+ * A canvas handle for the chrome harness: every surface here renders against
+ * the same API the room uses, with an empty scene and a still camera. Panels
+ * that need a selection simply have nothing selected.
+ */
+function makeFakeCanvas(): CanvasApi {
+  const camera = { x: 0, y: 0, z: 1 };
   return {
-    store,
-    getSelectedShapes: () => [],
-    getSelectedShapeIds: () => [],
-    getSharedStyles: () => new Map(),
-    getStyleForNextShape: (s: { defaultValue: unknown }) => s.defaultValue,
-    setStyleForNextShapes: () => {},
-    setStyleForSelectedShapes: () => {},
-    getViewportScreenBounds: () => ({
-      x: 0, y: 0, w: 1280, h: 720, minX: 0, minY: 0, maxX: 1280, maxY: 720, midX: 640, midY: 360,
-    }),
-    screenToPage: (p: unknown) => p,
-    pageToScreen: (p: unknown) => p,
-    getCamera: () => ({ x: 0, y: 0, z: 1 }),
-    getCurrentPageShapes: () => [],
-    getShapePageBounds: () => null,
-    createShape: () => {},
+    container: document.createElement('div'),
+    camera,
+    elements: [],
+    selection: [],
+    selectionIds: [],
+    files: {},
+    activeTool: 'select',
+    canUndo: false,
+    canRedo: false,
+    undoDepth: 0,
+    redoDepth: 0,
+    subscribe: () => () => {},
+    element: () => undefined,
+    boundsOf: () => ({ x: 0, y: 0, w: 100, h: 60 }),
+    boundsOfIds: () => null,
+    selectionBounds: () => null,
+    contentBounds: () => null,
+    viewportBounds: () => ({ x: 0, y: 0, w: 1280, h: 720 }),
+    screenToScene: (x: number, y: number) => ({ x, y }),
+    sceneToScreen: (x: number, y: number) => ({ x, y }),
+    setTool: () => {},
     select: () => {},
-    setCurrentTool: () => {},
-    zoomToSelection: () => {},
+    clearSelection: () => {},
+    addElements: () => {},
+    updateElements: () => {},
+    removeElements: () => {},
+    moveElements: () => {},
+    replaceElements: () => {},
+    align: () => {},
+    distribute: () => {},
+    order: () => {},
+    zoomBy: () => {},
     zoomToFit: () => {},
-    setCamera: () => {},
-    updateShapes: () => {},
-    alignShapes: () => {},
-    distributeShapes: () => {},
+    zoomToBounds: () => {},
+    resetView: () => {},
     undo: () => {},
     redo: () => {},
-    zoomIn: () => {},
-    zoomOut: () => {},
-    setSelectedShapes: () => {},
-    getShapeUtil: () => ({ getText: () => null }),
-  } as never;
+    setCurrentStyle: () => {},
+    setShapeKind: () => {},
+    handleChange: () => {},
+    destroy: () => {},
+  } as unknown as CanvasApi;
 }
 
 const MESSAGES: Record<string, Array<Record<string, unknown>> | undefined> = {
@@ -328,7 +345,7 @@ function ChromeHarness() {
   const [showEmptyHero, setShowEmptyHero] = useState(true);
   const [scene, setScene] = useState<'room' | 'boot-error'>('room');
 
-  const editor = useMemo(() => makeFakeEditor(), []);
+  const canvasApi = useMemo(() => makeFakeCanvas(), []);
   const barRef = useRef<HTMLDivElement | null>(null);
   const railRef = useRef<HTMLDivElement | null>(null);
   const shareBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -502,11 +519,11 @@ function ChromeHarness() {
           )}
 
           {!readOnly && panel === 'blocks' && (
-            <BlockLibrary editor={editor} onClose={() => setPanel('none')} anchorRef={blockBtnRef} />
+            <BlockLibrary api={canvasApi} onClose={() => setPanel('none')} anchorRef={blockBtnRef} />
           )}
 
           {panel === 'history' && (
-            <VersionHistory roomId={'r1' as never} editor={editor} onClose={() => setPanel('none')} />
+            <VersionHistory roomId={'r1' as never} api={canvasApi} onClose={() => setPanel('none')} />
           )}
         </div>
 
@@ -514,7 +531,7 @@ function ChromeHarness() {
           <AiFeed
             copilot={copilot}
             roomId={'r1' as never}
-            editor={editor}
+            api={canvasApi}
             readOnly={readOnly}
             inputRef={inputRef}
             barRef={barRef}
@@ -589,7 +606,7 @@ function ChromeHarness() {
         {showOptionsRail && (
           <ToolOptionsRail
             key={tool}
-            editor={editor}
+            api={canvasApi}
             tool={tool}
             mode={styleMode}
             onModeChange={setStyleMode}

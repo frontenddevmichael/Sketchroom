@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { api as convexApi } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 import { kindIcon } from '../lib/blockKinds';
 import './GhostBlocks.css';
 
@@ -30,7 +30,7 @@ interface CameraState {
 }
 
 interface GhostBlocksProps {
-  editor: Editor | null;
+  api: CanvasApi | null;
   roomId: Id<'rooms'> | undefined;
   /** Ghost previews only live on the canvas while the AI feed is the active
    *  surface, so cards can never appear without an AI conversation behind them. */
@@ -39,31 +39,19 @@ interface GhostBlocksProps {
   onFocus?: (f: { messageId: string; index: number } | null) => void;
 }
 
-// Ghost preview accent tone per kind (dark-surface palette, distinct from the
-// chip palette in the AI feed because the surfaces differ).
-const KIND_TONE: Record<string, string> = {
-  service: 'blue',
-  database: 'purple',
-  api: 'green',
-  client: 'orange',
-  queue: 'teal',
-  cache: 'yellow',
-  input: 'gray',
-  button: 'gray',
-  card: 'gray',
-  table: 'gray',
-  navbar: 'gray',
-  image: 'gray',
-};
+// Ghost previews read in one neutral ink: a proposal is a weight on the board,
+// not a second palette. The cards are ghosted back so they never pretend to be
+// real content.
+const GHOST_TONE = 'ink';
 
 const GHOST_W = 150;
 const GHOST_H = 88;
 const GHOST_GAP = 16;
 const COLS = 3;
 
-function getGhostBounds(editor: Editor, index: number) {
-  const view = editor.getViewportScreenBounds();
-  const center = editor.screenToPage({ x: view.midX, y: view.midY });
+function getGhostBounds(api: CanvasApi, index: number) {
+  const view = api.viewportBounds();
+  const center = { x: view.x + view.w / 2, y: view.y + view.h / 2 };
   const col = index % COLS;
   const row = Math.floor(index / COLS);
   const offset = (COLS - 1) / 2;
@@ -88,52 +76,47 @@ function parseDiagram(messageId: string | null, messages: { _id: string; status:
   }
 }
 
-export function GhostBlocks({ editor, roomId, focus, onFocus, visible = true }: GhostBlocksProps) {
+export function GhostBlocks({ api, roomId, focus, onFocus, visible = true }: GhostBlocksProps) {
   const [camera, setCamera] = useState<CameraState>({ x: 0, y: 0, z: 1 });
   const messages = useQuery(
-    api.features.ai.getAiMessages,
+    convexApi.features.ai.getAiMessages,
     roomId ? { roomId } : 'skip'
   ) as unknown as
     | { _id: string; status: string; ghostBlocks?: string | null }[]
     | undefined;
 
   useEffect(() => {
-    if (!editor) return;
+    if (!api) return;
     const sync = () => {
-      const cam = editor.getCamera();
+      const cam = api.camera;
       setCamera((prev) =>
-        prev.x === cam.x && prev.y === cam.y && prev.z === cam.z ? prev : { x: cam.x, y: cam.y, z: cam.z }
+        prev.x === cam.x && prev.y === cam.y && prev.z === cam.z
+          ? prev
+          : { x: cam.x, y: cam.y, z: cam.z },
       );
     };
     sync();
-    const unlisten = editor.store.listen(() => requestAnimationFrame(sync));
-    return () => unlisten();
-  }, [editor]);
+    return api.subscribe(sync);
+  }, [api]);
 
   useEffect(() => {
-    if (!focus) return;
-    const editorInstance = editor;
-    if (!editorInstance) return;
+    if (!focus || !api) return;
     const parsed = parseDiagram(focus.messageId, messages || []);
     if (!parsed) return;
     const idx = Math.min(focus.index, parsed.blocks.length - 1);
-    editorInstance.zoomToBounds(getGhostBounds(editorInstance, idx), {
-      animation: { duration: 200 },
-      inset: 180,
-      targetZoom: 0.9,
-    });
+    api.zoomToBounds(getGhostBounds(api, idx), { inset: 180, targetZoom: 0.9 });
     const timer = window.setTimeout(() => onFocus?.(null), 1400);
     return () => window.clearTimeout(timer);
-  }, [focus, messages, editor, onFocus]);
+  }, [focus, messages, api, onFocus]);
 
-  if (!visible || !editor || !messages || messages.length === 0) return null;
+  if (!visible || !api || !messages || messages.length === 0) return null;
 
   const diagram = parseDiagram(null, messages);
   if (!diagram) return null;
   const blocks = diagram.blocks;
   const edges = diagram.edges.filter((e) => e.from >= 0 && e.from < blocks.length && e.to >= 0 && e.to < blocks.length);
 
-  const boundsList = blocks.map((_, i) => getGhostBounds(editor, i));
+  const boundsList = blocks.map((_, i) => getGhostBounds(api, i));
   const focusedIndex = focus ? focus.index : -1;
 
   let svgBox: { minX: number; minY: number; w: number; h: number } | null = null;
@@ -199,7 +182,7 @@ export function GhostBlocks({ editor, roomId, focus, onFocus, visible = true }: 
       {blocks.map((block, i) => {
         const bounds = boundsList[i];
         const Icon = kindIcon(block.kind);
-        const tone = KIND_TONE[block.kind] ?? 'blue';
+        const tone = GHOST_TONE;
         const isFocused = focusedIndex === i;
         return (
           <div

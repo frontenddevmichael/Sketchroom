@@ -442,6 +442,8 @@
 .ai-ghost-kind-light-violet { background: var(--fill-2); color: var(--ink-2); }
 .ai-ghost-kind-light-green { background: var(--fill-2); color: var(--ink-2); }
 .ai-ghost-kind-grey { background: var(--fill-2); color: var(--ink-2); }
+/* Every kind resolves to one neutral chip: a ghost is a proposal, not a palette. */
+.ai-ghost-kind-ink { background: var(--fill-2); color: var(--ink-2); }
 
 .ai-ghost-label {
   flex: 1;

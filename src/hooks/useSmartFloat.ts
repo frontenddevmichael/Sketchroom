@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 
 export interface SmartFloatPosition {
   left: number;
@@ -10,8 +10,8 @@ export interface SmartFloatPosition {
 interface UseSmartFloatOptions {
   /** The floating panel element. */
   ref: RefObject<HTMLElement | null>;
-  /** tldraw editor — collision detection only runs when present. */
-  editor: Editor | null;
+  /** The canvas — collision detection only runs when present. */
+  api: CanvasApi | null;
   /** Unique key per panel; persists a manual position under this key. */
   panelKey: string;
   /** Gap kept between the panel and canvas content when nudging. */
@@ -62,7 +62,7 @@ function intersects(a: Rect, b: Rect): boolean {
 }
 
 /**
- * Gives a floating overlay panel "smart" behavior over the tldraw canvas:
+ * Gives a floating overlay panel "smart" behavior over the canvas:
  * - Detects canvas shapes whose rendered bounds sit behind the panel and nudges
  *   the panel clear of them (minimal axis move, clamped to the container).
  * - Lets the user drag the panel anywhere; the position is persisted per panel.
@@ -79,7 +79,7 @@ const SHEET_BREAKPOINT = '(max-width: 640px)';
 
 export function useSmartFloat({
   ref,
-  editor,
+  api,
   panelKey,
   margin = 12,
   disabled = false,
@@ -145,10 +145,10 @@ export function useSmartFloat({
     }
   }, [panelKey]);
 
-  // Nudge clear of canvas content. Re-runs on any store change (shape edits and
+  // Nudge clear of canvas content. Re-runs on any scene change (shape edits and
   // camera moves both land there) plus a slow safety interval.
   useEffect(() => {
-    if (disabled || isSheet || !nudgeEnabled || !editor || !mounted.current) return;
+    if (disabled || isSheet || !nudgeEnabled || !api || !mounted.current) return;
     let raf = 0;
     const detect = () => {
       raf = 0;
@@ -156,8 +156,8 @@ export function useSmartFloat({
       if (!panel || dragging || manual) return;
       const container = panel.offsetParent as HTMLElement | null;
       if (!container) return;
-      const cam = editor.getCamera();
-      const shapes = editor.getCurrentPageShapes();
+      const cam = api.camera;
+      const shapes = api.elements;
       if (shapes.length === 0) return;
       for (let pass = 0; pass < 4; pass++) {
         const left = panel.offsetLeft;
@@ -167,7 +167,7 @@ export function useSmartFloat({
         const panelRect: Rect = { left, top, right: left + w, bottom: top + h };
         let union: Rect | null = null;
         for (const shape of shapes) {
-          const b = editor.getShapePageBounds(shape.id);
+          const b = api.boundsOf(shape);
           if (!b) continue;
           const rect: Rect = {
             left: (b.x - cam.x) * cam.z,
@@ -213,7 +213,7 @@ export function useSmartFloat({
       if (raf) return;
       raf = requestAnimationFrame(detect);
     };
-    const unlisten = editor.store.listen(schedule);
+    const unlisten = api.subscribe(schedule);
     const onResize = () => schedule();
     window.addEventListener('resize', onResize);
     const interval = window.setInterval(schedule, 2500);
@@ -223,7 +223,7 @@ export function useSmartFloat({
       window.removeEventListener('resize', onResize);
       window.clearInterval(interval);
     };
-  }, [ref, editor, margin, disabled, nudgeEnabled, dragging, manual, isSheet]);
+  }, [ref, api, margin, disabled, nudgeEnabled, dragging, manual, isSheet]);
 
   useEffect(() => {
     if (!dragging) return;

@@ -1,12 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { createTLSchema } from '@tldraw/tlschema';
-import type { TLRecord } from 'tldraw';
 import { TEMPLATES, buildTemplateSeed } from './templates';
+import { SCENE_FORMAT, parseScene } from '../canvas/scene';
 
 /**
- * Every template seed must validate against tldraw's own schema. The schema's
- * RecordType validators run the same eager validation a store would perform on
- * put, so a malformed record throws here before it can ever reach a real room.
+ * Every template seed must survive the exact read path a room uses. Parsing the
+ * seed with `parseScene` and checking the element shape means a malformed
+ * template fails here before it can ever reach a real room.
  */
 describe('template seeds', () => {
   it('provides curated templates', () => {
@@ -18,14 +17,34 @@ describe('template seeds', () => {
     }
   });
 
-  it.each(TEMPLATES.map((t) => [t.id, t.name] as const))('validates %s', (_id) => {
-    const seed = buildTemplateSeed(_id);
-    const raw = JSON.parse(seed) as Record<string, TLRecord>;
-    expect(Object.keys(raw).length).toBeGreaterThan(0);
+  it.each(TEMPLATES.map((t) => [t.id, t.name] as const))('validates %s', (id) => {
+    const seed = buildTemplateSeed(id);
+    expect(seed).not.toBe('');
 
-    const schema = createTLSchema();
-    for (const record of Object.values(raw)) {
-      expect(() => schema.types[record.typeName].validate(record)).not.toThrow();
+    const raw = JSON.parse(seed) as { format: string; elements: unknown[] };
+    expect(raw.format).toBe(SCENE_FORMAT);
+    expect(Array.isArray(raw.elements)).toBe(true);
+    expect(raw.elements.length).toBeGreaterThan(0);
+
+    // The reader accepts the seed unchanged: nothing is dropped or converted,
+    // which is the guarantee that a template opens as the author drew it.
+    const scene = parseScene(seed);
+    expect(scene.elements.length).toBe(raw.elements.length);
+
+    const ids = new Set<string>();
+    for (const element of scene.elements) {
+      expect(typeof element.id).toBe('string');
+      expect(element.id.length).toBeGreaterThan(0);
+      expect(ids.has(element.id)).toBe(false);
+      ids.add(element.id);
+
+      expect(element.isDeleted).toBe(false);
+      expect(typeof element.type).toBe('string');
+      for (const value of [element.x, element.y, element.width, element.height]) {
+        expect(Number.isFinite(value)).toBe(true);
+      }
+      // Monochrome: every stroke is a hex value or explicitly transparent.
+      expect(element.strokeColor).toMatch(/^(#[0-9a-fA-F]{3,8}|transparent)$/);
     }
   });
 });

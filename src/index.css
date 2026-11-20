@@ -33,7 +33,7 @@
 
   /* z-panel = persistent app chrome (topbar, tool rail, controls).
      z-sheet = floating panels/drawers that open OVER that chrome. */
-  --z-canvas: 0; --z-panel: 20; --z-sheet: 30; --z-modal: 40; --z-toast: 60; --z-tldraw: 100;
+  --z-canvas: 0; --z-engine: 1; --z-panel: 20; --z-sheet: 30; --z-modal: 40; --z-toast: 60;
 }
 [data-theme="dark"] {
   --paper: #0A0A0A; --surface: #141414; --tile: #1C1C1C;

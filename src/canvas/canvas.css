@@ -75,3 +75,33 @@
 .sk-canvas .excalidraw .ToolIcon__icon {
   border-radius: var(--r-2, 4px);
 }
+
+/*
+ * The room ships its own chrome — the tool rail, the zoom/history pill, the
+ * options rail, the AI bar. The engine's equivalents (top-left menu, isolation
+ * island, bottom toolbar, zoom cluster, undo buttons, hints, stats, the shape
+ * sidebar, the "back to content" chip) would sit on top of those surfaces and
+ * steal clicks meant for them, exactly as tldraw's default UI did.
+ *
+ * Context menus, the text editor, selection handles, snap lines and dialogs
+ * are engine behaviour the product keeps; only the *chrome* is hidden.
+ */
+.sk-canvas .excalidraw .App-menu,
+.sk-canvas .excalidraw .App-toolbar,
+.sk-canvas .excalidraw .App-bottom-bar,
+.sk-canvas .excalidraw .layer-ui__wrapper__footer-right,
+.sk-canvas .excalidraw .layer-ui__wrapper__top-right,
+.sk-canvas .excalidraw .FixedSideContainer,
+.sk-canvas .excalidraw .scroll-back-to-content,
+.sk-canvas .excalidraw .HintViewer,
+.sk-canvas .excalidraw .undo-redo-buttons,
+.sk-canvas .excalidraw .zoom-actions,
+.sk-canvas .excalidraw .encrypted-icon,
+.sk-canvas .excalidraw .disable-zen-mode {
+  display: none !important;
+}
+
+/* The engine's canvas must never draw its own paper edge over ours. */
+.sk-canvas .excalidraw canvas {
+  touch-action: none;
+}

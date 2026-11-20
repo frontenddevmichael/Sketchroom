@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 import './PresenceCursors.css';
 
 interface PresencePerson {
@@ -23,14 +23,14 @@ interface Point {
 }
 
 interface PresenceCursorsProps {
-  editor: Editor | null;
+  api: CanvasApi | null;
   presence: PresencePerson[];
 }
 
 const INTERP = 0.3;
 const SNAP_EPSILON = 0.6;
 
-export function PresenceCursors({ editor, presence }: PresenceCursorsProps) {
+export function PresenceCursors({ api, presence }: PresenceCursorsProps) {
   const [camera, setCamera] = useState<CameraState>({ x: 0, y: 0, z: 1 });
   const [now, setNow] = useState(() => Date.now());
   const [positions, setPositions] = useState<Record<string, Point>>({});
@@ -39,20 +39,18 @@ export function PresenceCursors({ editor, presence }: PresenceCursorsProps) {
   const peopleRef = useRef<PresencePerson[]>([]);
 
   useEffect(() => {
-    if (!editor) return;
+    if (!api) return;
     const sync = () => {
-      const cam = editor.getCamera();
-      setCamera({ x: cam.x, y: cam.y, z: cam.z });
+      const cam = api.camera;
+      setCamera((prev) =>
+        prev.x === cam.x && prev.y === cam.y && prev.z === cam.z
+          ? prev
+          : { x: cam.x, y: cam.y, z: cam.z },
+      );
     };
     sync();
-    const unlisten = editor.store.listen(() => {
-      // camera changes arrive through the store
-      requestAnimationFrame(sync);
-    });
-    return () => {
-      unlisten();
-    };
-  }, [editor]);
+    return api.subscribe(sync);
+  }, [api]);
 
   // Tick every second so idle cursors fade out without re-rendering on camera.
   useEffect(() => {
@@ -62,7 +60,7 @@ export function PresenceCursors({ editor, presence }: PresenceCursorsProps) {
 
   const people = useMemo(
     () => presence.filter((p) => typeof p.cursorX === 'number' && typeof p.cursorY === 'number'),
-    [presence]
+    [presence],
   );
 
   // Mirror the latest targets and people into refs for the interpolation loop.
@@ -136,10 +134,7 @@ export function PresenceCursors({ editor, presence }: PresenceCursorsProps) {
             }}
           >
             <svg width="18" height="22" viewBox="0 0 18 22" className="presence-svg">
-              <path
-                d="M0 0 L0 20 L4.5 16 L8 22 L11 20.5 L7.5 14.5 L14 14 Z"
-                fill={p.color}
-              />
+              <path d="M0 0 L0 20 L4.5 16 L8 22 L11 20.5 L7.5 14.5 L14 14 Z" fill={p.color} />
             </svg>
             <span className="presence-name" style={{ background: p.color }}>
               {active && <span className="presence-live" />}

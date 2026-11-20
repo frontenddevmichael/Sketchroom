@@ -14,7 +14,7 @@ import {
   Image,
   Boxes,
 } from 'lucide-react';
-import type { TLDefaultColorStyle } from 'tldraw';
+import { INK } from '../canvas/ink';
 
 // ── Shared canvas constants ──────────────────────────────────────────────
 export const BLOCK_W = 180;
@@ -22,54 +22,42 @@ export const BLOCK_H = 90;
 
 export interface BlockKind {
   icon: LucideIcon;
-  /** tldraw color name — used when the block is inserted onto the canvas. */
-  color: TLDefaultColorStyle;
+  /**
+   * The block's weight on the board, as a step of the ink ramp. Kinds are
+   * separated by line weight (design/SKILL.md), never by hue: a database reads
+   * darker than a cache because it is heavier, not because it is blue.
+   */
+  ink: string;
 }
 
 /** Single source of truth for block "kinds". The ghost canvas previews, the AI
  *  feed's ghost-block list, and the block library all resolve icons and insert
- *  colors from here, so the palette can never drift between surfaces. */
+ *  inks from here, so the palette can never drift between surfaces. */
 export const BLOCK_KIND: Record<string, BlockKind> = {
-  service: { icon: Server, color: 'green' },
-  database: { icon: Database, color: 'blue' },
-  api: { icon: Plug, color: 'light-blue' },
-  client: { icon: Globe, color: 'orange' },
-  queue: { icon: Layers, color: 'yellow' },
-  cache: { icon: Zap, color: 'light-violet' },
-  input: { icon: TextCursorInput, color: 'light-green' },
-  button: { icon: MousePointerClick, color: 'green' },
-  card: { icon: CreditCard, color: 'light-blue' },
-  table: { icon: Table, color: 'light-violet' },
-  navbar: { icon: Menu, color: 'blue' },
-  image: { icon: Image, color: 'grey' },
+  service: { icon: Server, ink: INK.ink },
+  database: { icon: Database, ink: INK.ink2 },
+  api: { icon: Plug, ink: INK.ink2 },
+  client: { icon: Globe, ink: INK.ink3 },
+  queue: { icon: Layers, ink: INK.ink3 },
+  cache: { icon: Zap, ink: INK.ink3 },
+  input: { icon: TextCursorInput, ink: INK.ink4 },
+  button: { icon: MousePointerClick, ink: INK.ink },
+  card: { icon: CreditCard, ink: INK.ink4 },
+  table: { icon: Table, ink: INK.ink3 },
+  navbar: { icon: Menu, ink: INK.ink3 },
+  image: { icon: Image, ink: INK.rule },
 };
 
 export function kindIcon(kind: string): LucideIcon {
   return BLOCK_KIND[kind]?.icon ?? Boxes;
 }
 
-export function kindColor(kind: string): TLDefaultColorStyle {
-  return BLOCK_KIND[kind]?.color ?? 'green';
+/** The ink a block of this kind is drawn in when it lands on the canvas. */
+export function kindInk(kind: string): string {
+  return BLOCK_KIND[kind]?.ink ?? INK.ink3;
 }
 
-/** Display hex for a kind, used for library-card color dots and any surface
- *  that previews an insert color without access to the tldraw palette. */
+/** The same step, for swatches and dots on other surfaces. */
 export function kindHex(kind: string): string {
-  return KIND_HEX[BLOCK_KIND[kind]?.color ?? 'green'] ?? '#34c26b';
+  return kindInk(kind);
 }
-
-const KIND_HEX: Record<string, string> = {
-  black: '#1d1d1d',
-  grey: '#9b9b9b',
-  'light-violet': '#e3d9ff',
-  violet: '#7b61ff',
-  blue: '#3b82f6',
-  'light-blue': '#c3e2ff',
-  yellow: '#f3d53d',
-  orange: '#ff943d',
-  green: '#34c26b',
-  'light-green': '#c9f2a0',
-  'light-red': '#ffaaaa',
-  red: '#ef4b4b',
-  white: '#ffffff',
-};

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 import './FocusDim.css';
 
 interface FocusDimProps {
-  editor: Editor | null;
+  api: CanvasApi | null;
   active: boolean;
 }
 
@@ -17,55 +17,43 @@ interface Hole {
 const PAD = 36;
 
 // Focus mode: dims everything except the selection, punched out with a
-// clip-path hole that tracks the shapes live. The ring around the hole is
-// green — a deliberate, single moment of color for a focused state.
-export function FocusDim({ editor, active }: FocusDimProps) {
+// clip-path hole that tracks the shapes live. The ring is a hairline of the
+// heaviest ink — the focused state is a weight change, not a colour.
+export function FocusDim({ api, active }: FocusDimProps) {
   const [hole, setHole] = useState<Hole | null>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
-    if (!editor) return;
+    if (!api) return;
     const sync = () => {
-      const host = editor.getContainer();
-      setSize({ w: host.clientWidth, h: host.clientHeight });
-      const cam = editor.getCamera();
-      const ids = editor.getSelectedShapeIds();
-      if (ids.length === 0) {
-        setHole(null);
-        return;
-      }
-      let minX = Infinity;
-      let minY = Infinity;
-      let maxX = -Infinity;
-      let maxY = -Infinity;
-      for (const id of ids) {
-        const b = editor.getShapePageBounds(id);
-        if (!b) continue;
-        minX = Math.min(minX, b.x);
-        minY = Math.min(minY, b.y);
-        maxX = Math.max(maxX, b.x + b.w);
-        maxY = Math.max(maxY, b.y + b.h);
-      }
-      if (!Number.isFinite(minX)) {
+      const host = api.container;
+      setSize((prev) =>
+        prev.w === host.clientWidth && prev.h === host.clientHeight
+          ? prev
+          : { w: host.clientWidth, h: host.clientHeight },
+      );
+      const cam = api.camera;
+      const bounds = api.selectionBounds();
+      if (!bounds) {
         setHole(null);
         return;
       }
       setHole({
-        x: (minX - cam.x) * cam.z - PAD,
-        y: (minY - cam.y) * cam.z - PAD,
-        w: (maxX - minX) * cam.z + PAD * 2,
-        h: (maxY - minY) * cam.z + PAD * 2,
+        x: (bounds.x - cam.x) * cam.z - PAD,
+        y: (bounds.y - cam.y) * cam.z - PAD,
+        w: bounds.w * cam.z + PAD * 2,
+        h: bounds.h * cam.z + PAD * 2,
       });
     };
     sync();
-    const unlisten = editor.store.listen(() => requestAnimationFrame(sync));
+    const unlisten = api.subscribe(sync);
     const onResize = () => sync();
     window.addEventListener('resize', onResize);
     return () => {
       unlisten();
       window.removeEventListener('resize', onResize);
     };
-  }, [editor]);
+  }, [api]);
 
   if (!active || !hole) return null;
 

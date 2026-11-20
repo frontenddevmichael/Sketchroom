@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Editor, TLShapeId } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 import './SelectionAwareness.css';
 
 interface PresenceSelection {
@@ -27,56 +27,42 @@ interface FocusRect {
 }
 
 interface SelectionAwarenessProps {
-  editor: Editor | null;
+  api: CanvasApi | null;
   presence: PresenceSelection[];
 }
 
-export function SelectionAwareness({ editor, presence }: SelectionAwarenessProps) {
+export function SelectionAwareness({ api, presence }: SelectionAwarenessProps) {
   const [camera, setCamera] = useState<CameraState>({ x: 0, y: 0, z: 1 });
 
   useEffect(() => {
-    if (!editor) return;
+    if (!api) return;
     const sync = () => {
-      const cam = editor.getCamera();
-      setCamera({ x: cam.x, y: cam.y, z: cam.z });
+      const cam = api.camera;
+      setCamera((prev) =>
+        prev.x === cam.x && prev.y === cam.y && prev.z === cam.z
+          ? prev
+          : { x: cam.x, y: cam.y, z: cam.z },
+      );
     };
     sync();
-    const unlisten = editor.store.listen(() => {
-      requestAnimationFrame(sync);
-    });
-    return () => {
-      unlisten();
-    };
-  }, [editor]);
+    return api.subscribe(sync);
+  }, [api]);
 
-  if (!editor) return null;
+  if (!api) return null;
 
   const rects: FocusRect[] = [];
   for (const p of presence) {
-    const ids = (p.selectedShapeIds || []).filter((id) =>
-      editor.getShapePageBounds(id as TLShapeId)
-    );
-    if (ids.length === 0) continue;
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-    for (const id of ids) {
-      const b = editor.getShapePageBounds(id as TLShapeId)!;
-      minX = Math.min(minX, b.x);
-      minY = Math.min(minY, b.y);
-      maxX = Math.max(maxX, b.x + b.w);
-      maxY = Math.max(maxY, b.y + b.h);
-    }
+    const box = api.boundsOfIds(p.selectedShapeIds || []);
+    if (!box) continue;
     rects.push({
       id: p.userId,
       userId: p.userId,
       name: p.name,
       color: p.color,
-      x: (minX - camera.x) * camera.z - 4,
-      y: (minY - camera.y) * camera.z - 4,
-      w: (maxX - minX) * camera.z + 8,
-      h: (maxY - minY) * camera.z + 8,
+      x: (box.x - camera.x) * camera.z - 4,
+      y: (box.y - camera.y) * camera.z - 4,
+      w: box.w * camera.z + 8,
+      h: box.h * camera.z + 8,
     });
   }
 

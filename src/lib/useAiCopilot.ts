@@ -2,9 +2,16 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAction } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
-import type { Editor, TLShapeId } from 'tldraw';
-import { toRichText, createShapeId } from 'tldraw';
-import { kindColor, BLOCK_H } from './blockKinds';
+import type { CanvasApi, CanvasBounds } from '../canvas/api';
+import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
+import {
+  boundTextOf,
+  createArrowElement,
+  createShapeElements,
+  createTextElement,
+} from '../canvas/elements';
+import { INK } from '../canvas/ink';
+import { kindInk, BLOCK_H } from './blockKinds';
 
 export interface AiGhostBlock {
   label: string;
@@ -24,15 +31,15 @@ export interface AiGhostDiagram {
 }
 
 const SHAPE_LABEL: Record<string, string> = {
-  geo: 'rectangle',
+  rectangle: 'rectangle',
   text: 'text',
-  note: 'note',
   arrow: 'arrow',
   line: 'line',
+  ellipse: 'ellipse',
+  diamond: 'diamond',
+  freedraw: 'drawing',
   image: 'image',
   frame: 'frame',
-  highlight: 'highlight',
-  embed: 'embed',
 };
 
 const DESC_GAP = 12;
@@ -79,26 +86,22 @@ export const AI_REFINE_SUGGESTIONS = [
   'Reorganize this diagram',
 ];
 
-interface Rect { x: number; y: number; w: number; h: number }
+interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 function rectsOverlap(a: Rect, b: Rect): boolean {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
-function collectExistingRects(editor: Editor): Rect[] {
-  const shapes = editor.getCurrentPageShapes();
-  const rects: Rect[] = [];
-  for (const s of shapes) {
-    const b = editor.getShapePageBounds(s.id);
-    if (b) rects.push({ x: b.x, y: b.y, w: b.width, h: b.height });
-  }
-  return rects;
+function collectExistingRects(api: CanvasApi): Rect[] {
+  return api.elements.map((element) => api.boundsOf(element));
 }
 
-function resolvePosition(
-  proposed: Rect,
-  occupied: Rect[],
-): { x: number; y: number } {
+function resolvePosition(proposed: Rect, occupied: Rect[]): { x: number; y: number } {
   let { x, y } = proposed;
   for (let attempt = 0; attempt < 30; attempt++) {
     const candidate: Rect = { x, y, w: proposed.w, h: proposed.h };
@@ -112,7 +115,11 @@ function resolvePosition(
   return { x, y };
 }
 
-function layoutDiagram(blocks: AiGhostBlock[], center: { x: number; y: number }, existingBounds?: Rect) {
+function layoutDiagram(
+  blocks: AiGhostBlock[],
+  center: { x: number; y: number },
+  existingBounds?: CanvasBounds,
+) {
   const widths = blocks.map((b) => estimateBlockWidth(b.label));
   const heights = blocks.map((b, i) => unitHeight(widths[i], b.description));
   const unitWidths = blocks.map((b, i) => unitWidth(widths[i], b.description));
@@ -146,6 +153,7 @@ function layoutDiagram(blocks: AiGhostBlock[], center: { x: number; y: number },
   let startY = center.y - totalH / 2;
 
   if (existingBounds) {
+    // The copilot places *beside* the work, never on top of it.
     startX = existingBounds.x + existingBounds.w + ARROW_GAP * 2;
     startY = existingBounds.y;
   }
@@ -178,10 +186,16 @@ function parseDiagram(raw?: string | null): AiGhostDiagram | null {
   }
 }
 
-function insertGhost(editor: Editor, blocks: AiGhostBlock[], index: number, onInserted: (label: string) => void) {
-  const viewport = editor.getViewportScreenBounds();
-  const center = editor.screenToPage({ x: viewport.midX, y: viewport.midY });
+function insertGhost(
+  api: CanvasApi,
+  blocks: AiGhostBlock[],
+  index: number,
+  onInserted: (label: string) => void,
+) {
   const block = blocks[index];
+  if (!block) return;
+  const view = api.viewportBounds();
+  const center = { x: view.x + view.w / 2, y: view.y + view.h / 2 };
   const blockW = estimateBlockWidth(block.label);
   const uh = unitHeight(blockW, block.description);
 
@@ -191,174 +205,150 @@ function insertGhost(editor: Editor, blocks: AiGhostBlock[], index: number, onIn
   const rawY = center.y + 40 + row * uh;
 
   const uw = unitWidth(blockW, block.description);
-  const occupied = collectExistingRects(editor);
-  const cell: Rect = { x: rawX, y: rawY, w: uw, h: uh };
-  const pos = resolvePosition(cell, occupied);
-  const color = kindColor(block.kind);
-  const ids = [createShapeId(), createShapeId()];
+  const occupied = collectExistingRects(api);
+  const pos = resolvePosition({ x: rawX, y: rawY, w: uw, h: uh }, occupied);
 
-  editor.createShapes([
-    {
-      id: ids[0],
-      type: 'geo',
-      x: pos.x,
-      y: pos.y,
-      props: {
-        geo: 'rectangle',
-        w: blockW,
-        h: BLOCK_H,
-        color,
-        fill: 'semi',
-        richText: toRichText(block.label),
-      },
-    },
-    {
-      id: ids[1],
-      type: 'text',
-      x: pos.x,
-      y: pos.y + BLOCK_H + DESC_GAP,
-      props: {
-        color: 'grey',
-        size: 's',
-        w: blockW,
-        richText: toRichText(block.description ?? `${block.kind} component`),
-      },
-    },
-  ]);
-  editor.setSelectedShapes(ids);
-  editor.zoomToSelection({ animation: { duration: 200 } });
+  const elements: ExcalidrawElement[] = createShapeElements({
+    kind: 'rectangle',
+    x: pos.x,
+    y: pos.y,
+    width: blockW,
+    height: BLOCK_H,
+    label: block.label,
+    style: { stroke: kindInk(block.kind), fill: INK.fill1, strokeWidth: 1.25 },
+    labelStyle: { stroke: INK.ink },
+  });
+
+  if (block.description) {
+    elements.push(
+      createTextElement({
+        x: pos.x,
+        y: pos.y + BLOCK_H + DESC_GAP,
+        text: block.description,
+        fontSize: 12,
+        width: blockW,
+        style: { stroke: INK.ink4 },
+      }),
+    );
+  }
+
+  api.addElements(elements, { select: true });
+  api.setTool('select');
+  api.zoomToBounds({ x: pos.x, y: pos.y, w: uw, h: uh }, { inset: 200, targetZoom: 0.9 });
   onInserted(block.label);
 }
 
-function geoShapeForKind(kind: string) {
+function geoShapeForKind(kind: string): 'rectangle' | 'ellipse' | 'diamond' {
   switch (kind) {
     case 'ellipse':
     case 'cloud':
-      return 'ellipse' as const;
+      return 'ellipse';
     case 'diamond':
-      return 'diamond' as const;
+      return 'diamond';
     default:
-      return 'rectangle' as const;
+      return 'rectangle';
   }
 }
 
-function insertDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () => void) {
+function insertDiagram(api: CanvasApi, diagram: AiGhostDiagram, onInserted: () => void) {
   if (diagram.blocks.length === 0) return;
-  const viewport = editor.getViewportScreenBounds();
-  const center = editor.screenToPage({ x: viewport.midX, y: viewport.midY });
-  const existingBounds = editor.getCurrentPageBounds();
+  const view = api.viewportBounds();
+  const center = { x: view.x + view.w / 2, y: view.y + view.h / 2 };
+  const existing = api.contentBounds();
   const { positions, widths, unitHeights, unitWidths } = layoutDiagram(
     diagram.blocks,
     center,
-    existingBounds
-      ? { x: existingBounds.x, y: existingBounds.y, w: existingBounds.width, h: existingBounds.height }
-      : undefined,
+    existing ?? undefined,
   );
 
-  const occupied = collectExistingRects(editor);
+  const occupied = collectExistingRects(api);
   const resolved = positions.map((pos, i) => {
     const cell: Rect = { x: pos.x, y: pos.y, w: unitWidths[i], h: unitHeights[i] };
     const resolvedPos = resolvePosition(cell, occupied);
     occupied.push({ x: resolvedPos.x, y: resolvedPos.y, w: unitWidths[i], h: unitHeights[i] });
     return resolvedPos;
   });
-  const shapes: Parameters<typeof editor.createShapes>[0] = [];
-  const shapeIds: TLShapeId[] = [];
-  const bindings: {
-    type: 'arrow';
-    fromId: TLShapeId;
-    toId: TLShapeId;
-    props: { terminal: 'start' | 'end'; normalizedAnchor: { x: number; y: number }; isExact: boolean };
-  }[] = [];
+
+  const elements: ExcalidrawElement[] = [];
+  const blockIds: string[] = [];
 
   diagram.blocks.forEach((block, i) => {
     const pos = resolved[i];
     const bw = widths[i];
-    const id = createShapeId();
-    shapeIds.push(id);
-    const color = kindColor(block.kind);
-    const geo = geoShapeForKind(block.kind);
-    shapes.push({
-      id,
-      type: 'geo',
+    const built = createShapeElements({
+      kind: geoShapeForKind(block.kind),
       x: pos.x,
       y: pos.y,
-      props: {
-        geo,
-        w: bw,
-        h: BLOCK_H,
-        color,
-        fill: 'semi',
-        richText: toRichText(block.label),
-      },
+      width: bw,
+      height: BLOCK_H,
+      label: block.label,
+      style: { stroke: kindInk(block.kind), fill: INK.fill1, strokeWidth: 1.25 },
+      labelStyle: { stroke: INK.ink },
     });
+    elements.push(...built);
+    blockIds.push(built[0].id);
+
     if (block.description) {
-      const descId = createShapeId();
-      shapeIds.push(descId);
-      shapes.push({
-        id: descId,
-        type: 'text',
-        x: pos.x,
-        y: pos.y + BLOCK_H + DESC_GAP,
-        props: {
-          color: 'grey',
-          size: 's',
-          w: bw,
-          richText: toRichText(block.description),
-        },
-      });
+      elements.push(
+        createTextElement({
+          x: pos.x,
+          y: pos.y + BLOCK_H + DESC_GAP,
+          text: block.description,
+          fontSize: 12,
+          width: bw,
+          style: { stroke: INK.ink4 },
+        }),
+      );
     }
   });
 
-  diagram.edges.forEach((edge) => {
+  // Edges are drawn edge-to-edge: the arrow starts where the source block ends
+  // and stops where the target begins, so a label has somewhere to sit.
+  for (const edge of diagram.edges) {
     const a = resolved[edge.from];
     const b = resolved[edge.to];
-    if (!a || !b) return;
+    if (!a || !b) continue;
     const aW = widths[edge.from];
-    const arrowId = createShapeId();
-    const arrowX = a.x + aW;
-    const arrowY = a.y + BLOCK_H / 2;
-    shapes.push({
-      id: arrowId,
-      type: 'arrow',
-      x: arrowX,
-      y: arrowY,
-      props: { color: 'grey', arrowheadEnd: 'arrow' },
-    });
-    bindings.push(
-      {
-        type: 'arrow',
-        fromId: arrowId,
-        toId: shapeIds[edge.from],
-        props: { terminal: 'start', normalizedAnchor: { x: 1, y: 0.5 }, isExact: true },
-      },
-      {
-        type: 'arrow',
-        fromId: arrowId,
-        toId: shapeIds[edge.to],
-        props: { terminal: 'end', normalizedAnchor: { x: 0, y: 0.5 }, isExact: true },
-      }
+    const bW = widths[edge.to];
+    const rightward = b.x >= a.x;
+    const from = {
+      x: rightward ? a.x + aW : a.x,
+      y: a.y + BLOCK_H / 2,
+    };
+    const to = {
+      x: rightward ? b.x : b.x + bW,
+      y: b.y + BLOCK_H / 2,
+    };
+    elements.push(
+      createArrowElement({
+        from,
+        to,
+        style: { stroke: INK.ink3, strokeWidth: 1 },
+        endArrowhead: 'arrow',
+      }),
     );
     if (edge.label) {
-      const labelX = (a.x + aW + b.x) / 2 - 70;
-      const labelY = (a.y + b.y) / 2 + BLOCK_H / 2 - 10;
-      const labelCell: Rect = { x: labelX, y: labelY, w: 140, h: 20 };
+      const midX = (from.x + to.x) / 2;
+      const midY = (from.y + to.y) / 2;
+      const labelCell: Rect = { x: midX - 70, y: midY - 24, w: 140, h: 20 };
       const labelPos = resolvePosition(labelCell, occupied);
       occupied.push({ x: labelPos.x, y: labelPos.y, w: 140, h: 20 });
-      shapes.push({
-        id: createShapeId(),
-        type: 'text',
-        x: labelPos.x,
-        y: labelPos.y,
-        props: { color: 'grey', size: 's', richText: toRichText(edge.label) },
-      });
+      elements.push(
+        createTextElement({
+          x: labelPos.x,
+          y: labelPos.y,
+          text: edge.label,
+          fontSize: 12,
+          style: { stroke: INK.ink4 },
+        }),
+      );
     }
-  });
+  }
 
-  editor.createShapes(shapes);
-  if (bindings.length > 0) editor.createBindings(bindings);
-  editor.setSelectedShapes(shapeIds);
-  editor.zoomToSelection({ animation: { duration: 200 } });
+  api.addElements(elements);
+  api.select(blockIds);
+  const bounds = api.boundsOfIds(blockIds);
+  if (bounds) api.zoomToBounds(bounds, { inset: 160, targetZoom: 0.9 });
   onInserted();
 }
 
@@ -377,12 +367,20 @@ export interface AiCopilot {
   closeFeed: () => void;
 }
 
+/** Text of a shape's label, so the copilot reads the board the way people do. */
+function elementLabel(api: CanvasApi, element: ExcalidrawElement): string {
+  if (element.type === 'text') return element.text;
+  const [text] = boundTextOf(api.elements, element);
+  if (text && text.type === 'text' && text.text) return text.text;
+  return SHAPE_LABEL[element.type] ?? element.type;
+}
+
 export function useAiCopilot(opts: {
   roomId: Id<'rooms'> | undefined;
-  editor: Editor | null;
+  api: CanvasApi | null;
   readOnly?: boolean;
 }): AiCopilot {
-  const { roomId, editor, readOnly } = opts;
+  const { roomId, api: canvas, readOnly } = opts;
   const [prompt, setPrompt] = useState('');
   const [isAsking, setIsAsking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -393,57 +391,47 @@ export function useAiCopilot(opts: {
   const requestAi = useAction(api.features.ai.requestAiSuggestion);
 
   useEffect(() => {
-    if (!editor) return;
+    if (!canvas) return;
     const sync = () => {
-      const n = editor.getSelectedShapeIds().length;
+      const n = canvas.selectionIds.length;
       setSelectedCount((prev) => (prev === n ? prev : n));
     };
     sync();
-    const unlisten = editor.store.listen(() => requestAnimationFrame(sync));
-    return () => unlisten();
-  }, [editor]);
+    return canvas.subscribe(sync);
+  }, [canvas]);
 
   const buildContext = useCallback(() => {
-    if (!editor) return undefined;
-    const allShapes = editor.getCurrentPageShapes();
-    if (allShapes.length === 0) return undefined;
-    const selectedIds = new Set(editor.getSelectedShapeIds());
-    const viewport = editor.getViewportPageBounds();
-    const viewCx = viewport.x + viewport.width / 2;
-    const viewCy = viewport.y + viewport.height / 2;
+    if (!canvas) return undefined;
+    const all = canvas.elements;
+    if (all.length === 0) return undefined;
+    const selectedIds = new Set(canvas.selectionIds);
+    const view = canvas.viewportBounds();
+    const viewCx = view.x + view.w / 2;
+    const viewCy = view.y + view.h / 2;
 
-    // Score shapes: selected > in viewport > near viewport > distant
-    const scored = allShapes.map((s) => {
-      const bounds = editor.getShapePageBounds(s.id);
-      const isSelected = selectedIds.has(s.id);
-      if (!bounds) return { shape: s, score: isSelected ? -2 : 9999, isSelected };
-      const cx = bounds.x + bounds.width / 2;
-      const cy = bounds.y + bounds.height / 2;
-      const inView = cx >= viewport.x && cx <= viewport.x + viewport.width &&
-                     cy >= viewport.y && cy <= viewport.y + viewport.height;
+    // Score elements: selected > in viewport > near viewport > distant.
+    const scored = all.map((element) => {
+      const bounds = canvas.boundsOf(element);
+      const isSelected = selectedIds.has(element.id);
+      const cx = bounds.x + bounds.w / 2;
+      const cy = bounds.y + bounds.h / 2;
+      const inView =
+        cx >= view.x && cx <= view.x + view.w && cy >= view.y && cy <= view.y + view.h;
       const dist = Math.hypot(cx - viewCx, cy - viewCy);
-      // Selected shapes get priority (-2), in-viewport shapes get their distance,
-      // out-of-viewport shapes get distance + large penalty
       const score = isSelected ? -2 : inView ? dist : dist + 10000;
-      return { shape: s, score, isSelected };
+      return { element, bounds, isSelected, score };
     });
 
-    // Sort by score (selected first, then by proximity to viewport center)
     scored.sort((a, b) => a.score - b.score);
-    const top60 = scored.slice(0, 60);
 
-    return top60.map(({ shape: s }) => {
-      const text = editor.getShapeUtil(s).getText(s)?.trim();
-      const bounds = editor.getShapePageBounds(s.id);
-      return {
-        label: text || SHAPE_LABEL[s.type] || s.type,
-        kind: s.type,
-        x: bounds?.x ?? 0,
-        y: bounds?.y ?? 0,
-        selected: selectedIds.has(s.id),
-      };
-    });
-  }, [editor]);
+    return scored.slice(0, 60).map(({ element, bounds, isSelected }) => ({
+      label: elementLabel(canvas, element),
+      kind: element.type,
+      x: bounds.x,
+      y: bounds.y,
+      selected: isSelected,
+    }));
+  }, [canvas]);
 
   const handleAsk = useCallback(async () => {
     const text = prompt.trim();
@@ -470,7 +458,7 @@ export function useAiCopilot(opts: {
     inserted,
     setInserted,
     selectedCount,
-    clearSelection: useCallback(() => editor?.setSelectedShapes([]), [editor]),
+    clearSelection: useCallback(() => canvas?.clearSelection(), [canvas]),
     handleAsk,
     feedOpen,
     openFeed: useCallback(() => setFeedOpen(true), []),
@@ -482,14 +470,20 @@ export function parseAiDiagram(raw?: string | null): AiGhostDiagram | null {
   return parseDiagram(raw);
 }
 
-export function insertGhostBlock(editor: Editor, blocks: AiGhostBlock[], index: number, onInserted: (label: string) => void) {
-  insertGhost(editor, blocks, index, onInserted);
+export function insertGhostBlock(
+  canvas: CanvasApi,
+  blocks: AiGhostBlock[],
+  index: number,
+  onInserted: (label: string) => void,
+) {
+  insertGhost(canvas, blocks, index, onInserted);
 }
 
-export function insertFullDiagram(editor: Editor, diagram: AiGhostDiagram, onInserted: () => void) {
-  insertDiagram(editor, diagram, onInserted);
+export function insertFullDiagram(canvas: CanvasApi, diagram: AiGhostDiagram, onInserted: () => void) {
+  insertDiagram(canvas, diagram, onInserted);
 }
 
-export function ghostKindColor(kind: string) {
-  return kindColor(kind);
+/** One neutral tone: a ghost is a proposal, not a second palette. */
+export function ghostKindColor(): string {
+  return 'ink';
 }

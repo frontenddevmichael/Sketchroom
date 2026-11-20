@@ -1,14 +1,14 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { api as convexApi } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 import { X, MessageSquare, Check, RotateCcw, Trash2, Send } from 'lucide-react';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import './CommentPins.css';
 
 interface CommentPinsProps {
-  editor: Editor | null;
+  api: CanvasApi | null;
   roomId: Id<'rooms'> | undefined;
   commentMode: boolean;
   onExitCommentMode: () => void;
@@ -25,17 +25,17 @@ interface CommentData {
   createdAt: number;
 }
 
-export function CommentPins({ editor, roomId, commentMode, onExitCommentMode }: CommentPinsProps) {
+export function CommentPins({ api, roomId, commentMode, onExitCommentMode }: CommentPinsProps) {
   const { user } = useCurrentUser();
   const comments = useQuery(
-    api.features.comments.listComments,
+    convexApi.features.comments.listComments,
     roomId ? { roomId, resolved: false } : 'skip'
   ) as unknown as CommentData[] | undefined;
-  const createComment = useMutation(api.features.comments.createComment);
-  const replyToComment = useMutation(api.features.comments.replyToComment);
-  const resolveComment = useMutation(api.features.comments.resolveComment);
-  const reopenComment = useMutation(api.features.comments.reopenComment);
-  const deleteComment = useMutation(api.features.comments.deleteComment);
+  const createComment = useMutation(convexApi.features.comments.createComment);
+  const replyToComment = useMutation(convexApi.features.comments.replyToComment);
+  const resolveComment = useMutation(convexApi.features.comments.resolveComment);
+  const reopenComment = useMutation(convexApi.features.comments.reopenComment);
+  const deleteComment = useMutation(convexApi.features.comments.deleteComment);
 
   const [activePin, setActivePin] = useState<Id<'comments'> | null>(null);
   const [replyTo, setReplyTo] = useState<Id<'comments'> | null>(null);
@@ -44,44 +44,31 @@ export function CommentPins({ editor, roomId, commentMode, onExitCommentMode }: 
   const [pendingPos, setPendingPos] = useState<{ x: number; y: number } | null>(null);
   const [camera, setCamera] = useState({ x: 0, y: 0, z: 1 });
 
-  // Track camera for pin positioning
-  const handleEditorMount = useCallback((ed: Editor) => {
+  // Track the camera so pins stay pinned to the scene they annotate.
+  useEffect(() => {
+    if (!api) return;
     const sync = () => {
-      const cam = ed.getCamera();
+      const cam = api.camera;
       setCamera((prev) =>
         prev.x === cam.x && prev.y === cam.y && prev.z === cam.z
           ? prev
-          : { x: cam.x, y: cam.y, z: cam.z }
+          : { x: cam.x, y: cam.y, z: cam.z },
       );
     };
     sync();
-    const unlisten = ed.store.listen(() => requestAnimationFrame(sync));
-    return unlisten;
-  }, []);
-
-  // Register editor listener
-  const editorRef = useRef(editor);
-  useEffect(() => {
-    editorRef.current = editor;
-  }, [editor]);
-  useEffect(() => {
-    if (editor) return handleEditorMount(editor);
-  }, [editor, handleEditorMount]);
+    return api.subscribe(sync);
+  }, [api]);
 
   // Handle canvas click in comment mode
   const handleCanvasClick = useCallback(
     (e: React.MouseEvent) => {
-      if (!commentMode || !editor) return;
-      const ed = editor;
-      // Convert screen coords to page coords
-      const pagePos = ed.screenToPage({
-        x: e.clientX,
-        y: e.clientY,
-      });
+      if (!commentMode || !api) return;
+      // Convert screen coords to scene coords
+      const pagePos = api.screenToScene(e.clientX, e.clientY);
       setPendingPos({ x: pagePos.x, y: pagePos.y });
       setNewCommentBody('');
     },
-    [commentMode, editor]
+    [commentMode, api],
   );
 
   const submitNewComment = useCallback(async () => {
@@ -104,7 +91,7 @@ export function CommentPins({ editor, roomId, commentMode, onExitCommentMode }: 
     setReplyBody('');
   }, [replyTo, replyBody, replyToComment]);
 
-  if (!editor || !roomId) return null;
+  if (!api || !roomId) return null;
 
   const visibleComments = (comments ?? []).filter((c) => !c.parentId);
   const getReplies = (parentId: Id<'comments'>) =>

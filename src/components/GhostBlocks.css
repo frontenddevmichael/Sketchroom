@@ -46,30 +46,12 @@
   text-overflow: ellipsis;
 }
 
-/* Every tone reads from the --ghost-* semantic tokens (index.css) — no raw
-   hue lives in this file, so the AI palette changes in one place. */
-.ghost-tone-blue { border-color: var(--hair-strong); color: var(--ink-2); }
-.ghost-tone-blue .ghost-icon { color: var(--ink-3); }
-.ghost-tone-purple { border-color: var(--hair-strong); color: var(--ink-2); }
-.ghost-tone-purple .ghost-icon { color: var(--ink-3); }
-.ghost-tone-green { border-color: var(--hair-strong); color: var(--ink-2); }
-.ghost-tone-green .ghost-icon { color: var(--ink-3); }
-.ghost-tone-orange { border-color: var(--hair-strong); color: var(--ink-2); }
-.ghost-tone-orange .ghost-icon { color: var(--ink-3); }
-.ghost-tone-teal { border-color: var(--hair-strong); color: var(--ink-2); }
-.ghost-tone-teal .ghost-icon { color: var(--ink-3); }
-.ghost-tone-yellow { border-color: var(--hair-strong); color: var(--ink-2); }
-.ghost-tone-yellow .ghost-icon { color: var(--ink-3); }
-.ghost-tone-gray { border-color: var(--hair-strong); color: var(--ink-2); }
-.ghost-tone-gray .ghost-icon { color: var(--ink-3); }
+/* One tone, from the ink tokens: a proposal is drawn at a weight, never in a
+   hue of its own. */
+.ghost-tone-ink { border-color: var(--hair-strong); color: var(--ink-2); }
+.ghost-tone-ink .ghost-icon { color: var(--ink-3); }
 
-.ghost-block.ghost-focused.ghost-tone-blue { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
-.ghost-block.ghost-focused.ghost-tone-purple { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
-.ghost-block.ghost-focused.ghost-tone-green { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
-.ghost-block.ghost-focused.ghost-tone-orange { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
-.ghost-block.ghost-focused.ghost-tone-teal { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
-.ghost-block.ghost-focused.ghost-tone-yellow { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
-.ghost-block.ghost-focused.ghost-tone-gray { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
+.ghost-block.ghost-focused.ghost-tone-ink { border-color: var(--ink-3); box-shadow: 0 0 0 3px var(--hair), 0 8px 24px var(--hair); }
 
 /* Dark-mode ghost blocks — these float over the canvas, so the base
    already uses a dark semi-transparent background. In light mode the
@@ -80,13 +62,7 @@
   border-color: var(--hair-strong);
 }
 
-[data-theme='dark'] .ghost-tone-blue { color: var(--ink-2); }
-[data-theme='dark'] .ghost-tone-purple { color: var(--ink-2); }
-[data-theme='dark'] .ghost-tone-green { color: var(--ink-2); }
-[data-theme='dark'] .ghost-tone-orange { color: var(--ink-2); }
-[data-theme='dark'] .ghost-tone-teal { color: var(--ink-2); }
-[data-theme='dark'] .ghost-tone-yellow { color: var(--ink-2); }
-[data-theme='dark'] .ghost-tone-gray { color: var(--ink-2); }
+[data-theme='dark'] .ghost-tone-ink { color: var(--ink-2); }
 
 .ghost-edges {
   position: absolute;

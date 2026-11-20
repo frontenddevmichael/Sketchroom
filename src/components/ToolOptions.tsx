@@ -1,26 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  type Editor,
-  type StyleProp,
-  type TLDefaultColorStyle,
-  type TLDefaultDashStyle,
-  type TLDefaultFillStyle,
-  type TLDefaultFontStyle,
-  type TLDefaultSizeStyle,
-  type TLRichText,
-  DefaultColorStyle,
-  DefaultDashStyle,
-  DefaultFillStyle,
-  DefaultFontStyle,
-  DefaultSizeStyle,
-  DefaultTextAlignStyle,
-  DefaultHorizontalAlignStyle,
-  DefaultVerticalAlignStyle,
-  GeoShapeGeoStyle,
-  ArrowShapeArrowheadStartStyle,
-  ArrowShapeArrowheadEndStyle,
-} from 'tldraw';
-import {
   PaintBucket,
   Copy,
   AlignLeft,
@@ -35,9 +14,12 @@ import {
   SendToBack,
   ArrowUp,
   ArrowDown,
-  Bold,
   RotateCcw,
 } from 'lucide-react';
+import type { CanvasApi } from '../canvas/api';
+import { INK } from '../canvas/ink';
+import { FONT_FAMILY_ID, boundTextOf } from '../canvas/elements';
+import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import './ToolOptions.css';
 
 export type ToolStyleMode = 'selection' | 'next';
@@ -51,82 +33,72 @@ const TOOL_TITLES: Record<string, string> = {
   shapes: 'Shapes',
 };
 
-const DEFAULTS_KEY = 'sketchroom.toolDefaults.v1.';
-const RECENT_KEY = 'sketchroom.recentColors.v1';
+const DEFAULTS_KEY = 'sketchroom.toolDefaults.v2.';
 
-const COLORS: TLDefaultColorStyle[] = [
-  'black',
-  'grey',
-  'blue',
-  'light-blue',
-  'violet',
-  'light-violet',
-  'red',
-  'light-red',
-  'orange',
-  'yellow',
-  'green',
-  'light-green',
-  'white',
+/**
+ * The ink ramp, not a colour picker. Darker swatches are heavier line weight in
+ * the eye, which is the whole grammar of the board: line weight is state.
+ */
+const INKS: { value: string; label: string }[] = [
+  { value: INK.ink, label: 'Ink' },
+  { value: INK.ink2, label: 'Ink 2' },
+  { value: INK.ink3, label: 'Ink 3' },
+  { value: INK.ink4, label: 'Ink 4' },
+  { value: INK.rule, label: 'Rule' },
 ];
 
-// tldraw's colour style is fixed in the document schema, so the names stay and
-// the values become the Blueprint ink ramp: the swatches are an ink scale, not
-// a hue picker. Line weight and dash carry meaning; colour no longer does.
-const COLOR_HEX: Record<TLDefaultColorStyle, string> = {
-  black: '#0A0A0A',
-  grey: '#5C5C5C',
-  violet: '#2E2E2E',
-  blue: '#3F3F3F',
-  green: '#6B6B6B',
-  orange: '#8A8A8A',
-  yellow: '#A1A1A1',
-  red: '#C6C6C6',
-  'light-violet': '#CFCFCF',
-  'light-blue': '#DBDBDB',
-  'light-green': '#E4E4E4',
-  'light-red': '#EDEDED',
-  white: '#FFFFFF',
-};
+const FILLS: { value: string; label: string }[] = [
+  { value: 'transparent', label: 'None' },
+  { value: INK.fill1, label: 'Paper' },
+  { value: INK.fill2, label: 'Mid' },
+  { value: INK.fill3, label: 'Heavy' },
+];
 
-const DASHES: { value: TLDefaultDashStyle; label: string }[] = [
+const DASHES: { value: string; label: string }[] = [
   { value: 'solid', label: 'Solid' },
   { value: 'dashed', label: 'Dashed' },
   { value: 'dotted', label: 'Dotted' },
-  { value: 'draw', label: 'Hand' },
 ];
 
-const SIZES: { value: TLDefaultSizeStyle; label: string }[] = [
-  { value: 's', label: 'S' },
-  { value: 'm', label: 'M' },
-  { value: 'l', label: 'L' },
-  { value: 'xl', label: 'XL' },
+const SIZES: { value: string; label: string }[] = [
+  { value: '1', label: 'S' },
+  { value: '1.25', label: 'M' },
+  { value: '2', label: 'L' },
+  { value: '3', label: 'XL' },
 ];
 
-const FILLS: { value: TLDefaultFillStyle; label: string }[] = [
+const FONT_SIZES: { value: string; label: string }[] = [
+  { value: '12', label: 'S' },
+  { value: '16', label: 'M' },
+  { value: '24', label: 'L' },
+  { value: '36', label: 'XL' },
+];
+
+const FONTS: { value: string; label: string }[] = [
+  { value: String(FONT_FAMILY_ID.hand), label: 'Hand' },
+  { value: String(FONT_FAMILY_ID.sans), label: 'Sans' },
+  { value: String(FONT_FAMILY_ID.mono), label: 'Mono' },
+  { value: String(FONT_FAMILY_ID.liberation), label: 'Board' },
+];
+
+const ALIGN_H: { value: string; label: string; icon: typeof AlignLeft }[] = [
+  { value: 'left', label: 'Align left', icon: AlignLeft },
+  { value: 'center', label: 'Align center', icon: AlignCenterHorizontal },
+  { value: 'right', label: 'Align right', icon: AlignRight },
+];
+
+const GEO_OPTIONS: { value: string; label: string }[] = [
+  { value: 'rectangle', label: 'Rect' },
+  { value: 'ellipse', label: 'Ellipse' },
+  { value: 'diamond', label: 'Diamond' },
+];
+
+const ARROWHEADS: { value: string; label: string }[] = [
   { value: 'none', label: 'None' },
-  { value: 'semi', label: 'Semi' },
-  { value: 'solid', label: 'Solid' },
-  { value: 'pattern', label: 'Pattern' },
-];
-
-const FONTS: { value: TLDefaultFontStyle; label: string }[] = [
-  { value: 'draw', label: 'Hand' },
-  { value: 'sans', label: 'Sans' },
-  { value: 'serif', label: 'Serif' },
-  { value: 'mono', label: 'Mono' },
-];
-
-const ALIGN_H: { value: 'start' | 'middle' | 'end'; label: string; icon: typeof AlignLeft }[] = [
-  { value: 'start', label: 'Align left', icon: AlignLeft },
-  { value: 'middle', label: 'Align center', icon: AlignCenterHorizontal },
-  { value: 'end', label: 'Align right', icon: AlignRight },
-];
-
-const ALIGN_V: { value: 'start' | 'middle' | 'end'; label: string; icon: typeof AlignStartVertical }[] = [
-  { value: 'start', label: 'Align top', icon: AlignStartVertical },
-  { value: 'middle', label: 'Align middle', icon: AlignCenterVertical },
-  { value: 'end', label: 'Align bottom', icon: AlignEndVertical },
+  { value: 'arrow', label: 'Arrow' },
+  { value: 'bar', label: 'Bar' },
+  { value: 'dot', label: 'Dot' },
+  { value: 'triangle', label: 'Triangle' },
 ];
 
 const ALIGN_OPS_H: { value: 'left' | 'center-horizontal' | 'right'; label: string; icon: typeof AlignLeft }[] = [
@@ -141,261 +113,276 @@ const ALIGN_OPS_V: { value: 'top' | 'center-vertical' | 'bottom'; label: string;
   { value: 'bottom', label: 'Align bottom', icon: AlignEndVertical },
 ];
 
-const GEO_OPTIONS: { value: string; label: string }[] = [
-  { value: 'rectangle', label: 'Rect' },
-  { value: 'ellipse', label: 'Ellipse' },
-  { value: 'triangle', label: 'Triangle' },
-  { value: 'diamond', label: 'Diamond' },
-  { value: 'cloud', label: 'Cloud' },
-  { value: 'star', label: 'Star' },
-  { value: 'x-box', label: 'X-box' },
-  { value: 'check-box', label: 'Check' },
-  { value: 'arrow-right', label: 'Arrow' },
-  { value: 'pentagon', label: 'Pentagon' },
-  { value: 'hexagon', label: 'Hexagon' },
-  { value: 'heart', label: 'Heart' },
-];
+type StyleKey =
+  | 'stroke'
+  | 'fill'
+  | 'strokeWidth'
+  | 'strokeStyle'
+  | 'fontFamily'
+  | 'fontSize'
+  | 'textAlign'
+  | 'roundness'
+  | 'startArrowhead'
+  | 'endArrowhead';
 
-const ARROWHEADS: { value: string; label: string }[] = [
-  { value: 'none', label: 'None' },
-  { value: 'arrow', label: 'Arrow' },
-  { value: 'triangle', label: 'Triangle' },
-  { value: 'diamond', label: 'Diamond' },
-  { value: 'dot', label: 'Dot' },
-  { value: 'square', label: 'Square' },
-  { value: 'bar', label: 'Bar' },
-  { value: 'pipe', label: 'Pipe' },
-  { value: 'inverted', label: 'Inverted' },
-];
+/** Which element types a key can actually be written to. */
+function applies(key: StyleKey, element: ExcalidrawElement): boolean {
+  switch (key) {
+    case 'fontFamily':
+    case 'fontSize':
+    case 'textAlign':
+      return element.type === 'text';
+    case 'roundness':
+      return element.type === 'rectangle';
+    case 'startArrowhead':
+    case 'endArrowhead':
+    case 'strokeStyle':
+      return element.type === 'arrow' || element.type === 'line';
+    default:
+      return true;
+  }
+}
 
-const KINDS: { value: string; label: string }[] = [
-  { value: 'arc', label: 'Arc' },
-  { value: 'elbow', label: 'Elbow' },
-];
+function patchFor(key: StyleKey, value: string): Record<string, unknown> {
+  switch (key) {
+    case 'stroke':
+      return { strokeColor: value };
+    case 'fill':
+      return { backgroundColor: value };
+    case 'strokeWidth':
+      return { strokeWidth: Number(value) };
+    case 'strokeStyle':
+      return { strokeStyle: value };
+    case 'fontFamily':
+      return { fontFamily: Number(value) };
+    case 'fontSize':
+      return { fontSize: Number(value) };
+    case 'textAlign':
+      return { textAlign: value };
+    case 'roundness':
+      return { roundness: value === 'round' ? { type: 3, value: 8 } : null };
+    case 'startArrowhead':
+      return { startArrowhead: value === 'none' ? null : value };
+    case 'endArrowhead':
+      return { endArrowhead: value === 'none' ? null : value };
+    default:
+      return {};
+  }
+}
 
-// Style props this panel manages, keyed by their stable style id so per-tool
-// defaults can be persisted and re-applied without hardcoding ids.
-const STYLE_BY_ID: Record<string, StyleProp<unknown>> = {
-  [DefaultColorStyle.id]: DefaultColorStyle,
-  [DefaultFillStyle.id]: DefaultFillStyle,
-  [DefaultDashStyle.id]: DefaultDashStyle,
-  [DefaultSizeStyle.id]: DefaultSizeStyle,
-  [DefaultFontStyle.id]: DefaultFontStyle,
-  [DefaultTextAlignStyle.id]: DefaultTextAlignStyle,
-  [DefaultHorizontalAlignStyle.id]: DefaultHorizontalAlignStyle,
-  [DefaultVerticalAlignStyle.id]: DefaultVerticalAlignStyle,
-  [GeoShapeGeoStyle.id]: GeoShapeGeoStyle,
-  [ArrowShapeArrowheadStartStyle.id]: ArrowShapeArrowheadStartStyle,
-  [ArrowShapeArrowheadEndStyle.id]: ArrowShapeArrowheadEndStyle,
-};
+function defaultsFor(key: StyleKey, value: string): Record<string, unknown> {
+  switch (key) {
+    case 'stroke':
+      return { currentItemStrokeColor: value };
+    case 'fill':
+      return { currentItemBackgroundColor: value };
+    case 'strokeWidth':
+      return { currentItemStrokeWidth: Number(value) };
+    case 'strokeStyle':
+      return { currentItemStrokeStyle: value };
+    case 'fontFamily':
+      return { currentItemFontFamily: Number(value) };
+    case 'fontSize':
+      return { currentItemFontSize: Number(value) };
+    case 'textAlign':
+      return { currentItemTextAlign: value };
+    case 'roundness':
+      return { currentItemRoundness: value };
+    case 'startArrowhead':
+      return { currentItemArrowType: 'sharp' };
+    case 'endArrowhead':
+      return { currentItemArrowType: 'round' };
+    default:
+      return {};
+  }
+}
 
-// Shape props that count as "styles" for the paint-format roller.
-const STYLE_PROP_KEYS = new Set([
-  'color',
-  'fill',
-  'dash',
-  'size',
-  'font',
-  'textAlign',
-  'align',
-  'verticalAlign',
-  'geo',
-  'kind',
-  'arrowheadStart',
-  'arrowheadEnd',
-  'labelColor',
-]);
-
-function loadDefaults(tool: string): Record<string, unknown> {
+function loadDefaults(tool: string): Record<string, string> {
   try {
     const raw = localStorage.getItem(DEFAULTS_KEY + tool);
     if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const parsed = JSON.parse(raw) as Record<string, string>;
     return parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
     return {};
   }
 }
 
-function loadRecent(): TLDefaultColorStyle[] {
-  try {
-    const raw = localStorage.getItem(RECENT_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as TLDefaultColorStyle[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+function shared<T>(values: readonly T[]): T | 'mixed' {
+  const first = values[0];
+  return values.every((value) => value === first) ? first : 'mixed';
 }
 
-interface RichBlock {
-  type: string;
-  content: { type: string; text?: string; styles?: Record<string, boolean> }[];
-}
-
-function setRichBold(rich: TLRichText, bold: boolean): TLRichText {
-  const blocks = rich.content as unknown as RichBlock[];
-  return {
-    ...rich,
-    content: blocks.map((p) => ({
-      ...p,
-      content: p.content.map((run) =>
-        run.type === 'text' ? { ...run, styles: { ...(run.styles ?? {}), bold } } : run
-      ),
-    })),
-  } as TLRichText;
-}
-
-function richHasBold(rich: TLRichText): boolean {
-  const blocks = rich.content as unknown as RichBlock[];
-  return blocks.some((p) =>
-    p.content.some((run) => run.type === 'text' && run.styles?.bold)
-  );
-}
-
-// One shared style engine for both surfaces (quick strip + rail) so a pick in
-// either stays consistent with the other: same selection, same mode, same
-// persisted per-tool defaults.
-function useToolStyles(editor: Editor | null, tool: string, mode: ToolStyleMode) {
+// One shared style engine for the rail: reads the live selection (or the
+// engine's next-shape defaults), writes back through the canvas API, and keeps
+// per-tool defaults persisted so a pick survives a reload.
+function useToolStyles(api: CanvasApi | null, tool: string, mode: ToolStyleMode) {
   const [, setTick] = useState(0);
-  const copiedRef = useRef<{ props: Record<string, unknown>; key: string } | null>(null);
+  const copiedRef = useRef<{ props: Record<string, string>; key: string } | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  const selection = editor ? editor.getSelectedShapes() : [];
-  const selectedIdsKey = selection.map((s) => s.id).join(',');
-
-  // Re-render on any editor change (style/selection/camera) so the surfaces
-  // reflect live state, throttled to animation frames.
   useEffect(() => {
-    if (!editor) return;
-    let raf = 0;
-    const schedule = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        setTick((t) => t + 1);
-      });
-    };
-    const unlisten = editor.store.listen(schedule);
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-      unlisten();
-    };
-  }, [editor]);
+    if (!api) return;
+    return api.subscribe(() => setTick((t) => t + 1));
+  }, [api]);
 
   // Re-apply this tool's persisted defaults whenever the tool changes.
   useEffect(() => {
-    if (!editor) return;
-    for (const [id, value] of Object.entries(loadDefaults(tool))) {
-      const prop = STYLE_BY_ID[id];
-      if (prop && value !== undefined) editor.setStyleForNextShapes(prop as StyleProp<never>, value as never);
+    if (!api) return;
+    const saved = loadDefaults(tool);
+    const patch: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(saved)) {
+      Object.assign(patch, defaultsFor(key as StyleKey, value));
     }
-  }, [editor, tool]);
+    if (Object.keys(patch).length > 0) api.setCurrentStyle(patch);
+  }, [api, tool]);
 
-  const readStyle = <T,>(style: StyleProp<T>): T | 'mixed' => {
-    if (!editor) return style.defaultValue;
-    if (mode === 'selection' && selection.length > 0) {
-      const shared = editor.getSharedStyles().get(style);
-      if (shared?.type === 'shared') return shared.value;
-      return 'mixed';
+  const selection = api?.selection ?? [];
+  const selectedIdsKey = selection.map((element) => element.id).join(',');
+  const isSelectionMode = mode === 'selection' && selection.length > 0;
+  const appState = api?.appState;
+
+  const read = (key: StyleKey): string | 'mixed' => {
+    if (!api) return 'mixed';
+    if (isSelectionMode) {
+      const values = selection.filter((element) => applies(key, element)).map((element) => {
+        switch (key) {
+          case 'stroke':
+            return element.strokeColor;
+          case 'fill':
+            return element.backgroundColor;
+          case 'strokeWidth':
+            return String(element.strokeWidth);
+          case 'strokeStyle':
+            return element.strokeStyle;
+          case 'fontFamily':
+            return String((element as { fontFamily?: number }).fontFamily ?? FONT_FAMILY_ID.liberation);
+          case 'fontSize':
+            return String((element as { fontSize?: number }).fontSize ?? 16);
+          case 'textAlign':
+            return (element as { textAlign?: string }).textAlign ?? 'left';
+          case 'roundness':
+            return element.roundness ? 'round' : 'sharp';
+          case 'startArrowhead':
+            return (element as { startArrowhead?: string | null }).startArrowhead ?? 'none';
+          case 'endArrowhead':
+            return (element as { endArrowhead?: string | null }).endArrowhead ?? 'none';
+          default:
+            return '';
+        }
+      });
+      if (values.length === 0) return 'mixed';
+      return shared(values);
     }
-    return editor.getStyleForNextShape(style);
+    if (!appState) return 'mixed';
+    switch (key) {
+      case 'stroke':
+        return appState.currentItemStrokeColor;
+      case 'fill':
+        return appState.currentItemBackgroundColor;
+      case 'strokeWidth':
+        return String(appState.currentItemStrokeWidth);
+      case 'strokeStyle':
+        return appState.currentItemStrokeStyle;
+      case 'fontFamily':
+        return String(appState.currentItemFontFamily);
+      case 'fontSize':
+        return String(appState.currentItemFontSize);
+      case 'textAlign':
+        return appState.currentItemTextAlign;
+      case 'roundness':
+        return appState.currentItemRoundness;
+      default:
+        return 'none';
+    }
   };
 
   const saveDefault = useCallback(
-    (style: StyleProp<unknown>, value: unknown) => {
-      const defaults = loadDefaults(tool);
-      defaults[style.id] = value;
+    (key: StyleKey, value: string) => {
+      const saved = loadDefaults(tool);
+      saved[key] = value;
       try {
-        localStorage.setItem(DEFAULTS_KEY + tool, JSON.stringify(defaults));
+        localStorage.setItem(DEFAULTS_KEY + tool, JSON.stringify(saved));
       } catch {
         // ignore
       }
     },
-    [tool]
+    [tool],
   );
 
-  const pushRecentColor = useCallback((color: TLDefaultColorStyle) => {
-    const list = loadRecent().filter((c) => c !== color);
-    list.unshift(color);
-    try {
-      localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 6)));
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  const applyStyle = useCallback(
-    (style: StyleProp<unknown>, value: unknown) => {
-      if (!editor) return;
-      if (mode === 'selection' && selection.length > 0) {
-        editor.setStyleForSelectedShapes(style, value as never);
+  const apply = useCallback(
+    (key: StyleKey, value: string) => {
+      if (!api) return;
+      if (isSelectionMode) {
+        // Read the live selection: this callback must not close over a render's
+        // snapshot of it, or a fast drag can style the previous shape.
+        const current = api.selection;
+        // Text styles on a labelled shape must reach the label too.
+        const ids = new Set(current.filter((element) => applies(key, element)).map((el) => el.id));
+        if (key === 'fontFamily' || key === 'fontSize' || key === 'textAlign') {
+          for (const element of current) {
+            for (const text of boundTextOf(api.elements, element)) {
+              ids.add(text.id);
+              api.updateElements([text.id], () => patchFor(key, value));
+            }
+          }
+        }
+        api.updateElements([...ids], (element) =>
+          applies(key, element) ? patchFor(key, value) : null,
+        );
       } else {
-        editor.setStyleForNextShapes(style, value as never);
-        saveDefault(style, value);
+        api.setCurrentStyle(defaultsFor(key, value));
+        saveDefault(key, value);
+        if (key === 'stroke' || key === 'fill') {
+          // A pick on the ink ramp or the paper fills arms the tool for the
+          // next stroke; the engine reads these two as the current item.
+        }
       }
-      if (style === DefaultColorStyle) pushRecentColor(value as TLDefaultColorStyle);
     },
-    [editor, mode, selection.length, saveDefault, pushRecentColor]
+    [api, isSelectionMode, saveDefault],
   );
-
-  const isSelectionMode = mode === 'selection' && selection.length > 0;
-
-  const toggleBold = () => {
-    if (!editor || !isSelectionMode) return;
-    const targets = selection.filter((s) => s.type === 'text' || s.type === 'note');
-    if (targets.length === 0) return;
-    const richTexts = targets.map((s) => (s.props as { richText: TLRichText }).richText);
-    const allBold = richTexts.every((r) => richHasBold(r));
-    const updates: Parameters<typeof editor.updateShapes>[0] = targets.map((s, i) => ({
-      id: s.id,
-      type: s.type,
-      props: { richText: setRichBold(richTexts[i], !allBold) },
-    }));
-    editor.updateShapes(updates);
-  };
 
   const copyStyles = () => {
-    if (!editor || selection.length === 0) return;
-    const src = selection[0];
-    const props: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(src.props)) {
-      if (STYLE_PROP_KEYS.has(k)) props[k] = v;
-    }
-    copiedRef.current = { props, key: selectedIdsKey };
+    if (!api || selection.length === 0) return;
+    const source = selection[0];
+    copiedRef.current = {
+      props: {
+        stroke: source.strokeColor,
+        fill: source.backgroundColor,
+        strokeWidth: String(source.strokeWidth),
+        strokeStyle: source.strokeStyle,
+      },
+      key: selectedIdsKey,
+    };
     setCopiedKey(selectedIdsKey);
   };
 
   const applyCopied = () => {
-    if (!editor || !copiedRef.current || selection.length === 0) return;
-    const { props } = copiedRef.current;
-    const updates: Parameters<typeof editor.updateShapes>[0] = selection.map((s) => {
-      const merged: Record<string, unknown> = { ...s.props };
-      for (const [k, v] of Object.entries(props)) {
-        if (STYLE_PROP_KEYS.has(k) && k in s.props) merged[k] = v;
-      }
-      return { id: s.id, type: s.type, props: merged };
-    });
-    editor.updateShapes(updates);
-  };
-
-  const applyConnectorKind = (value: string) => {
-    if (!editor || !isSelectionMode) return;
-    const arrows = selection.filter((s) => s.type === 'arrow');
-    if (arrows.length === 0) return;
-    const updates: Parameters<typeof editor.updateShapes>[0] = arrows.map((s) => ({
-      id: s.id,
-      type: 'arrow',
-      props: { kind: value as 'arc' | 'elbow' },
-    }));
-    editor.updateShapes(updates);
+    if (!api || !copiedRef.current || selection.length === 0) return;
+    const props = copiedRef.current.props;
+    api.updateElements(
+      selection.map((element) => element.id),
+      () => ({
+        strokeColor: props.stroke,
+        backgroundColor: props.fill,
+        strokeWidth: Number(props.strokeWidth),
+        strokeStyle: props.strokeStyle,
+      }),
+    );
   };
 
   const resetStyles = () => {
-    if (!editor) return;
-    for (const prop of Object.values(STYLE_BY_ID)) {
-      editor.setStyleForNextShapes(prop as StyleProp<never>, prop.defaultValue as never);
-    }
+    if (!api) return;
+    api.setCurrentStyle({
+      currentItemStrokeColor: INK.ink,
+      currentItemBackgroundColor: 'transparent',
+      currentItemStrokeWidth: 1.25,
+      currentItemStrokeStyle: 'solid',
+      currentItemFontFamily: FONT_FAMILY_ID.liberation,
+      currentItemFontSize: 16,
+      currentItemTextAlign: 'left',
+      currentItemRoundness: 'sharp',
+    });
     try {
       localStorage.removeItem(DEFAULTS_KEY + tool);
     } catch {
@@ -403,85 +390,58 @@ function useToolStyles(editor: Editor | null, tool: string, mode: ToolStyleMode)
     }
   };
 
-  const runAlign = (op: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom') => {
-    if (editor && selection.length > 1) editor.alignShapes(selection.map((s) => s.id), op);
-  };
-  const runDistribute = (op: 'horizontal' | 'vertical') => {
-    if (editor && selection.length > 2) editor.distributeShapes(selection.map((s) => s.id), op);
-  };
-  const runZ = (fn: (ids: ReturnType<Editor['getSelectedShapeIds']>) => void) => {
-    if (editor) fn(editor.getSelectedShapeIds());
-  };
-
-  const color = readStyle(DefaultColorStyle);
-  const fill = readStyle(DefaultFillStyle);
-  const dash = readStyle(DefaultDashStyle);
-  const size = readStyle(DefaultSizeStyle);
-  const font = readStyle(DefaultFontStyle);
-  const alignH = readStyle(DefaultHorizontalAlignStyle) as 'start' | 'middle' | 'end' | 'mixed';
-  const textAlign = readStyle(DefaultTextAlignStyle) as 'start' | 'middle' | 'end' | 'mixed';
-  const verticalAlign = readStyle(DefaultVerticalAlignStyle) as 'start' | 'middle' | 'end' | 'mixed';
-  const geo = readStyle(GeoShapeGeoStyle) as string | 'mixed';
-  const headStart = readStyle(ArrowShapeArrowheadStartStyle) as string | 'mixed';
-  const headEnd = readStyle(ArrowShapeArrowheadEndStyle) as string | 'mixed';
-  const selectedArrow = selection.find((s) => s.type === 'arrow') as
-    | { props: { kind?: string } }
-    | undefined;
-  const kind = selectedArrow?.props.kind ?? 'arc';
-
   return {
     selection,
     selectedIdsKey,
     isSelectionMode,
     hasSelection: selection.length > 0,
     selectionCount: selection.length,
-    recent: loadRecent(),
-    color,
-    fill,
-    dash,
-    size,
-    font,
-    alignH,
-    textAlign,
-    verticalAlign,
-    geo,
-    headStart,
-    headEnd,
-    kind,
-    applyStyle,
-    toggleBold,
+    stroke: read('stroke'),
+    fill: read('fill'),
+    strokeWidth: read('strokeWidth'),
+    strokeStyle: read('strokeStyle'),
+    fontFamily: read('fontFamily'),
+    fontSize: read('fontSize'),
+    textAlign: read('textAlign'),
+    roundness: read('roundness'),
+    startArrowhead: read('startArrowhead'),
+    endArrowhead: read('endArrowhead'),
+    apply,
     copyStyles,
     applyCopied,
-    applyConnectorKind,
     resetStyles,
-    runAlign,
-    runDistribute,
-    runZ,
     copiedKey,
   };
 }
 
 interface ToolOptionsRailProps {
-  editor: Editor | null;
+  api: CanvasApi | null;
   tool: string;
   mode: ToolStyleMode;
   onModeChange: (mode: ToolStyleMode) => void;
 }
 
 // The right tool rail: the full per-tool options as a vertical dock — paint
-// format, fill/dash/size/font/align, arrange, arrowheads. No expand toggle:
-// this is the always-available extended surface, paired with the quick strip.
-export function ToolOptionsRail({ editor, tool, mode, onModeChange }: ToolOptionsRailProps) {
-  const s = useToolStyles(editor, tool, mode);
-  const hasSelection = s.hasSelection;
+// format, ink, fill, dash, size, shape, type, arrange.
+export function ToolOptionsRail({ api, tool, mode, onModeChange }: ToolOptionsRailProps) {
+  const s = useToolStyles(api, tool, mode);
+  const ids = s.selection.map((element) => element.id);
 
-  const renderColorRow = (label: string) => (
-    <ColorRow
-      label={label}
-      current={s.color}
-      recent={s.recent}
-      onPick={(c) => s.applyStyle(DefaultColorStyle, c)}
-    />
+  const renderInkRow = (label: string) => (
+    <Section label={label}>
+      <div className="tool-options-color-row" role="group" aria-label={label}>
+        {INKS.map((ink) => (
+          <button
+            key={ink.value}
+            className={`tool-options-color ${s.stroke === ink.value ? 'active' : ''}`}
+            style={{ background: ink.value }}
+            title={ink.label}
+            aria-label={`${label}: ${ink.label}`}
+            onClick={() => s.apply('stroke', ink.value)}
+          />
+        ))}
+      </div>
+    </Section>
   );
 
   return (
@@ -493,7 +453,7 @@ export function ToolOptionsRail({ editor, tool, mode, onModeChange }: ToolOption
       <header className="tool-options-rail-header">
         <div className="tool-options-rail-title">
           <span>{TOOL_TITLES[tool] ?? 'Tool'}</span>
-          {tool === 'select' && hasSelection && (
+          {tool === 'select' && s.hasSelection && (
             <span className="tool-options-count">{s.selectionCount}</span>
           )}
         </div>
@@ -502,8 +462,8 @@ export function ToolOptionsRail({ editor, tool, mode, onModeChange }: ToolOption
             <button
               className={`tool-options-mode-btn ${mode === 'selection' ? 'active' : ''}`}
               onClick={() => onModeChange('selection')}
-              disabled={!hasSelection}
-              title={hasSelection ? 'Apply to selected shapes' : 'Select shapes first'}
+              disabled={!s.hasSelection}
+              title={s.hasSelection ? 'Apply to selected shapes' : 'Select shapes first'}
             >
               Selection
             </button>
@@ -519,12 +479,15 @@ export function ToolOptionsRail({ editor, tool, mode, onModeChange }: ToolOption
       </header>
 
       <div className="tool-options-rail-body no-scrollbar">
-        {tool === 'select' && hasSelection && (
+        {tool === 'select' && s.hasSelection && (
           <>
-            <section className="tool-options-section">
-              <h3 className="tool-options-section-title">Paint format</h3>
+            <Section label="Paint format">
               <div className="tool-options-row">
-                <button className="tool-options-paint-btn" onClick={s.copyStyles} title="Copy styles from the first selected shape">
+                <button
+                  className="tool-options-paint-btn"
+                  onClick={s.copyStyles}
+                  title="Copy styles from the first selected shape"
+                >
                   <Copy size={14} />
                   Copy
                 </button>
@@ -538,14 +501,26 @@ export function ToolOptionsRail({ editor, tool, mode, onModeChange }: ToolOption
                   Apply
                 </button>
               </div>
-            </section>
+            </Section>
 
-            {renderColorRow('Color')}
-            <Section label="Size">
-              <Segmented options={SIZES.map((o) => ({ ...o, active: s.size === o.value }))} onPick={(v) => s.applyStyle(DefaultSizeStyle, v)} />
+            {renderInkRow('Ink')}
+            <Section label="Fill">
+              <Segmented
+                options={FILLS.map((o) => ({ ...o, active: s.fill === o.value }))}
+                onPick={(v) => s.apply('fill', v)}
+              />
+            </Section>
+            <Section label="Weight">
+              <Segmented
+                options={SIZES.map((o) => ({ ...o, active: s.strokeWidth === o.value }))}
+                onPick={(v) => s.apply('strokeWidth', v)}
+              />
             </Section>
             <Section label="Dash">
-              <Segmented options={DASHES.map((o) => ({ ...o, active: s.dash === o.value }))} onPick={(v) => s.applyStyle(DefaultDashStyle, v)} />
+              <Segmented
+                options={DASHES.map((o) => ({ ...o, active: s.strokeStyle === o.value }))}
+                onPick={(v) => s.apply('strokeStyle', v)}
+              />
             </Section>
 
             <section className="tool-options-section">
@@ -554,24 +529,62 @@ export function ToolOptionsRail({ editor, tool, mode, onModeChange }: ToolOption
               <div className="tool-options-icon-grid">
                 {ALIGN_OPS_H.map((a) => {
                   const Icon = a.icon;
-                  return <IconBtn key={`h-${a.value}`} title={a.label} onClick={() => s.runAlign(a.value)} disabled={s.selection.length < 2}><Icon size={15} /></IconBtn>;
+                  return (
+                    <IconBtn
+                      key={`h-${a.value}`}
+                      title={a.label}
+                      onClick={() => api?.align(ids, a.value)}
+                      disabled={ids.length < 2}
+                    >
+                      <Icon size={15} />
+                    </IconBtn>
+                  );
                 })}
                 {ALIGN_OPS_V.map((a) => {
                   const Icon = a.icon;
-                  return <IconBtn key={`v-${a.value}`} title={a.label} onClick={() => s.runAlign(a.value)} disabled={s.selection.length < 2}><Icon size={15} /></IconBtn>;
+                  return (
+                    <IconBtn
+                      key={`v-${a.value}`}
+                      title={a.label}
+                      onClick={() => api?.align(ids, a.value)}
+                      disabled={ids.length < 2}
+                    >
+                      <Icon size={15} />
+                    </IconBtn>
+                  );
                 })}
               </div>
               <span className="tool-options-sub-label">Distribute</span>
               <div className="tool-options-icon-grid">
-                <IconBtn title="Distribute horizontally" onClick={() => s.runDistribute('horizontal')} disabled={s.selection.length < 3}><AlignHorizontalDistributeCenter size={15} /></IconBtn>
-                <IconBtn title="Distribute vertically" onClick={() => s.runDistribute('vertical')} disabled={s.selection.length < 3}><AlignVerticalDistributeCenter size={15} /></IconBtn>
+                <IconBtn
+                  title="Distribute horizontally"
+                  onClick={() => api?.distribute(ids, 'horizontal')}
+                  disabled={ids.length < 3}
+                >
+                  <AlignHorizontalDistributeCenter size={15} />
+                </IconBtn>
+                <IconBtn
+                  title="Distribute vertically"
+                  onClick={() => api?.distribute(ids, 'vertical')}
+                  disabled={ids.length < 3}
+                >
+                  <AlignVerticalDistributeCenter size={15} />
+                </IconBtn>
               </div>
               <span className="tool-options-sub-label">Order</span>
               <div className="tool-options-icon-grid">
-                <IconBtn title="Bring to front" onClick={() => s.runZ((ids) => editor?.bringToFront(ids))}><BringToFront size={15} /></IconBtn>
-                <IconBtn title="Bring forward" onClick={() => s.runZ((ids) => editor?.bringForward(ids))}><ArrowUp size={15} /></IconBtn>
-                <IconBtn title="Send backward" onClick={() => s.runZ((ids) => editor?.sendBackward(ids))}><ArrowDown size={15} /></IconBtn>
-                <IconBtn title="Send to back" onClick={() => s.runZ((ids) => editor?.sendToBack(ids))}><SendToBack size={15} /></IconBtn>
+                <IconBtn title="Bring to front" onClick={() => api?.order(ids, 'front')}>
+                  <BringToFront size={15} />
+                </IconBtn>
+                <IconBtn title="Bring forward" onClick={() => api?.order(ids, 'forward')}>
+                  <ArrowUp size={15} />
+                </IconBtn>
+                <IconBtn title="Send backward" onClick={() => api?.order(ids, 'backward')}>
+                  <ArrowDown size={15} />
+                </IconBtn>
+                <IconBtn title="Send to back" onClick={() => api?.order(ids, 'back')}>
+                  <SendToBack size={15} />
+                </IconBtn>
               </div>
             </section>
           </>
@@ -579,106 +592,148 @@ export function ToolOptionsRail({ editor, tool, mode, onModeChange }: ToolOption
 
         {tool === 'shapes' && (
           <>
-            {renderColorRow('Color')}
+            {renderInkRow('Ink')}
             <Section label="Fill">
-              <Segmented options={FILLS.map((o) => ({ ...o, active: s.fill === o.value }))} onPick={(v) => s.applyStyle(DefaultFillStyle, v)} />
+              <Segmented
+                options={FILLS.map((o) => ({ ...o, active: s.fill === o.value }))}
+                onPick={(v) => s.apply('fill', v)}
+              />
+            </Section>
+            <Section label="Weight">
+              <Segmented
+                options={SIZES.map((o) => ({ ...o, active: s.strokeWidth === o.value }))}
+                onPick={(v) => s.apply('strokeWidth', v)}
+              />
             </Section>
             <Section label="Dash">
-              <Segmented options={DASHES.map((o) => ({ ...o, active: s.dash === o.value }))} onPick={(v) => s.applyStyle(DefaultDashStyle, v)} />
-            </Section>
-            <Section label="Size">
-              <Segmented options={SIZES.map((o) => ({ ...o, active: s.size === o.value }))} onPick={(v) => s.applyStyle(DefaultSizeStyle, v)} />
+              <Segmented
+                options={DASHES.map((o) => ({ ...o, active: s.strokeStyle === o.value }))}
+                onPick={(v) => s.apply('strokeStyle', v)}
+              />
             </Section>
             <Section label="Shape">
-              <GridPicker options={GEO_OPTIONS} current={s.geo} onPick={(v) => s.applyStyle(GeoShapeGeoStyle, v)} />
+              <GridPicker
+                options={GEO_OPTIONS}
+                current={s.isSelectionMode ? 'mixed' : 'rectangle'}
+                onPick={(value) => {
+                  if (s.isSelectionMode) return;
+                  api?.setShapeKind(value as 'rectangle' | 'ellipse' | 'diamond');
+                }}
+              />
+              {s.isSelectionMode && (
+                <p className="tool-options-hint">A drawn shape keeps its form.</p>
+              )}
             </Section>
-            <Section label="Font">
-              <Segmented options={FONTS.map((o) => ({ ...o, active: s.font === o.value }))} onPick={(v) => s.applyStyle(DefaultFontStyle, v)} />
-            </Section>
-            <Section label="Align">
-              <Segmented options={ALIGN_H.map((o) => ({ ...o, label: o.label.replace('Align ', ''), active: s.alignH === o.value }))} onPick={(v) => s.applyStyle(DefaultHorizontalAlignStyle, v)} />
-            </Section>
-            <Section label="Vertical">
-              <Segmented options={ALIGN_V.map((o) => ({ ...o, label: o.label.replace('Align ', ''), active: s.verticalAlign === o.value }))} onPick={(v) => s.applyStyle(DefaultVerticalAlignStyle, v)} />
+            <Section label="Corners">
+              <Segmented
+                options={[
+                  { value: 'sharp', label: 'Sharp', active: s.roundness === 'sharp' },
+                  { value: 'round', label: 'Round', active: s.roundness === 'round' },
+                ]}
+                onPick={(v) => s.apply('roundness', v)}
+              />
             </Section>
           </>
         )}
 
         {tool === 'draw' && (
           <>
-            {renderColorRow('Color')}
-            <Section label="Size">
-              <Segmented options={SIZES.map((o) => ({ ...o, active: s.size === o.value }))} onPick={(v) => s.applyStyle(DefaultSizeStyle, v)} />
+            {renderInkRow('Ink')}
+            <Section label="Weight">
+              <Segmented
+                options={SIZES.map((o) => ({ ...o, active: s.strokeWidth === o.value }))}
+                onPick={(v) => s.apply('strokeWidth', v)}
+              />
             </Section>
             <Section label="Dash">
-              <Segmented options={DASHES.map((o) => ({ ...o, active: s.dash === o.value }))} onPick={(v) => s.applyStyle(DefaultDashStyle, v)} />
-            </Section>
-            <Section label="Fill">
-              <Segmented options={FILLS.slice(0, 3).map((o) => ({ ...o, active: s.fill === o.value }))} onPick={(v) => s.applyStyle(DefaultFillStyle, v)} />
+              <Segmented
+                options={DASHES.map((o) => ({ ...o, active: s.strokeStyle === o.value }))}
+                onPick={(v) => s.apply('strokeStyle', v)}
+              />
             </Section>
           </>
         )}
 
         {tool === 'sticky' && (
           <>
-            {renderColorRow('Note color')}
-            {s.isSelectionMode && (
-              <Section label="Text">
-                <IconBtn title="Bold text" onClick={s.toggleBold} active={s.selection.some((sh) => sh.type === 'note' && richHasBold((sh.props as { richText: TLRichText }).richText))}><Bold size={14} /></IconBtn>
-              </Section>
-            )}
-            <Section label="Size">
-              <Segmented options={SIZES.map((o) => ({ ...o, active: s.size === o.value }))} onPick={(v) => s.applyStyle(DefaultSizeStyle, v)} />
+            {renderInkRow('Ink')}
+            <Section label="Paper">
+              <Segmented
+                options={FILLS.map((o) => ({ ...o, active: s.fill === o.value }))}
+                onPick={(v) => s.apply('fill', v)}
+              />
+            </Section>
+            <Section label="Type">
+              <Segmented
+                options={FONT_SIZES.map((o) => ({ ...o, active: s.fontSize === o.value }))}
+                onPick={(v) => s.apply('fontSize', v)}
+              />
             </Section>
             <Section label="Font">
-              <Segmented options={FONTS.map((o) => ({ ...o, active: s.font === o.value }))} onPick={(v) => s.applyStyle(DefaultFontStyle, v)} />
-            </Section>
-            <Section label="Align">
-              <Segmented options={ALIGN_H.map((o) => ({ ...o, label: o.label.replace('Align ', ''), active: s.alignH === o.value }))} onPick={(v) => s.applyStyle(DefaultHorizontalAlignStyle, v)} />
+              <Segmented
+                options={FONTS.map((o) => ({ ...o, active: s.fontFamily === o.value }))}
+                onPick={(v) => s.apply('fontFamily', v)}
+              />
             </Section>
           </>
         )}
 
         {tool === 'text' && (
           <>
-            {renderColorRow('Color')}
-            {s.isSelectionMode && (
-              <Section label="Text">
-                <IconBtn title="Bold text" onClick={s.toggleBold} active={s.selection.some((sh) => sh.type === 'text' && richHasBold((sh.props as { richText: TLRichText }).richText))}><Bold size={14} /></IconBtn>
-              </Section>
-            )}
+            {renderInkRow('Ink')}
             <Section label="Font">
-              <Segmented options={FONTS.map((o) => ({ ...o, active: s.font === o.value }))} onPick={(v) => s.applyStyle(DefaultFontStyle, v)} />
+              <Segmented
+                options={FONTS.map((o) => ({ ...o, active: s.fontFamily === o.value }))}
+                onPick={(v) => s.apply('fontFamily', v)}
+              />
             </Section>
-            <Section label="Size">
-              <Segmented options={SIZES.map((o) => ({ ...o, active: s.size === o.value }))} onPick={(v) => s.applyStyle(DefaultSizeStyle, v)} />
+            <Section label="Type">
+              <Segmented
+                options={FONT_SIZES.map((o) => ({ ...o, active: s.fontSize === o.value }))}
+                onPick={(v) => s.apply('fontSize', v)}
+              />
             </Section>
             <Section label="Align">
-              <Segmented options={ALIGN_H.map((o) => ({ ...o, label: o.label.replace('Align ', ''), active: s.textAlign === o.value }))} onPick={(v) => s.applyStyle(DefaultTextAlignStyle, v)} />
+              <Segmented
+                options={ALIGN_H.map((o) => ({
+                  value: o.value,
+                  label: o.label.replace('Align ', ''),
+                  active: s.textAlign === o.value,
+                }))}
+                onPick={(v) => s.apply('textAlign', v)}
+              />
             </Section>
           </>
         )}
 
         {tool === 'connector' && (
           <>
-            {renderColorRow('Color')}
-            <Section label="Size">
-              <Segmented options={SIZES.map((o) => ({ ...o, active: s.size === o.value }))} onPick={(v) => s.applyStyle(DefaultSizeStyle, v)} />
+            {renderInkRow('Ink')}
+            <Section label="Weight">
+              <Segmented
+                options={SIZES.map((o) => ({ ...o, active: s.strokeWidth === o.value }))}
+                onPick={(v) => s.apply('strokeWidth', v)}
+              />
             </Section>
             <Section label="Dash">
-              <Segmented options={DASHES.map((o) => ({ ...o, active: s.dash === o.value }))} onPick={(v) => s.applyStyle(DefaultDashStyle, v)} />
+              <Segmented
+                options={DASHES.map((o) => ({ ...o, active: s.strokeStyle === o.value }))}
+                onPick={(v) => s.apply('strokeStyle', v)}
+              />
             </Section>
             <Section label="Start arrowhead">
-              <GridPicker options={ARROWHEADS} current={s.headStart} onPick={(v) => s.applyStyle(ArrowShapeArrowheadStartStyle, v)} />
+              <GridPicker
+                options={ARROWHEADS}
+                current={s.startArrowhead}
+                onPick={(v) => s.apply('startArrowhead', v)}
+              />
             </Section>
             <Section label="End arrowhead">
-              <GridPicker options={ARROWHEADS} current={s.headEnd} onPick={(v) => s.applyStyle(ArrowShapeArrowheadEndStyle, v)} />
-            </Section>
-            <Section label="Curve">
-              <Segmented options={KINDS.map((o) => ({ ...o, active: s.kind === o.value }))} onPick={s.applyConnectorKind} disabled={!s.isSelectionMode} />
-              {!s.isSelectionMode && (
-                <p className="tool-options-hint">Select a connector to change its curve.</p>
-              )}
+              <GridPicker
+                options={ARROWHEADS}
+                current={s.endArrowhead}
+                onPick={(v) => s.apply('endArrowhead', v)}
+              />
             </Section>
           </>
         )}
@@ -686,7 +741,11 @@ export function ToolOptionsRail({ editor, tool, mode, onModeChange }: ToolOption
 
       {tool !== 'select' && (
         <footer className="tool-options-rail-footer">
-          <button className="tool-options-reset" onClick={s.resetStyles} title="Reset these styles to defaults">
+          <button
+            className="tool-options-reset"
+            onClick={s.resetStyles}
+            title="Reset these styles to defaults"
+          >
             <RotateCcw size={12} />
             Reset styles
           </button>
@@ -779,50 +838,5 @@ function IconBtn({
     >
       {children}
     </button>
-  );
-}
-
-function ColorRow({
-  label,
-  current,
-  recent,
-  onPick,
-}: {
-  label: string;
-  current: string | 'mixed';
-  recent: TLDefaultColorStyle[];
-  onPick: (c: TLDefaultColorStyle) => void;
-}) {
-  const hasRecent = recent.length > 0;
-  return (
-    <section className="tool-options-section">
-      <h3 className="tool-options-section-title">{label}</h3>
-      {hasRecent && (
-        <div className="tool-options-color-row" role="group" aria-label={`Recent ${label.toLowerCase()}`}>
-          {recent.map((c) => (
-            <button
-              key={`recent-${c}`}
-              className={`tool-options-color ${current === c ? 'active' : ''}`}
-              style={{ background: COLOR_HEX[c] }}
-              title={c}
-              aria-label={`${label}: ${c}`}
-              onClick={() => onPick(c)}
-            />
-          ))}
-        </div>
-      )}
-      <div className="tool-options-color-row" role="group" aria-label={label}>
-        {COLORS.map((c) => (
-          <button
-            key={c}
-            className={`tool-options-color ${current === c ? 'active' : ''}`}
-            style={{ background: COLOR_HEX[c] }}
-            title={c}
-            aria-label={`${label}: ${c}`}
-            onClick={() => onPick(c)}
-          />
-        ))}
-      </div>
-    </section>
   );
 }

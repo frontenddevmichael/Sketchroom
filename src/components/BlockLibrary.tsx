@@ -4,20 +4,20 @@ import { X, Search } from 'lucide-react';
 
 import { kindHex, kindIcon } from '../lib/blockKinds';
 import { SearchEmptyIllo } from './illustrations';
-import { BLOCKS, insertBlock, snapToGrid, BLOCK_W, BLOCK_H, CASCADE_COLS, CASCADE_GAP_X, CASCADE_GAP_Y } from '../utils/blocks';
+import { BLOCKS, insertBlock, blockPlacement, BLOCK_W, BLOCK_H } from '../utils/blocks';
 import type { Tab } from '../utils/blocks';
 import type { BlockDef, CameraState } from '../utils/types';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 import './BlockLibrary.css';
 
 interface BlockLibraryProps {
   onClose: () => void;
-  editor: Editor | null;
+  api: CanvasApi | null;
   /** The left rail's block-library trigger; the popover anchors beside it. */
   anchorRef: RefObject<HTMLButtonElement | null>;
 }
 
-export function BlockLibrary({ onClose, editor, anchorRef }: BlockLibraryProps) {
+export function BlockLibrary({ onClose, api, anchorRef }: BlockLibraryProps) {
   const [tab, setTab] = useState<Tab>('architecture');
   const [query, setQuery] = useState('');
   const [hovered, setHovered] = useState<BlockDef | null>(null);
@@ -155,7 +155,7 @@ export function BlockLibrary({ onClose, editor, anchorRef }: BlockLibraryProps) 
                 key={block.code}
                 className="block-library-item"
                 title={block.label}
-                onClick={() => insertBlock(block, editor, cascadeIndex, setCascadeIndex)}
+                onClick={() => insertBlock(block, api, cascadeIndex, setCascadeIndex)}
                 onMouseEnter={() => setHovered(block)}
                 onMouseLeave={() => setHovered(null)}
               >
@@ -172,37 +172,31 @@ export function BlockLibrary({ onClose, editor, anchorRef }: BlockLibraryProps) 
         </div>
       )}
 
-      {hovered && editor && (
-        <BlockGhost editor={editor} block={hovered} index={cascadeIndex} />
+      {hovered && api && (
+        <BlockGhost api={api} block={hovered} index={cascadeIndex} />
       )}
     </div>
   );
 }
 
-function BlockGhost({ editor, block, index }: { editor: Editor; block: BlockDef; index: number }) {
+function BlockGhost({ api, block, index }: { api: CanvasApi; block: BlockDef; index: number }) {
   const [camera, setCamera] = useState<CameraState>({ x: 0, y: 0, z: 1 });
 
   useEffect(() => {
     const sync = () => {
-      const cam = editor.getCamera();
+      const cam = api.camera;
       setCamera((prev) =>
-        prev.x === cam.x && prev.y === cam.y && prev.z === cam.z ? prev : { x: cam.x, y: cam.y, z: cam.z }
+        prev.x === cam.x && prev.y === cam.y && prev.z === cam.z ? prev : { x: cam.x, y: cam.y, z: cam.z },
       );
     };
     sync();
-    const unlisten = editor.store.listen(() => requestAnimationFrame(sync));
-    return () => unlisten();
-  }, [editor]);
+    return api.subscribe(sync);
+  }, [api]);
 
-  const host = editor.getContainer().parentElement;
+  const host = api.container;
   if (!host) return null;
 
-  const viewport = editor.getViewportScreenBounds();
-  const center = editor.screenToPage({ x: viewport.midX, y: viewport.midY });
-  const col = index % CASCADE_COLS;
-  const row = Math.floor(index / CASCADE_COLS);
-  const x = snapToGrid(center.x - BLOCK_W / 2 + col * (BLOCK_W + CASCADE_GAP_X));
-  const y = snapToGrid(center.y - BLOCK_H / 2 + row * (BLOCK_H + CASCADE_GAP_Y));
+  const { x, y } = blockPlacement(api, index);
 
   return createPortal(
     <div

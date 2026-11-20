@@ -5,7 +5,7 @@ import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { X, Sparkles, RefreshCw, Plus, LayoutGrid, Send, Trash2 } from 'lucide-react';
 import { useCurrentUser } from '../hooks/useCurrentUser';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 import type { AiCopilot } from '../lib/useAiCopilot';
 import { useLongLoad } from '../hooks/useLongLoad';
 import { Spinner } from './Spinner';
@@ -22,12 +22,12 @@ import { kindIcon } from '../lib/blockKinds';
 import { emitPlacementPulse } from './placementPulse';
 import './AiFeed.css';
  
-// After an AI insert lands, flash a green spring ring around the new blocks
-// (green is the AI's reserved color) — a placement moment, not a teleport.
-function pulseAiPlacement(editor: Editor) {
-  const bounds = editor.getSelectionPageBounds();
+// After an AI insert lands, flash a spring ring around the new blocks — a
+// placement moment, not a teleport.
+function pulseAiPlacement(api: CanvasApi) {
+  const bounds = api.selectionBounds();
   if (!bounds) return;
-  const cam = editor.getCamera();
+  const cam = api.camera;
   emitPlacementPulse(
     {
       x: (bounds.x - cam.x) * cam.z,
@@ -35,14 +35,14 @@ function pulseAiPlacement(editor: Editor) {
       w: bounds.w * cam.z,
       h: bounds.h * cam.z,
     },
-    'ai'
+    'ai',
   );
 }
 
 interface AiFeedProps {
   copilot: AiCopilot;
   roomId: Id<'rooms'>;
-  editor: Editor | null;
+  api: CanvasApi | null;
   readOnly?: boolean;
   /** Ref into the bar's prompt input, so global shortcuts (⌘K) can focus it. */
   inputRef?: RefObject<HTMLInputElement | null>;
@@ -55,7 +55,7 @@ interface AiFeedProps {
 export const AiFeed = memo(function AiFeed({
   copilot,
   roomId,
-  editor,
+  api: canvas,
   readOnly = false,
   inputRef,
   barRef,
@@ -175,13 +175,13 @@ export const AiFeed = memo(function AiFeed({
                   {msg.status === 'completed' && (
                     <>
                       <p className="ai-message-response">{msg.response}</p>
-                      {blocks.length > 0 && !readOnly && editor && (
+                      {blocks.length > 0 && !readOnly && canvas && (
                         <div className="ai-insert-all-row">
                           <button
                             className="ai-insert-all"
                             onClick={() => {
-                              insertFullDiagram(editor, { blocks, edges }, () => copilot.setInserted('all'));
-                              pulseAiPlacement(editor);
+                              insertFullDiagram(canvas, { blocks, edges }, () => copilot.setInserted('all'));
+                              pulseAiPlacement(canvas);
                             }}
                           >
                             <LayoutGrid size={14} />
@@ -197,20 +197,20 @@ export const AiFeed = memo(function AiFeed({
                             const KindIcon = kindIcon(block.kind);
                             return (
                               <div key={i} className="ai-ghost-block">
-                                <span className={`ai-ghost-kind ai-ghost-kind-${ghostKindColor(block.kind)}`}>
+                                <span className={`ai-ghost-kind ai-ghost-kind-${ghostKindColor()}`}>
                                   <KindIcon size={10} />
                                   {block.kind}
                                 </span>
                                 <span className="ai-ghost-label">{block.label}</span>
                                 <span className="ai-ghost-actions">
-                                  {!readOnly && editor && (
+                                  {!readOnly && canvas && (
                                     <>
                                       <button
                                         className="ai-text-link"
                                         title="Place on canvas"
                                         onClick={() => {
-                                          insertGhostBlock(editor, blocks, i, (label) => copilot.setInserted(label));
-                                          pulseAiPlacement(editor);
+                                          insertGhostBlock(canvas, blocks, i, (label) => copilot.setInserted(label));
+                                          pulseAiPlacement(canvas);
                                         }}
                                       >
                                         <Plus size={12} />

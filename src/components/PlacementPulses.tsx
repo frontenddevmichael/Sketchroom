@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { Editor } from 'tldraw';
+import type { CanvasApi } from '../canvas/api';
 import { onPlacementPulse, type PlacementPulseEvent } from './placementPulse';
 import './PlacementPulses.css';
 
@@ -12,7 +12,7 @@ interface ActivePulse extends PlacementPulseEvent {
 // ring that springs out and dissolves. Neutral for library drops, green for
 // AI placements (green is the AI's color in this system). No sound, no
 // confetti — just one disciplined moment per placement.
-export function PlacementPulses({ editor }: { editor: Editor | null }) {
+export function PlacementPulses({ api }: { api: CanvasApi | null }) {
   const [pulses, setPulses] = useState<ActivePulse[]>([]);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function PlacementPulses({ editor }: { editor: Editor | null }) {
     });
   }, []);
 
-  const host = editor?.getContainer().parentElement ?? null;
+  const host = api?.container ?? null;
   if (!host || pulses.length === 0) return null;
 
   return createPortal(

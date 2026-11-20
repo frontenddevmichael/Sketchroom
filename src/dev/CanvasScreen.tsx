@@ -1,8 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
-import { convertToExcalidrawElements } from '@excalidraw/excalidraw';
-import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import { CanvasSurface, SCENE_FORMAT, parseScene, serializeScene } from '../canvas';
+import type { CanvasApi } from '../canvas/api';
+import { createShapeElements } from '../canvas/elements';
+import { INK } from '../canvas/ink';
 import { convertLegacyScene } from '../canvas/convert';
 import { SAMPLE_LEGACY_RECORDS } from '../canvas/sample';
 import { useTheme } from '../lib/useTheme';
@@ -36,11 +37,11 @@ export function CanvasScreen() {
   });
   const [count, setCount] = useState(scene.elements.length);
   const [savedAt, setSavedAt] = useState<string>('—');
-  const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
+  const apiRef = useRef<CanvasApi | null>(null);
   const saveTimer = useRef<number | null>(null);
 
-  const onApiReady = useCallback((api: ExcalidrawImperativeAPI) => {
-    apiRef.current = api;
+  const onApiReady = useCallback((canvas: CanvasApi) => {
+    apiRef.current = canvas;
   }, []);
 
   const onChange = useCallback((elements: readonly ExcalidrawElement[]) => {
@@ -59,25 +60,21 @@ export function CanvasScreen() {
   const addBlock = () => {
     const api = apiRef.current;
     if (!api) return;
-    const [element] = convertToExcalidrawElements([
-      {
-        type: 'rectangle',
+    api.addElements(
+      createShapeElements({
+        kind: 'rectangle',
         x: 120,
         y: 120,
         width: 180,
         height: 90,
-        strokeColor: '#0A0A0A',
-        backgroundColor: '#F2F2F2',
-        fillStyle: 'solid',
-        roughness: 0,
-        label: { text: 'New block', fontSize: 16 },
-      },
-    ]);
-    api.updateScene({ elements: [...api.getSceneElements(), element] });
+        label: 'New block',
+        style: { stroke: INK.ink, fill: INK.fill1 },
+      }),
+    );
   };
 
   const fit = () => {
-    apiRef.current?.scrollToContent(apiRef.current.getSceneElements(), { fitToContent: true });
+    apiRef.current?.zoomToFit();
   };
 
   const reset = () => {
