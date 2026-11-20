@@ -8,6 +8,14 @@ import { useTheme } from '../lib/useTheme';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { createTLStore, setUserPreferences } from 'tldraw';
 import { Tldraw } from 'tldraw';
+// Self-hosted tldraw assets. Without this, tldraw fetches its icons, fonts and
+// translations from cdn.tldraw.com — which the production CSP blocks
+// (default-src 'self'), leaving the room with missing iconography.
+import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite';
+
+// Resolved once: a fresh object per render would make tldraw re-resolve its
+// asset base on every re-render of the room.
+const TLDRAW_ASSET_URLS = getAssetUrlsByImport();
 import type { Editor, TLRecord, TLStore } from 'tldraw';
 import 'tldraw/tldraw.css';
 import { Blocks, History, Download, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, HelpCircle, X, ArrowLeft, Pencil, User, MoreHorizontal, MessageSquare, Volume2, VolumeX } from 'lucide-react';
@@ -476,9 +484,9 @@ export function RoomScreen() {
       }
       setIsConnected(true);
       savedAt.current = Date.now();
-setSaveStatus('saved');
-       announce('Canvas saved');
-       if (Object.keys(diff.put).length > 0 || diff.remove.size > 0) {
+      setSaveStatus('saved');
+      announce('Canvas saved');
+      if (Object.keys(diff.put).length > 0 || diff.remove.size > 0) {
         if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
         saveTimer.current = window.setTimeout(() => void flushRef.current(), 300);
       }
@@ -486,7 +494,7 @@ setSaveStatus('saved');
       setIsConnected(false);
       setSaveStatus('offline');
     }
-  }, [roomIdArg, room, applyCanvasChanges]);
+  }, [roomIdArg, room, applyCanvasChanges, announce]);
   useEffect(() => {
     flushRef.current = flush;
   }, [flush]);
@@ -816,7 +824,19 @@ setSaveStatus('saved');
     update();
     const unlisten = editorState.store.listen(update);
     return () => unlisten();
-  }, [editorState, roomIdArg, room, user, upsertPresence, isReadOnly, walkthrough, dismissWalkthrough, armWalkthroughTool]);
+  }, [
+    editorState,
+    roomIdArg,
+    room,
+    user,
+    upsertPresence,
+    isReadOnly,
+    walkthrough,
+    dismissWalkthrough,
+    armWalkthroughTool,
+    showOnboarding,
+    completeOnboarding,
+  ]);
 
   // Remove presence on unmount
   useEffect(() => {
@@ -1334,6 +1354,7 @@ setSaveStatus('saved');
             )}
             <Tldraw
               store={store}
+              assetUrls={TLDRAW_ASSET_URLS}
               licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
               components={{
                 Toolbar: null,

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /**
  * A live region for announcing dynamic changes to screen readers.
@@ -78,14 +78,17 @@ export function useAnnouncer() {
     };
   }, []);
 
-  return (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+  // Stable identity: the refs are the only state this closure touches, so a
+  // consumer can safely list `announce` in its own dependency arrays without
+  // re-creating callbacks on every render.
+  return useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
     const ref = priority === 'assertive' ? assertiveRef : politeRef;
     if (ref.current) {
       ref.current.textContent = '';
       void ref.current.offsetWidth;
       ref.current.textContent = message;
     }
-  };
+  }, []);
 }
 
 /* sr-only utility class (already in index.css but adding here for completeness) */
