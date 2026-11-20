@@ -141,10 +141,10 @@ test.describe('landing nav', () => {
     for (const w of [320, 375, 430, 480]) {
       await page.setViewportSize({ width: w, height: 812 });
       await page.goto(appUrl('/'));
-      await expect(page.locator('.nav')).toBeVisible();
+      await expect(page.locator('.lp-nav')).toBeVisible();
 
       // Hamburger fully visible and clickable — never pushed off-screen.
-      const menu = page.locator('.nav-hamburger');
+      const menu = page.locator('.lp-nav__menu');
       await expect(menu).toBeVisible();
       const box = await menu.boundingBox();
       expect(box).not.toBeNull();
@@ -152,7 +152,7 @@ test.describe('landing nav', () => {
 
       // The CTA button is collapsed away below 480 (it lives in the menu);
       // nothing may overflow the viewport horizontally.
-      await expect(page.locator('.nav-cta')).toBeHidden();
+      await expect(page.locator('.lp-nav__cta')).toBeHidden();
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
@@ -163,9 +163,9 @@ test.describe('landing nav', () => {
   test('the CTA button stays visible from 481px up', async ({ page }) => {
     await page.setViewportSize({ width: 600, height: 800 });
     await page.goto(appUrl('/'));
-    await expect(page.locator('.nav')).toBeVisible();
-    await expect(page.locator('.nav-cta')).toBeVisible();
-    const box = await page.locator('.nav-hamburger').boundingBox();
+    await expect(page.locator('.lp-nav')).toBeVisible();
+    await expect(page.locator('.lp-nav__cta')).toBeVisible();
+    const box = await page.locator('.lp-nav__menu').boundingBox();
     expect(box).not.toBeNull();
     expect(box!.x + box!.width).toBeLessThanOrEqual(600);
   });
@@ -463,3 +463,29 @@ test.describe('design kit', () => {
   });
 });
 
+
+test.describe('landing content', () => {
+  test('hero, pricing and FAQ render with real copy', async ({ page }) => {
+    await page.goto(appUrl('/'));
+
+    await expect(
+      page.getByRole('heading', { level: 1, name: /draw the plan before you build the product/i }),
+    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /start sketching/i }).first()).toBeVisible();
+
+    // The hero scene commits on its own: proposal first, then ink.
+    await expect(page.getByRole('img', { name: /drafting board/i }).first()).toBeVisible();
+
+    // Pricing is driven by the plan constants, not hardcoded copy.
+    await expect(page.getByText(/3 rooms/).first()).toBeVisible();
+    await expect(page.getByText(/40 AI actions a month/).first()).toBeVisible();
+    await expect(page.locator('.lp-plan__price').first()).toContainText('$0');
+
+    // FAQ is a real disclosure, keyboard reachable.
+    const question = page.getByRole('button', { name: /does the ai change my canvas/i });
+    await expect(question).toHaveAttribute('aria-expanded', 'false');
+    await question.click();
+    await expect(question).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByText(/draws dashed proposals in a separate layer/i)).toBeVisible();
+  });
+});
