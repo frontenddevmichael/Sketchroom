@@ -63,6 +63,10 @@ export default defineConfig({
     // Only upload source maps in production
     disable: process.env.NODE_ENV !== 'production',
   })],
+  // @tldraw/assets resolves its icons/fonts/translations through `?url`
+  // imports; Vite's dependency pre-bundler cannot load those, so it must be
+  // left to the normal module graph (the build handles it correctly).
+  optimizeDeps: { exclude: ['@tldraw/assets'] },
   resolve: {
     dedupe: ['react', 'react-dom'],
   },

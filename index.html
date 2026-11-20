@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -36,7 +36,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;500;600;700;800&family=Urbanist:wght@500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <script>document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <!-- Theme is pinned as a static attribute on <html> rather than an inline
+         script: it paints correctly before hydration and keeps the CSP free of
+         script-src 'unsafe-inline'. -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

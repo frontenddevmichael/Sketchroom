@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +18,55 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run lint
-      - run: pnpm run build
-      - run: pnpm test
+
+      - name: Typecheck
+        run: pnpm exec tsc -b
+
+      - name: Lint (zero warnings)
+        run: pnpm exec eslint . --max-warnings=0
+
+      - name: Unit tests
+        run: pnpm exec vitest run
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Bundle budget
+        run: |
+          # tldraw is a known-heavy, route-lazy vendor chunk. The budget exists
+          # to catch it (or any other vendor) growing silently, not to reward
+          # shrinking it.
+          node --input-type=module <<'EOF'
+          import { readdirSync, statSync } from 'node:fs';
+          import { join } from 'node:path';
+
+          const BUDGETS = { tldraw: 2_100_000 };
+          const HARD_CAP = 3_000_000;
+          let failed = false;
+          for (const file of readdirSync('dist/assets')) {
+            const size = statSync(join('dist/assets', file)).size;
+            for (const [name, budget] of Object.entries(BUDGETS)) {
+              if (file.startsWith(`${name}-`) && file.endsWith('.js') && size > budget) {
+                console.error(`${file} is ${size} B, over the ${budget} B budget for ${name}`);
+                failed = true;
+              }
+            }
+            if (file.endsWith('.js') && size > HARD_CAP) {
+              console.error(`${file} is ${size} B, over the ${HARD_CAP} B hard cap`);
+              failed = true;
+            }
+          }
+          process.exit(failed ? 1 : 0);
+          EOF
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Smoke (harness, stubbed backend)
+        run: pnpm run test:smoke
+
+      - name: Audit (production dependencies, high severity)
+        run: pnpm audit --prod --audit-level high
+        continue-on-error: true
