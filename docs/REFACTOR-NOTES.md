@@ -41,8 +41,15 @@ from `RoomScreen.css`):
 | `CanvasOnboardingSketch` | `src/room/OnboardingSketch.tsx` | 26 |
 | `RoomCanvasBoot` | `src/room/RoomBoot.tsx` + `RoomBoot.css` | 44 |
 | `RoomCoachmarks`, `CoachmarkPill` | `src/room/RoomCoachmarks.tsx` + `.css` | 150 |
+| top bar JSX (3 zones, save pill, presence, actions, ⋯ menu) | `src/room/RoomTopbar.tsx` + `RoomTopbar.css` (328 rules moved) | 130 |
 
-`RoomScreen.tsx` is down to 1,693 lines and its CSS to 1,816.
+`RoomScreen.tsx` is down to 1,574 lines and its CSS to 1,491.
+
+The top bar takes props instead of reaching into screen state, and owns its
+sound toggle, which also fixed a small bug: the mute button never changed icon
+because the old markup read `isSoundEnabled()` during a render nothing
+triggered. Responsive and surface-override rules that mention `.room-topbar`
+still live in `RoomScreen.css`; they move with the bar's rebuild.
 
 Kept as-is for now, with reasons: `RoomScreen` itself (it is the data owner —
 Convex queries, mutations, the save pipeline and the canvas handle), and the

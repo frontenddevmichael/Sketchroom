@@ -14,8 +14,8 @@ import {
 } from '../canvas';
 import type { CanvasApi, CanvasTool, SceneDocument } from '../canvas';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
-import { Blocks, History, Download, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, HelpCircle, X, ArrowLeft, Pencil, User, MoreHorizontal, MessageSquare, Volume2, VolumeX } from 'lucide-react';
-import { playPop, toggleSound, isSoundEnabled } from '../utils/sound';
+import { Blocks, Sparkles, MousePointer2, PenTool, StickyNote, Type, Spline, Shapes, Eraser, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, X, MessageSquare } from 'lucide-react';
+import { playPop } from '../utils/sound';
 import { useLongLoad } from '../hooks/useLongLoad';
 import { useModalFocus } from '../lib/useModalFocus';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -53,6 +53,8 @@ import '../components/CommentPins.css';
 import { OnboardingSketch } from '../room/OnboardingSketch';
 import { RoomBoot } from '../room/RoomBoot';
 import { RoomCoachmarks } from '../room/RoomCoachmarks';
+import { RoomTopbar } from '../room/RoomTopbar';
+import type { RoomTopbarStatus } from '../room/RoomTopbar';
 
 // Presence is monochrome, so collaborators are separated by ink weight and by
 // their name label rather than by hue. Six steps of the ramp, dark to light.
@@ -1018,10 +1020,8 @@ export function RoomScreen() {
 
   if (room === null) return null;
 
-  const userRole = room.userRole;
-
   // One computed save/sync status instead of competing pill variants.
-  const statusPill =
+  const statusPill: Omit<RoomTopbarStatus, 'key'> | null =
     !isConnected && saveStatus !== 'offline'
       ? { tone: 'warn', label: 'Reconnecting…' }
       : saveStatus === 'offline'
@@ -1046,149 +1046,29 @@ export function RoomScreen() {
 
   return (
     <div className={`room-screen${effectiveFocus ? ' focusing' : ''}${wtActive && wtStep < 3 ? ' walkthrough' : ''}`}>
-      <div className="room-topbar glass">
-        {/* Left zone: back + room name. The name sits on its own canvas-sized
-            footprint (clamped width) so the center zone — not a void — fills
-            the topbar between it and the actions. */}
-        <div className="room-topbar-left">
-          <button className="room-back-btn" onClick={() => navigate('/dashboard')} aria-label="Back to dashboard">
-            <ArrowLeft size={18} />
-          </button>
-          <div className="room-name-wrap">
-            <input
-              className="room-name-input"
-              defaultValue={room.name}
-              aria-label="Room name"
-              readOnly={userRole === 'viewer'}
-              onBlur={(e) => saveRoomName(e.currentTarget.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                if (e.key === 'Escape') (e.target as HTMLInputElement).blur();
-              }}
-            />
-            {!isReadOnly && (
-              <span className="room-name-pencil" aria-hidden="true">
-                <Pencil size={13} />
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Center zone — the room pulse: save/connection status + live
-            presence live in the free flex space. They appear and change
-            without ever shifting the right-side actions, because this zone
-            absorbs layout instead of pushing it. */}
-        <div className="room-topbar-center">
-          {statusPill && (
-            /* key=saveStatus remounts the pill on every state change so the
-               entrance spring and the Saved checkmark re-draw each time — the
-               confirmation is a tiny flourish, not just a text swap. */
-            <span key={saveStatus} className={`room-status-pill room-status-${statusPill.tone}`}>
-              {statusPill.tone === 'ok' ? (
-                <svg className="room-status-check" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                  <path pathLength={1} d="M2.5 6.2 4.9 8.6 9.5 3.6" />
-                </svg>
-              ) : (
-                <span className="room-status-dot" />
-              )}
-              {statusPill.label}
-            </span>
-          )}
-          {presenceList.length > 0 ? (
-            <div className="room-presence-avatars">
-              {presenceList.slice(0, 5).map((p) => (
-                <span key={p.userId} className="room-presence-avatar" title={p.name}>
-                  {p.avatarUrl ? (
-                    <img src={p.avatarUrl} alt={p.name} />
-                  ) : (
-                    <span>{p.name.charAt(0).toUpperCase()}</span>
-                  )}
-                </span>
-              ))}
-              {presenceList.length > 5 && (
-                <span
-                  className="room-presence-avatar room-presence-more"
-                  title={`${presenceList.length - 5} more`}
-                >
-                  +{presenceList.length - 5}
-                </span>
-              )}
-            </div>
-          ) : (
-            /* Working solo: a quiet, non-alarming absence of presence UI —
-               not an empty-state moment, just a muted note that no one else
-               is here right now. */
-            <span className="room-presence-solo" role="note">
-              <User size={12} />
-              Just you
-            </span>
-          )}
-        </div>
-
-        <div className="room-topbar-right">
-          <button
-            className="room-icon-btn room-topbar-hideable"
-            title={isSoundEnabled() ? 'Mute sound' : 'Enable sound'}
-            aria-label={isSoundEnabled() ? 'Mute sound' : 'Enable sound'}
-            onClick={() => {
-              const updated = toggleSound();
-              if (updated) playPop(520);
-            }}
-          >
-            {isSoundEnabled() ? <Volume2 size={18} /> : <VolumeX size={18} />}
-          </button>
-          <button className="room-icon-btn room-topbar-hideable" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" onClick={() => setShowShortcuts(true)}>
-            <HelpCircle size={18} />
-          </button>
-          <button className={`room-icon-btn ${activePanel === 'history' ? 'active' : ''}`} title="Version history" aria-label="Version history" onClick={() => togglePanel('history')}>
-            <History size={18} />
-          </button>
-          <button className="room-icon-btn room-topbar-hideable" title="Export" aria-label="Export" onClick={() => setShowExport(true)}>
-            <Download size={18} />
-          </button>
-          {!isReadOnly && (
-            <button ref={shareBtnRef} className="room-share-btn" onClick={() => setShowShare(true)}>
-              Share
-            </button>
-          )}
-          <div className="room-topbar-more" ref={moreRef}>
-            <button
-              className="room-icon-btn room-topbar-more-btn"
-              title="More actions"
-              aria-label="More actions"
-              aria-haspopup="menu"
-              aria-expanded={moreMenuOpen}
-              onClick={() => setMoreMenuOpen((o) => !o)}
-            >
-              <MoreHorizontal size={18} />
-            </button>
-            {moreMenuOpen && (
-              <div className="room-more-menu glass" role="menu" aria-label="More actions">
-                <button
-                  role="menuitem"
-                  onClick={() => {
-                    setShowShortcuts(true);
-                    setMoreMenuOpen(false);
-                  }}
-                >
-                  <HelpCircle size={14} />
-                  Keyboard shortcuts
-                </button>
-                <button
-                  role="menuitem"
-                  onClick={() => {
-                    setShowExport(true);
-                    setMoreMenuOpen(false);
-                  }}
-                >
-                  <Download size={14} />
-                  Export
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <RoomTopbar
+        roomName={room.name}
+        canRename={!isReadOnly}
+        status={statusPill ? { ...statusPill, key: saveStatus } : null}
+        presence={presenceList}
+        historyOpen={activePanel === 'history'}
+        moreMenuOpen={moreMenuOpen}
+        onBack={() => navigate('/dashboard')}
+        onRename={saveRoomName}
+        onToggleHistory={() => togglePanel('history')}
+        onOpenShortcuts={() => {
+          setShowShortcuts(true);
+          setMoreMenuOpen(false);
+        }}
+        onOpenExport={() => {
+          setShowExport(true);
+          setMoreMenuOpen(false);
+        }}
+        onOpenShare={() => setShowShare(true)}
+        onToggleMore={() => setMoreMenuOpen((open) => !open)}
+        shareBtnRef={shareBtnRef}
+        moreRef={moreRef}
+      />
 
       <div className="room-stage">
           <div className="room-canvas" ref={canvasRef}>
