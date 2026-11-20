@@ -15,7 +15,8 @@ interface Particle {
   decay: number;
 }
 
-const COLORS = ['#FFE600', '#FF5A5F', '#00F2FE', '#9B51E0', '#FF6584', '#25D366', '#3DD877'];
+// Blueprint: celebration is ink and paper, never a rainbow.
+const COLORS = ['#0A0A0A', '#3F3F3F', '#5C5C5C', '#8A8A8A', '#A8A8A8', '#CFCFCF', '#FFFFFF'];
 
 export function burstConfetti(originX?: number, originY?: number, count = 40) {
   if (typeof window === 'undefined') return;

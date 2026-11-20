@@ -70,20 +70,23 @@ const COLORS: TLDefaultColorStyle[] = [
   'white',
 ];
 
+// tldraw's colour style is fixed in the document schema, so the names stay and
+// the values become the Blueprint ink ramp: the swatches are an ink scale, not
+// a hue picker. Line weight and dash carry meaning; colour no longer does.
 const COLOR_HEX: Record<TLDefaultColorStyle, string> = {
-  black: '#1d1d1d',
-  grey: '#9b9b9b',
-  'light-violet': '#e3d9ff',
-  violet: '#7b61ff',
-  blue: '#3b82f6',
-  'light-blue': '#c3e2ff',
-  yellow: '#f3d53d',
-  orange: '#ff943d',
-  green: '#34c26b',
-  'light-green': '#c9f2a0',
-  'light-red': '#ffaaaa',
-  red: '#ef4b4b',
-  white: '#ffffff',
+  black: '#0A0A0A',
+  grey: '#5C5C5C',
+  violet: '#2E2E2E',
+  blue: '#3F3F3F',
+  green: '#6B6B6B',
+  orange: '#8A8A8A',
+  yellow: '#A1A1A1',
+  red: '#C6C6C6',
+  'light-violet': '#CFCFCF',
+  'light-blue': '#DBDBDB',
+  'light-green': '#E4E4E4',
+  'light-red': '#EDEDED',
+  white: '#FFFFFF',
 };
 
 const DASHES: { value: TLDefaultDashStyle; label: string }[] = [

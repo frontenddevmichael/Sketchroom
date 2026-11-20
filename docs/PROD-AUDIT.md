@@ -70,3 +70,23 @@ deleted (unreferenced). Kept: `harness.html` (Playwright `webServer.url`),
   fields) — **blocked on the Paystack-vs-Stripe and Team-price decision**.
   No entitlements code was written, so nothing is half-landed.
 - Two-user Playwright e2e, CI budget/a11y gates, README rewrite, CSP hardening.
+
+## Monochrome sweep (Prompt 1, step 4)
+
+Colour was defined in four places; three are now closed:
+
+| Source | Before | After |
+| --- | --- | --- |
+| App CSS | 42 files using green/neutral/playful tokens + 30 stranded literals | `design/tokens.css` only; zero `oklch()`, zero hue hex |
+| tldraw picker | 13 hue swatches | the same 13 names mapped onto an ink ramp (`ToolOptions.tsx`, `VersionHistory.tsx` previews) |
+| Presence | six brand hues | six ink steps, distinguished by name label |
+| Transactional email | green accent + WhatsApp-green CTA + 16px/999px radii | ink/paper/greys, 4px radius (email clients ignore CSS vars, so the hexes are literal and documented in-file) |
+| Confetti | seven saturated colours | ink ramp |
+
+**Still open — the tldraw canvas renderer.** The picker now offers greys, but
+tldraw resolves a shape's *stored* colour name through its own theme, so a
+document containing `colour: "red"` still paints red. tldraw 5.3 exposes
+`ThemeManager`, `registerColorsFromThemes`, `resolveThemes` and `DEFAULT_THEME`;
+this needs the v5 theme-registration API verified against its docs before
+wiring, not a guess. Nothing here mutates that API yet, so canvas colour is the
+one place the monochrome rule is not yet enforced.

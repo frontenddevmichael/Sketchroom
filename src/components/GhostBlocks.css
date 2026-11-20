@@ -14,8 +14,8 @@
   padding: 10px 12px;
   border-radius: var(--r-2);
   border: 1.5px dashed var(--hair-strong);
-  background: rgba(13, 24, 18, 0.82);
-  color: #e5f6ec;
+  background: var(--surface);
+  color: var(--ink);
   font-size: var(--fs-sm);
   font-weight: 600;
   letter-spacing: 0.02em;

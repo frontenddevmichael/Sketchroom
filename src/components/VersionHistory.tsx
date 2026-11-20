@@ -128,20 +128,22 @@ const THUMB_W = 56;
 const THUMB_H = 40;
 const THUMB_PAD = 3;
 
+// Snapshots may hold any tldraw colour name; previews resolve them onto the
+// same ink ramp the canvas uses, so an old rainbow board reads as greys.
 const PREVIEW_COLORS: Record<string, string> = {
-  black: '#1d1d1d',
-  grey: '#9b9b9b',
-  blue: '#3b82f6',
-  'light-blue': '#c3e2ff',
-  violet: '#7b61ff',
-  'light-violet': '#e3d9ff',
-  red: '#ef4b4b',
-  'light-red': '#ffaaaa',
-  orange: '#ff943d',
-  yellow: '#f3d53d',
-  green: '#34c26b',
-  'light-green': '#c9f2a0',
-  white: '#e8e8e8',
+  black: '#0A0A0A',
+  grey: '#5C5C5C',
+  violet: '#2E2E2E',
+  blue: '#3F3F3F',
+  green: '#6B6B6B',
+  orange: '#8A8A8A',
+  yellow: '#A1A1A1',
+  red: '#C6C6C6',
+  'light-violet': '#CFCFCF',
+  'light-blue': '#DBDBDB',
+  'light-green': '#E4E4E4',
+  'light-red': '#EDEDED',
+  white: '#FFFFFF',
 };
 
 function extractShapes(data: string): ShapeRecord[] {
@@ -174,7 +176,7 @@ interface PreviewShape {
 function previewShape(s: ShapeRecord): PreviewShape {
   const x = s.x ?? 0;
   const y = s.y ?? 0;
-  const color = PREVIEW_COLORS[s.props?.color ?? 'black'] ?? '#1d1d1d';
+  const color = PREVIEW_COLORS[s.props?.color ?? 'black'] ?? '#0A0A0A';
   if (s.type === 'arrow') return { x, y, w: 44, h: 16, arrow: true, color };
   const w = s.props?.w;
   const h = s.props?.h;

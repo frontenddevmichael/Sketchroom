@@ -43,19 +43,19 @@ function htmlFor(kind: EmailKind, code: string): string {
     kind === "verify"
       ? "Use the code below to finish signing in to Sketchroom."
       : "Enter the code below to choose a new password. It expires in 10 minutes.";
-  const brand = "#20201E";
-  const accent = "#2F6B3F";
+  const brand = "#0A0A0A";
+  const accent = "#8A8A8A";
   return `
-  <div style="background:#F7F7F5;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-    <div style="max-width:420px;margin:0 auto;background:#FFFFFF;border:1px solid #ECECE8;border-radius:16px;padding:32px;">
-      <div style="font-size:15px;font-weight:700;color:${brand};margin-bottom:16px;">✏️ Sketchroom</div>
+  <div style="background:#FAFAFA;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:420px;margin:0 auto;background:#FFFFFF;border:1px solid #E4E4E4;border-radius:4px;padding:32px;">
+      <div style="font-size:15px;font-weight:700;color:${brand};margin-bottom:16px;">Sketchroom</div>
       <h1 style="font-size:19px;line-height:1.3;color:${brand};margin:0 0 8px;">${headline}</h1>
-      <p style="font-size:14px;line-height:1.5;color:#5C5C57;margin:0 0 24px;">${body}</p>
+      <p style="font-size:14px;line-height:1.5;color:#3F3F3F;margin:0 0 24px;">${body}</p>
       <div style="text-align:center;padding:20px 0 24px;">
         <span style="display:inline-block;font-size:28px;font-weight:700;letter-spacing:8px;color:${brand};font-variant-numeric:tabular-nums;">${code}</span>
       </div>
-      <p style="font-size:12px;line-height:1.5;color:#8A8A84;margin:0;">If you didn't request this, you can safely ignore this email — your account stays protected.</p>
-      <div style="margin-top:24px;padding-top:16px;border-top:1px solid #ECECE8;font-size:12px;color:${accent};">Sketchroom — think together, in the open.</div>
+      <p style="font-size:12px;line-height:1.5;color:#8A8A8A;margin:0;">If you didn't request this, you can safely ignore this email — your account stays protected.</p>
+      <div style="margin-top:24px;padding-top:16px;border-top:1px solid #E4E4E4;font-size:12px;color:${accent};">Sketchroom — think together, in the open.</div>
     </div>
   </div>`;
 }
@@ -138,8 +138,8 @@ export const sendInviteEmail = internalAction({
     const inviterName = args.inviterName?.trim() || "Someone";
     const roomName = args.roomName.trim() || "a room";
 
-    const brand = "#20201E";
-    const eyebrow = "#2F6B3F";
+    const brand = "#0A0A0A";
+    const eyebrow = "#8A8A8A";
     const htmlName = emailSafe(inviterName);
     const htmlRoom = emailSafe(roomName);
 
@@ -156,20 +156,20 @@ export const sendInviteEmail = internalAction({
         "The invite link expires in 7 days. If you didn't expect this invitation, you can safely ignore it.",
       ].join("\n"),
       html: `
-  <div style="background:#F7F7F5;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-    <div style="max-width:440px;margin:0 auto;background:#FFFFFF;border:1px solid #ECECE8;border-radius:16px;padding:32px;">
-      <div style="font-size:15px;font-weight:700;color:${brand};margin-bottom:16px;">\u270f\ufe0f Sketchroom</div>
+  <div style="background:#FAFAFA;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:440px;margin:0 auto;background:#FFFFFF;border:1px solid #E4E4E4;border-radius:4px;padding:32px;">
+      <div style="font-size:15px;font-weight:700;color:${brand};margin-bottom:16px;">Sketchroom</div>
       <h1 style="font-size:19px;line-height:1.3;color:${brand};margin:0 0 8px;">You're in — the room is open</h1>
-      <p style="font-size:14px;line-height:1.6;color:#5C5C57;margin:0 0 24px;">
+      <p style="font-size:14px;line-height:1.6;color:#3F3F3F;margin:0 0 24px;">
         <strong>${htmlName}</strong> invited you to
         <strong>\u201c${htmlRoom}\u201d</strong> as ${roleLabel} on Sketchroom.
         Sketch the plan together, live.
       </p>
       <div style="text-align:center;padding:4px 0 24px;">
-        <a href="${inviteUrl}" style="display:inline-block;background:#25D366;color:#FFFFFF;font-size:15px;font-weight:700;text-decoration:none;padding:13px 28px;border-radius:999px;">Open the room</a>
+        <a href="${inviteUrl}" style="display:inline-block;background:#0A0A0A;color:#FFFFFF;font-size:15px;font-weight:700;text-decoration:none;padding:13px 28px;border-radius:4px;">Open the room</a>
       </div>
-      <p style="font-size:12px;line-height:1.5;color:#8A8A84;margin:0;">The invite link expires in 7 days. If you didn't expect this invitation, you can safely ignore it.</p>
-      <div style="margin-top:24px;padding-top:16px;border-top:1px solid #ECECE8;font-size:12px;color:${eyebrow};">Sketchroom — think together, in the open.</div>
+      <p style="font-size:12px;line-height:1.5;color:#8A8A8A;margin:0;">The invite link expires in 7 days. If you didn't expect this invitation, you can safely ignore it.</p>
+      <div style="margin-top:24px;padding-top:16px;border-top:1px solid #E4E4E4;font-size:12px;color:${eyebrow};">Sketchroom — think together, in the open.</div>
     </div>
   </div>`,
     });

@@ -91,7 +91,7 @@
   padding: var(--sp-3);
   border-radius: var(--r-3);
   background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  color: var(--danger);
   font-size: 13px;
 }
 

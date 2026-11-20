@@ -142,7 +142,7 @@
 
 .share-error {
   font-size: 13px;
-  color: #c0392b;
+  color: var(--danger);
   margin: 0 0 var(--sp-3);
 }
 
@@ -239,7 +239,7 @@
 }
 
 .share-remove:hover {
-  color: #c0392b;
+  color: var(--danger);
 }
 
 .share-remove-confirm {
@@ -249,7 +249,7 @@
 }
 
 .share-remove-confirm .share-remove-danger {
-  color: #c0392b;
+  color: var(--danger);
   font-weight: 600;
 }
 
@@ -329,15 +329,15 @@
 }
 
 [data-theme="dark"] .share-error {
-  color: #ff8a7a;
+  color: var(--danger);
 }
 
 [data-theme="dark"] .share-remove:hover {
-  color: #ff8a7a;
+  color: var(--danger);
 }
 
 [data-theme="dark"] .share-remove-confirm .share-remove-danger {
-  color: #ff8a7a;
+  color: var(--danger);
 }
 /* ── Loading + empty states ────────────────────────────────────────────── */
 .share-members-skel {

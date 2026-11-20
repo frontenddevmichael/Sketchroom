@@ -665,11 +665,9 @@ type RoomDoc = {
   members?: { avatars: { name: string; avatarUrl?: string }[]; plusCount: number };
 };
 
-const ROOM_PREVIEW_COLORS = [
-  'oklch(0.22 0.04 160)', 'oklch(0.24 0.06 220)',
-  'oklch(0.20 0.05 30)',  'oklch(0.25 0.04 280)',
-  'oklch(0.22 0.03 50)',  'oklch(0.23 0.05 190)',
-];
+// Blueprint: every room preview is the same paper tile. A card's colour used to
+// encode nothing; now the content does.
+const ROOM_PREVIEW_BG = 'var(--tile)';
 
 function RoomCard({
   room,
@@ -693,7 +691,6 @@ function RoomCard({
   deleteRoom: ReturnType<typeof useMutation<typeof api.features.rooms.deleteRoom>>;
 }) {
   const navigate = useNavigate();
-  const colorIndex = index % ROOM_PREVIEW_COLORS.length;
   const hasMembers = !!room.members && (room.members.avatars.length + room.members.plusCount) > 1;
   const isKebabOpen = kebabFor === room._id;
 
@@ -704,17 +701,17 @@ function RoomCard({
       style={{ '--i': index } as React.CSSProperties}
     >
       {/* Preview */}
-      <div className="preview" style={{ background: ROOM_PREVIEW_COLORS[colorIndex] }}>
+      <div className="preview" style={{ background: ROOM_PREVIEW_BG }}>
         {room.thumbnailData ? (
           <img src={room.thumbnailData} alt={`Preview of ${room.name}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <svg viewBox="0 0 240 135" fill="none" aria-hidden="true" style={{ width: '100%', height: '100%' }}>
-            <rect x="20" y="18" width="56" height="36" rx="6" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
-            <rect x="90" y="18" width="56" height="36" rx="6" stroke="rgba(255,255,255,0.08)" strokeWidth="1.5" />
-            <rect x="160" y="18" width="56" height="36" rx="6" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
-            <path d="M76 36h14M146 36h14" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
-            <rect x="30" y="70" width="80" height="8" rx="3" fill="rgba(255,255,255,0.08)" />
-            <rect x="30" y="86" width="50" height="6" rx="3" fill="rgba(255,255,255,0.05)" />
+            <rect x="20" y="18" width="56" height="36" rx="6" stroke="var(--ink-3)" strokeWidth="1" />
+            <rect x="90" y="18" width="56" height="36" rx="6" stroke="var(--hair-strong)" strokeWidth="1" />
+            <rect x="160" y="18" width="56" height="36" rx="6" stroke="var(--ink-3)" strokeWidth="1" />
+            <path d="M76 36h14M146 36h14" stroke="var(--ink-3)" strokeWidth="1" strokeDasharray="2 3" />
+            <rect x="30" y="70" width="80" height="8" rx="2" fill="var(--hair)" />
+            <rect x="30" y="86" width="50" height="6" rx="2" fill="var(--hair)" />
           </svg>
         )}
         {hasMembers && (
@@ -775,9 +772,7 @@ function RoomCard({
           {room.members && room.members.avatars.length > 0 ? (
             <div className="avatars" aria-label={`${room.members.avatars.length + room.members.plusCount} members`}>
               {room.members.avatars.slice(0, 3).map((m, i) => (
-                <span key={i} className="a" title={m.name} style={{
-                  background: ROOM_PREVIEW_COLORS[i % ROOM_PREVIEW_COLORS.length],
-                }}>
+                <span key={i} className="a" title={m.name} style={{ background: 'var(--fill-3)' }}>
                   {m.avatarUrl ? <img src={m.avatarUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : m.name.charAt(0).toUpperCase()}
                 </span>
               ))}

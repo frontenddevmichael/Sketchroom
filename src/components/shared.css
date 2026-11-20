@@ -337,12 +337,12 @@
 
 .btn-danger {
   background: transparent;
-  color: #c0392b;
-  border: 1px solid #e8c8c8;
+  color: var(--danger);
+  border: 1px solid var(--hair-strong);
 }
 
 .btn-danger:hover {
-  background: #fdf1f0;
+  background: var(--fill-2);
 }
 
 [data-theme="dark"] .error-screen {
@@ -362,7 +362,7 @@
 }
 
 [data-theme="dark"] .btn-danger {
-  color: #ff8a7a;
+  color: var(--danger);
   border-color: rgba(255, 99, 71, 0.35);
 }
 
@@ -385,7 +385,7 @@
 
 [data-theme="dark"] .user-menu-item-danger:hover {
   background: rgba(255, 99, 71, 0.12);
-  color: #ff8a7a;
+  color: var(--danger);
 }/* ── Phone bottom tab bar ──────────────────────────────────────────────────
    Shared by Dashboard, Billing, and Settings: below 720px the desktop side
    rails step aside and this fixed bar carries the four destinations with

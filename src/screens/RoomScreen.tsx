@@ -55,7 +55,9 @@ import '../components/PlacementPulses.css';
 import '../components/FocusDim.css';
 import '../components/CommentPins.css';
 
-const PRESENCE_COLORS = ['#25D366', '#4A90D9', '#D9664A', '#9B59B6', '#E67E22', '#16A085'];
+// Presence is monochrome, so collaborators are separated by ink weight and by
+// their name label rather than by hue. Six steps of the ramp, dark to light.
+const PRESENCE_COLORS = ['#0A0A0A', '#2E2E2E', '#4A4A4A', '#6B6B6B', '#8F8F8F', '#B4B4B4'];
 
 function presenceColorFor(id: string): string {
   let hash = 0;
